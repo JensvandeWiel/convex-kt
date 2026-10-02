@@ -15,6 +15,7 @@
  */
 package eu.wynq.convex.auth
 
+import eu.wynq.convex.core.ConvexException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -69,7 +70,7 @@ public enum class JwtAlgorithm(public val wireName: String, public val keyType: 
 public class ConvexJwtException(
     message: String,
     cause: Throwable? = null,
-) : IllegalArgumentException(message, cause)
+) : ConvexException(message, cause)
 
 /**
  * A JSON Web Key, reduced to the fields Convex tokens need.

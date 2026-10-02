@@ -15,10 +15,12 @@
  */
 package eu.wynq.convex.client
 
+import eu.wynq.convex.core.ConvexException
+
 /**
  * Thrown when the client itself cannot complete an operation, as opposed to the
  * server returning an error result.
  *
  * @property message what went wrong.
  */
-public class ConvexClientException(message: String) : Exception(message)
+public class ConvexClientException(message: String) : ConvexException(message)

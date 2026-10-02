@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.wynq.convex.core.value
-
-import eu.wynq.convex.core.ConvexException
+package eu.wynq.convex.core
 
 /**
- * Thrown when a JSON document cannot be decoded into a [ConvexValue], or a
- * value cannot be encoded.
+ * The root of every failure `convex-kt` throws.
  *
- * Decoding is strict on purpose: the Convex wire format has ambiguous corners
- * (a tagged `$float` that would have fit in a plain number, retired `$set` and
- * `$map` types), and accepting them would hide a protocol mismatch instead of
- * surfacing it at the boundary.
+ * A single base lets an application catch all client failures at one point
+ * (`catch (e: ConvexException)`) while still distinguishing causes by subtype,
+ * and it keeps the library's exceptions out of the standard types an app may
+ * already catch for unrelated reasons.
  *
- * @property message why decoding failed.
+ * @property message what went wrong.
+ * @property cause the underlying failure, when there is one.
  */
-public class ConvexJsonException(
+public open class ConvexException(
     message: String,
     cause: Throwable? = null,
-) : ConvexException(message, cause)
+) : RuntimeException(message, cause)

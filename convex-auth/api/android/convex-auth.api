@@ -1,4 +1,4 @@
-public final class eu/wynq/convex/auth/ConvexJwtException : java/lang/IllegalArgumentException {
+public final class eu/wynq/convex/auth/ConvexJwtException : eu/wynq/convex/core/ConvexException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }

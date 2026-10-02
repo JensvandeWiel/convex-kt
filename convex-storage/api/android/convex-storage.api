@@ -10,8 +10,9 @@ public final class eu/wynq/convex/storage/ConvexStorageClient {
 	public static synthetic fun uploadFile$default (Leu/wynq/convex/storage/ConvexStorageClient;[BLjava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
-public final class eu/wynq/convex/storage/ConvexStorageException : java/lang/RuntimeException {
-	public fun <init> (Ljava/lang/String;I)V
+public final class eu/wynq/convex/storage/ConvexStorageException : eu/wynq/convex/core/ConvexException {
+	public fun <init> (Ljava/lang/String;ILjava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getStatusCode ()I
 }
 

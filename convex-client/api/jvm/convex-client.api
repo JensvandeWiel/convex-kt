@@ -2,7 +2,7 @@ public abstract interface class eu/wynq/convex/client/AuthTokenFetcher {
 	public abstract fun fetch (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class eu/wynq/convex/client/ConvexClientException : java/lang/Exception {
+public final class eu/wynq/convex/client/ConvexClientException : eu/wynq/convex/core/ConvexException {
 	public fun <init> (Ljava/lang/String;)V
 }
 

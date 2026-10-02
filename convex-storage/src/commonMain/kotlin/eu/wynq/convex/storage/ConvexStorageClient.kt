@@ -15,6 +15,7 @@
  */
 package eu.wynq.convex.storage
 
+import eu.wynq.convex.core.ConvexException
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
@@ -40,7 +41,8 @@ import kotlinx.serialization.json.jsonPrimitive
 public class ConvexStorageException(
     message: String,
     public val statusCode: Int,
-) : RuntimeException(message)
+    cause: Throwable? = null,
+) : ConvexException(message, cause)
 
 /**
  * The file storage HTTP API.
