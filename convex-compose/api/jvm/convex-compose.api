@@ -17,6 +17,7 @@ public final class eu/wynq/convex/compose/QueryController {
 }
 
 public final class eu/wynq/convex/compose/QueryKt {
+	public static final fun rememberQuery (Leu/wynq/convex/client/ConvexSyncClient;Leu/wynq/convex/core/functions/ConvexFunction;Ljava/util/Map;Leu/wynq/convex/compose/ConvexDecoder;Landroidx/compose/runtime/Composer;II)Leu/wynq/convex/compose/QueryState;
 	public static final fun rememberQuery (Leu/wynq/convex/client/ConvexSyncClient;Ljava/lang/String;Ljava/util/Map;Leu/wynq/convex/compose/ConvexDecoder;Landroidx/compose/runtime/Composer;II)Leu/wynq/convex/compose/QueryState;
 }
 

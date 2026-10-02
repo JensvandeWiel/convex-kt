@@ -59,12 +59,24 @@ public sealed interface TransitionOutcome {
 public class RemoteQuerySet {
     private var currentVersion = StateVersion(QuerySetVersion(0u), IdentityVersion(0u), Timestamp(0u))
     private val results = mutableMapOf<QueryId, ConvexResult>()
+    private val journals = mutableMapOf<QueryId, String?>()
 
     /** The version the server state is currently at. */
     public val version: StateVersion get() = currentVersion
 
     /** The latest result for [queryId], or `null` when unknown. */
     public fun result(queryId: QueryId): ConvexResult? = results[queryId]
+
+    /**
+     * The pagination journal most recently reported for [queryId], if any.
+     *
+     * A reconnect resends subscriptions with these journals so paginated queries
+     * resume where they left off instead of restarting.
+     *
+     * @param queryId the query.
+     * @return the journal, or `null`.
+     */
+    public fun journal(queryId: QueryId): String? = journals[queryId]
 
     /** A snapshot of every known query result. */
     public fun results(): Map<QueryId, ConvexResult> = results.toMap()
@@ -85,14 +97,17 @@ public class RemoteQuerySet {
             when (modification) {
                 is StateModification.QueryUpdated -> {
                     results[modification.queryId] = ConvexResult.Success(modification.value)
+                    journals[modification.queryId] = modification.journal
                     changed += modification.queryId
                 }
                 is StateModification.QueryFailed -> {
                     results[modification.queryId] = ConvexResult.Failure(payload(modification))
+                    journals[modification.queryId] = modification.journal
                     changed += modification.queryId
                 }
                 is StateModification.QueryRemoved -> {
                     results.remove(modification.queryId)
+                    journals.remove(modification.queryId)
                     changed += modification.queryId
                 }
             }

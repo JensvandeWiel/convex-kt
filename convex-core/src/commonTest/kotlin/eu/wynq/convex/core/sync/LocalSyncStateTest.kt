@@ -109,4 +109,16 @@ class LocalSyncStateTest {
         assertEquals(1u, message.newVersion.value)
         assertEquals(2, message.modifications.size)
     }
+
+    @Test
+    fun resendCarriesTheSuppliedJournal() {
+        val state = LocalSyncState()
+        val subscription = state.subscribe("messages:list")
+
+        val message = assertIs<ClientMessage.ModifyQuerySet>(
+            state.resendQueries { journalFor -> if (journalFor == subscription.subscriberId.queryId) "j1" else null },
+        )
+        val add = assertIs<QuerySetModification.Add>(message.modifications.single())
+        assertEquals("j1", add.query.journal)
+    }
 }

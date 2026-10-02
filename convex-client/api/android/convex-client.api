@@ -21,6 +21,15 @@ public final class eu/wynq/convex/client/ConvexSyncClient {
 	public final fun unsubscribe (Leu/wynq/convex/core/sync/SubscriberId;)V
 }
 
+public final class eu/wynq/convex/client/FunctionsKt {
+	public static final fun action (Leu/wynq/convex/client/ConvexSyncClient;Leu/wynq/convex/core/functions/ConvexFunction;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun action$default (Leu/wynq/convex/client/ConvexSyncClient;Leu/wynq/convex/core/functions/ConvexFunction;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun mutate (Leu/wynq/convex/client/ConvexSyncClient;Leu/wynq/convex/core/functions/ConvexFunction;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun mutate$default (Leu/wynq/convex/client/ConvexSyncClient;Leu/wynq/convex/core/functions/ConvexFunction;Ljava/util/Map;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun subscribe (Leu/wynq/convex/client/ConvexSyncClient;Leu/wynq/convex/core/functions/ConvexFunction;Ljava/util/Map;)Leu/wynq/convex/core/sync/SubscriberId;
+	public static synthetic fun subscribe$default (Leu/wynq/convex/client/ConvexSyncClient;Leu/wynq/convex/core/functions/ConvexFunction;Ljava/util/Map;ILjava/lang/Object;)Leu/wynq/convex/core/sync/SubscriberId;
+}
+
 public final class eu/wynq/convex/client/KtorSyncProtocolFactory : eu/wynq/convex/client/SyncProtocolFactory {
 	public fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;)V
 	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

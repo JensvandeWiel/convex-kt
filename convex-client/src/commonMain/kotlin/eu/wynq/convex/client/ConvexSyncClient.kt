@@ -142,7 +142,7 @@ public class ConvexSyncClient(
         }
         sendAuthentication(forceRefresh = reconnecting)
         if (reconnecting) {
-            outgoing.trySend(localState.resendQueries())
+            outgoing.trySend(localState.resendQueries { remoteState.journal(it) })
         }
         senderJob = scope.launch { sendLoop(open) }
         receiverJob = scope.launch {

@@ -672,7 +672,8 @@ public final class eu/wynq/convex/core/sync/LocalSyncState {
 	public fun <init> ()V
 	public final fun authenticate (Leu/wynq/convex/core/protocol/AuthenticationToken;)Leu/wynq/convex/core/protocol/ClientMessage;
 	public final fun getQueryCount ()I
-	public final fun resendQueries ()Leu/wynq/convex/core/protocol/ClientMessage;
+	public final fun resendQueries (Lkotlin/jvm/functions/Function1;)Leu/wynq/convex/core/protocol/ClientMessage;
+	public static synthetic fun resendQueries$default (Leu/wynq/convex/core/sync/LocalSyncState;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/ClientMessage;
 	public final fun resetIdentityVersion ()V
 	public final fun subscribe (Ljava/lang/String;Ljava/util/Map;)Leu/wynq/convex/core/sync/Subscription;
 	public static synthetic fun subscribe$default (Leu/wynq/convex/core/sync/LocalSyncState;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Leu/wynq/convex/core/sync/Subscription;
@@ -682,6 +683,7 @@ public final class eu/wynq/convex/core/sync/LocalSyncState {
 public final class eu/wynq/convex/core/sync/RemoteQuerySet {
 	public fun <init> ()V
 	public final fun getVersion ()Leu/wynq/convex/core/protocol/StateVersion;
+	public final fun journal-RQrkFsg (I)Ljava/lang/String;
 	public final fun result-RQrkFsg (I)Leu/wynq/convex/core/protocol/ConvexResult;
 	public final fun results ()Ljava/util/Map;
 	public final fun transition (Leu/wynq/convex/core/protocol/ServerMessage$Transition;)Leu/wynq/convex/core/sync/TransitionOutcome;

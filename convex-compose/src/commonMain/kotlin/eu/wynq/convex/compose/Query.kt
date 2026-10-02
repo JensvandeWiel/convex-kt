@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import eu.wynq.convex.client.ConvexSyncClient
+import eu.wynq.convex.core.functions.ConvexFunction
 import eu.wynq.convex.core.value.ConvexValue
 
 /**
@@ -53,3 +54,21 @@ public fun <T> rememberQuery(
     val state by controller.state.collectAsState(initial = QueryState.Loading)
     return state
 }
+
+/**
+ * Subscribes to the query described by a [ConvexFunction] descriptor.
+ *
+ * @param T the decoded value type.
+ * @param client the sync client.
+ * @param function a query descriptor from generated code.
+ * @param args the argument object.
+ * @param decoder converts raw values to `T`.
+ * @return the query's current state.
+ */
+@Composable
+public fun <T> rememberQuery(
+    client: ConvexSyncClient,
+    function: ConvexFunction,
+    args: Map<String, ConvexValue> = emptyMap(),
+    decoder: ConvexDecoder<T>,
+): QueryState<T> = rememberQuery(client, function.path, args, decoder)

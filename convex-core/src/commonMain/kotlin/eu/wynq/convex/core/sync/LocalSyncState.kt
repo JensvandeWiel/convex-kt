@@ -168,11 +168,20 @@ public class LocalSyncState {
      * The query-set version is reset to zero, matching the server, which has
      * forgotten the previous session.
      *
+     * @param journalFor supplies each query's pagination journal so paginated
+     *   queries resume rather than restart.
      * @return the message that restores all subscriptions.
      */
-    public fun resendQueries(): ClientMessage {
+    public fun resendQueries(journalFor: (QueryId) -> String? = { null }): ClientMessage {
         val modifications = querySet.values.map { local ->
-            QuerySetModification.Add(Query(local.id, local.udfPath, listOf(ConvexValue.Object(local.args))))
+            QuerySetModification.Add(
+                Query(
+                    queryId = local.id,
+                    udfPath = local.udfPath,
+                    args = listOf(ConvexValue.Object(local.args)),
+                    journal = journalFor(local.id),
+                ),
+            )
         }
         querySetVersion = QuerySetVersion(0u)
         val newVersion = QuerySetVersion(1u)

@@ -106,6 +106,21 @@ class RemoteQuerySetTest {
     }
 
     @Test
+    fun tracksTheJournalFromAQueryUpdate() {
+        val remote = RemoteQuerySet()
+        remote.transition(
+            transition(
+                start = initial,
+                end = version(1u),
+                modifications = listOf(
+                    StateModification.QueryUpdated(QueryId(0u), ConvexValue.Null, emptyList(), "j1"),
+                ),
+            ),
+        )
+        assertEquals("j1", remote.journal(QueryId(0u)))
+    }
+
+    @Test
     fun queryRemovedDropsTheResult() {
         val remote = RemoteQuerySet()
         remote.transition(
