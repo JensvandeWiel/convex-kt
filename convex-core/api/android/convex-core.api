@@ -502,6 +502,71 @@ public final class eu/wynq/convex/core/protocol/Timestamp {
 	public final synthetic fun unbox-impl ()J
 }
 
+public final class eu/wynq/convex/core/sync/LocalSyncState {
+	public fun <init> ()V
+	public final fun authenticate (Leu/wynq/convex/core/protocol/AuthenticationToken;)Leu/wynq/convex/core/protocol/ClientMessage;
+	public final fun getQueryCount ()I
+	public final fun resendQueries ()Leu/wynq/convex/core/protocol/ClientMessage;
+	public final fun subscribe (Ljava/lang/String;Ljava/util/Map;)Leu/wynq/convex/core/sync/Subscription;
+	public static synthetic fun subscribe$default (Leu/wynq/convex/core/sync/LocalSyncState;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Leu/wynq/convex/core/sync/Subscription;
+	public final fun unsubscribe (Leu/wynq/convex/core/sync/SubscriberId;)Leu/wynq/convex/core/protocol/ClientMessage;
+}
+
+public final class eu/wynq/convex/core/sync/RemoteQuerySet {
+	public fun <init> ()V
+	public final fun getVersion ()Leu/wynq/convex/core/protocol/StateVersion;
+	public final fun result-RQrkFsg (I)Leu/wynq/convex/core/protocol/CallResult;
+	public final fun results ()Ljava/util/Map;
+	public final fun transition (Leu/wynq/convex/core/protocol/ServerMessage$Transition;)Leu/wynq/convex/core/sync/TransitionOutcome;
+}
+
+public final class eu/wynq/convex/core/sync/SubscriberId {
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getQueryId-2mWXCjo ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/sync/Subscription {
+	public fun <init> (Leu/wynq/convex/core/protocol/ClientMessage;Leu/wynq/convex/core/sync/SubscriberId;)V
+	public final fun component1 ()Leu/wynq/convex/core/protocol/ClientMessage;
+	public final fun component2 ()Leu/wynq/convex/core/sync/SubscriberId;
+	public final fun copy (Leu/wynq/convex/core/protocol/ClientMessage;Leu/wynq/convex/core/sync/SubscriberId;)Leu/wynq/convex/core/sync/Subscription;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/sync/Subscription;Leu/wynq/convex/core/protocol/ClientMessage;Leu/wynq/convex/core/sync/SubscriberId;ILjava/lang/Object;)Leu/wynq/convex/core/sync/Subscription;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMessage ()Leu/wynq/convex/core/protocol/ClientMessage;
+	public final fun getSubscriberId ()Leu/wynq/convex/core/sync/SubscriberId;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class eu/wynq/convex/core/sync/TransitionOutcome {
+}
+
+public final class eu/wynq/convex/core/sync/TransitionOutcome$Applied : eu/wynq/convex/core/sync/TransitionOutcome {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Leu/wynq/convex/core/sync/TransitionOutcome$Applied;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/sync/TransitionOutcome$Applied;Ljava/util/List;ILjava/lang/Object;)Leu/wynq/convex/core/sync/TransitionOutcome$Applied;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getChangedQueryIds ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/sync/TransitionOutcome$VersionMismatch : eu/wynq/convex/core/sync/TransitionOutcome {
+	public fun <init> (Leu/wynq/convex/core/protocol/StateVersion;Leu/wynq/convex/core/protocol/StateVersion;)V
+	public final fun component1 ()Leu/wynq/convex/core/protocol/StateVersion;
+	public final fun component2 ()Leu/wynq/convex/core/protocol/StateVersion;
+	public final fun copy (Leu/wynq/convex/core/protocol/StateVersion;Leu/wynq/convex/core/protocol/StateVersion;)Leu/wynq/convex/core/sync/TransitionOutcome$VersionMismatch;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/sync/TransitionOutcome$VersionMismatch;Leu/wynq/convex/core/protocol/StateVersion;Leu/wynq/convex/core/protocol/StateVersion;ILjava/lang/Object;)Leu/wynq/convex/core/sync/TransitionOutcome$VersionMismatch;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getActual ()Leu/wynq/convex/core/protocol/StateVersion;
+	public final fun getExpected ()Leu/wynq/convex/core/protocol/StateVersion;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class eu/wynq/convex/core/value/ConvexJson {
 	public static final field INSTANCE Leu/wynq/convex/core/value/ConvexJson;
 	public final fun decode (Ljava/lang/String;)Leu/wynq/convex/core/value/ConvexValue;

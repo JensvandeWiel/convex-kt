@@ -15,6 +15,8 @@
  */
 package eu.wynq.convex.core.protocol
 
+import eu.wynq.convex.core.sync.RemoteQuerySet
+import eu.wynq.convex.core.sync.TransitionOutcome
 import eu.wynq.convex.core.value.ConvexValue
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -24,6 +26,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * Decodes the committed conformance fixtures with the real codecs.
@@ -78,6 +81,22 @@ class ProtocolFixtureTest {
             transitions.last().modifications.single(),
         )
         assertEquals(0u, removed.queryId.value)
+    }
+
+    @Test
+    fun replaysCapturedTransitionsThroughTheStateMachine() {
+        val remote = RemoteQuerySet()
+        val outcomes = readFixture("query-and-mutation", "server-to-client")
+            .map(ServerMessageJson::decode)
+            .filterIsInstance<ServerMessage.Transition>()
+            .map(remote::transition)
+
+        assertTrue(
+            outcomes.all { it is TransitionOutcome.Applied },
+            "captured transitions must apply contiguously, got $outcomes",
+        )
+        // The recording ends by unsubscribing, so no results remain.
+        assertTrue(remote.results().isEmpty(), "expected no results after QueryRemoved")
     }
 
     private fun readFixture(scenario: String, direction: String): List<String> {
