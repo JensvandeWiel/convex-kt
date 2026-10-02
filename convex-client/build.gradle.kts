@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.Test
+
 plugins {
     id("convex-kmp-library")
     alias(libs.plugins.kotlin.serialization)
@@ -28,4 +30,10 @@ kotlin {
             implementation(libs.ktor.client.darwin)
         }
     }
+}
+
+// The conformance fixtures live at the repository root. The JVM test replays
+// captured traffic through the client.
+tasks.named<Test>("jvmTest") {
+    systemProperty("convexkt.fixtures", rootProject.file("conformance/fixtures").absolutePath)
 }

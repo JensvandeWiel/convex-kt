@@ -1,4 +1,23 @@
-public final class eu/wynq/convex/client/ConvexClientModule {
-	public static final field INSTANCE Leu/wynq/convex/client/ConvexClientModule;
+public final class eu/wynq/convex/client/ConvexSyncClient {
+	public synthetic fun <init> (Leu/wynq/convex/client/SyncProtocolFactory;Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Leu/wynq/convex/client/SyncProtocolFactory;Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun action (Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getResults ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun mutate (Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun subscribe (Ljava/lang/String;Ljava/util/Map;)Leu/wynq/convex/core/sync/SubscriberId;
+	public static synthetic fun subscribe$default (Leu/wynq/convex/client/ConvexSyncClient;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Leu/wynq/convex/core/sync/SubscriberId;
+	public final fun unsubscribe (Leu/wynq/convex/core/sync/SubscriberId;)V
+}
+
+public abstract interface class eu/wynq/convex/client/SyncProtocol {
+	public abstract fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun receive (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun send (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class eu/wynq/convex/client/SyncProtocolFactory {
+	public abstract fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
