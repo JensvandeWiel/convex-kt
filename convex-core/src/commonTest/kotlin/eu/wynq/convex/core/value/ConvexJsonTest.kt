@@ -130,6 +130,19 @@ class ConvexJsonTest {
     }
 
     @Test
+    fun valueRoundTripsTrophies() {
+        // The upstream "trophy" values: non-finite floats that JSON cannot hold.
+        val trophies = listOf(
+            ConvexValue.Float64(1.0),
+            ConvexValue.Float64(Double.NaN),
+            ConvexValue.Array(listOf(ConvexValue.Float64(Double.NaN))),
+        )
+        trophies.forEach { value ->
+            assertEquals(value, ConvexJson.decode(ConvexJson.encode(value)))
+        }
+    }
+
+    @Test
     fun retiredSetAndMapAreRejected() {
         assertFailsWith<ConvexJsonException> { ConvexJson.decode("""{"${'$'}set":[]}""") }
         assertFailsWith<ConvexJsonException> { ConvexJson.decode("""{"${'$'}map":{}}""") }

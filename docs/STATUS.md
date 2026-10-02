@@ -28,7 +28,7 @@ this file records the seams that remain.
   from the pinned backend and replayed by tests. CI re-records and fails on
   drift.
 - Parity: `ParityCoverageTest` requires every upstream `convex-rs` test to be
-  accounted for in `parity.yaml` (60 tests; 6 `ported`, the rest `planned`).
+  accounted for in `parity.yaml` (60 tests; 8 `ported`, the rest `planned`).
 
 ## Known gaps
 

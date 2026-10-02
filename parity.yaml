@@ -255,9 +255,11 @@ requirements:
 
   - id: src-value-json-mod-test-value-roundtrips-trophies
     description: "Upstream test 'test_value_roundtrips_trophies' in 'src/value/json/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    status: ported
     upstream:
       - "src/value/json/mod.rs::test_value_roundtrips_trophies"
+    kotlin:
+      - "convex-core.ConvexJsonTest.valueRoundTripsTrophies"
 
   - id: sync-types-src-identifier-test-control-char-as-identifier-start
     description: "Upstream test 'test_control_char_as_identifier_start' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
@@ -333,9 +335,11 @@ requirements:
 
   - id: sync-types-src-types-json-authentication-token-backwards-compatability
     description: "Upstream test 'authentication_token_backwards_compatability' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
-    status: planned
+    status: ported
     upstream:
       - "sync_types/src/types/json.rs::authentication_token_backwards_compatability"
+    kotlin:
+      - "convex-core.ClientMessageJsonTest.decodesLegacyAdminAuthenticate"
 
   - id: sync-types-src-types-json-proptest-client-message-roundtrips
     description: "Upstream test 'proptest_client_message_roundtrips' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."

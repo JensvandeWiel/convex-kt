@@ -20,6 +20,7 @@ import eu.wynq.convex.core.value.ConvexValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 /**
@@ -154,6 +155,16 @@ class ClientMessageJsonTest {
     @Test
     fun unknownTypeIsRejected() {
         assertFailsWith<ConvexJsonException> { ClientMessageJson.decode("""{"type":"Nope"}""") }
+    }
+
+    @Test
+    fun decodesLegacyAdminAuthenticate() {
+        // The upstream `authentication_token_backwards_compatability` shape:
+        // an Admin token with a bare value.
+        val text = """{"type":"Authenticate","tokenType":"Admin","value":"legacy-key","baseVersion":0}"""
+        val decoded = assertIs<ClientMessage.Authenticate>(ClientMessageJson.decode(text))
+        assertEquals(AuthenticationToken.Admin("legacy-key"), decoded.token)
+        assertEquals(0u, decoded.baseVersion.value)
     }
 
     @Test
