@@ -1,0 +1,113 @@
+/*
+ * Copyright 2026 convex-kt contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package eu.wynq.convex.codegen
+
+import eu.wynq.convex.core.functions.ConvexFunction
+import eu.wynq.convex.core.functions.ConvexFunctionKind
+import eu.wynq.convex.core.functions.ConvexValidator
+import eu.wynq.convex.core.functions.ConvexValidatorField
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+
+/**
+ * Parses a Convex `apiSpec` document into [ConvexFunction] descriptors.
+ *
+ * The parser is tolerant of the field-name variations that appear across
+ * Convex versions: a function's path may be given as `name` or as
+ * `module` + `functionName`, and its kind as `functionType` or `type`.
+ * Unknown validator types degrade to [ConvexValidator.Any] rather than failing,
+ * because a newer backend must not break code generation.
+ */
+public object ApiSpecParser {
+    /**
+     * Parses an `apiSpec` document.
+     *
+     * @param specJson the JSON text.
+     * @return the functions it declares, in document order.
+     */
+    public fun parse(specJson: String): List<ConvexFunction> {
+        val root = Json.parseToJsonElement(specJson) as? JsonObject ?: return emptyList()
+        val functions = root["functions"] as? JsonArray ?: return emptyList()
+        return functions.mapNotNull { element ->
+            (element as? JsonObject)?.let(::parseFunction)
+        }
+    }
+
+    private fun parseFunction(obj: JsonObject): ConvexFunction? {
+        val path = obj.string("name")
+            ?: obj.moduleAndName()
+            ?: return null
+        val kindName = obj.string("functionType") ?: obj.string("type") ?: ConvexFunctionKind.QUERY.wireName
+        return ConvexFunction(
+            path = path,
+            kind = ConvexFunctionKind.fromWire(kindName),
+            args = obj["args"]?.let(::parseValidator),
+            returns = obj["returns"]?.let(::parseValidator),
+        )
+    }
+
+    private fun JsonObject.moduleAndName(): String? {
+        val module = string("module") ?: return null
+        val function = string("functionName") ?: return null
+        return "$module:$function"
+    }
+
+    /**
+     * Parses one validator JSON node.
+     *
+     * @param element the validator JSON.
+     * @return the parsed validator.
+     */
+    public fun parseValidator(element: JsonElement): ConvexValidator {
+        val obj = element as? JsonObject ?: return ConvexValidator.Any
+        return when (obj.string("type") ?: TYPE_ANY) {
+            TYPE_ANY -> ConvexValidator.Any
+            "null" -> ConvexValidator.Null
+            "boolean" -> ConvexValidator.Boolean
+            "float64" -> ConvexValidator.Float64
+            "int64" -> ConvexValidator.Int64
+            "bytes" -> ConvexValidator.Bytes
+            "string" -> ConvexValidator.String(obj.string("description"))
+            "id" -> ConvexValidator.Id(obj.string("tableName") ?: obj.string("table").orEmpty())
+            "array" -> ConvexValidator.Array(obj["value"]?.let(::parseValidator) ?: ConvexValidator.Any)
+            "object" -> ConvexValidator.Object(
+                (obj["value"] as? JsonObject)?.mapValues { parseField(it.value) }.orEmpty(),
+            )
+            "union" -> ConvexValidator.Union(
+                (obj["value"] as? JsonArray)?.map(::parseValidator).orEmpty(),
+            )
+            "literal" -> ConvexValidator.Literal(
+                obj["value"]?.let { listOf(it.toString()) }.orEmpty(),
+            )
+            else -> ConvexValidator.Any
+        }
+    }
+
+    private fun parseField(element: JsonElement): ConvexValidatorField {
+        val obj = element as? JsonObject ?: return ConvexValidatorField(ConvexValidator.Any, optional = false)
+        val validator = obj["fieldType"]?.let(::parseValidator) ?: parseValidator(element)
+        val optional = (obj["optional"] as? JsonPrimitive)?.content?.toBooleanStrictOrNull() ?: false
+        return ConvexValidatorField(validator, optional)
+    }
+
+    private fun JsonObject.string(key: String): String? =
+        (this[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
+
+    private const val TYPE_ANY = "any"
+}

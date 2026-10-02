@@ -6,4 +6,5 @@ plugins {
 dependencies {
     api(project(":convex-core"))
     implementation(libs.kotlinx.serialization.json)
+    testImplementation(kotlin("test"))
 }

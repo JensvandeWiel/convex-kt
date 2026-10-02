@@ -1,3 +1,164 @@
+public final class eu/wynq/convex/core/functions/ConvexFunction {
+	public fun <init> (Ljava/lang/String;Leu/wynq/convex/core/functions/ConvexFunctionKind;Leu/wynq/convex/core/functions/ConvexValidator;Leu/wynq/convex/core/functions/ConvexValidator;)V
+	public synthetic fun <init> (Ljava/lang/String;Leu/wynq/convex/core/functions/ConvexFunctionKind;Leu/wynq/convex/core/functions/ConvexValidator;Leu/wynq/convex/core/functions/ConvexValidator;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Leu/wynq/convex/core/functions/ConvexFunctionKind;
+	public final fun component3 ()Leu/wynq/convex/core/functions/ConvexValidator;
+	public final fun component4 ()Leu/wynq/convex/core/functions/ConvexValidator;
+	public final fun copy (Ljava/lang/String;Leu/wynq/convex/core/functions/ConvexFunctionKind;Leu/wynq/convex/core/functions/ConvexValidator;Leu/wynq/convex/core/functions/ConvexValidator;)Leu/wynq/convex/core/functions/ConvexFunction;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/functions/ConvexFunction;Ljava/lang/String;Leu/wynq/convex/core/functions/ConvexFunctionKind;Leu/wynq/convex/core/functions/ConvexValidator;Leu/wynq/convex/core/functions/ConvexValidator;ILjava/lang/Object;)Leu/wynq/convex/core/functions/ConvexFunction;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArgs ()Leu/wynq/convex/core/functions/ConvexValidator;
+	public final fun getKind ()Leu/wynq/convex/core/functions/ConvexFunctionKind;
+	public final fun getModule ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getReturns ()Leu/wynq/convex/core/functions/ConvexValidator;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexFunctionKind : java/lang/Enum {
+	public static final field ACTION Leu/wynq/convex/core/functions/ConvexFunctionKind;
+	public static final field Companion Leu/wynq/convex/core/functions/ConvexFunctionKind$Companion;
+	public static final field MUTATION Leu/wynq/convex/core/functions/ConvexFunctionKind;
+	public static final field QUERY Leu/wynq/convex/core/functions/ConvexFunctionKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getWireName ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Leu/wynq/convex/core/functions/ConvexFunctionKind;
+	public static fun values ()[Leu/wynq/convex/core/functions/ConvexFunctionKind;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexFunctionKind$Companion {
+	public final fun fromWire (Ljava/lang/String;)Leu/wynq/convex/core/functions/ConvexFunctionKind;
+}
+
+public abstract interface class eu/wynq/convex/core/functions/ConvexValidator {
+}
+
+public final class eu/wynq/convex/core/functions/ConvexValidator$Any : eu/wynq/convex/core/functions/ConvexValidator {
+	public static final field INSTANCE Leu/wynq/convex/core/functions/ConvexValidator$Any;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexValidator$Array : eu/wynq/convex/core/functions/ConvexValidator {
+	public fun <init> (Leu/wynq/convex/core/functions/ConvexValidator;)V
+	public final fun component1 ()Leu/wynq/convex/core/functions/ConvexValidator;
+	public final fun copy (Leu/wynq/convex/core/functions/ConvexValidator;)Leu/wynq/convex/core/functions/ConvexValidator$Array;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/functions/ConvexValidator$Array;Leu/wynq/convex/core/functions/ConvexValidator;ILjava/lang/Object;)Leu/wynq/convex/core/functions/ConvexValidator$Array;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getElement ()Leu/wynq/convex/core/functions/ConvexValidator;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexValidator$Boolean : eu/wynq/convex/core/functions/ConvexValidator {
+	public static final field INSTANCE Leu/wynq/convex/core/functions/ConvexValidator$Boolean;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexValidator$Bytes : eu/wynq/convex/core/functions/ConvexValidator {
+	public static final field INSTANCE Leu/wynq/convex/core/functions/ConvexValidator$Bytes;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexValidator$Float64 : eu/wynq/convex/core/functions/ConvexValidator {
+	public static final field INSTANCE Leu/wynq/convex/core/functions/ConvexValidator$Float64;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexValidator$Id : eu/wynq/convex/core/functions/ConvexValidator {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Leu/wynq/convex/core/functions/ConvexValidator$Id;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/functions/ConvexValidator$Id;Ljava/lang/String;ILjava/lang/Object;)Leu/wynq/convex/core/functions/ConvexValidator$Id;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getTable ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexValidator$Int64 : eu/wynq/convex/core/functions/ConvexValidator {
+	public static final field INSTANCE Leu/wynq/convex/core/functions/ConvexValidator$Int64;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexValidator$Literal : eu/wynq/convex/core/functions/ConvexValidator {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Leu/wynq/convex/core/functions/ConvexValidator$Literal;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/functions/ConvexValidator$Literal;Ljava/util/List;ILjava/lang/Object;)Leu/wynq/convex/core/functions/ConvexValidator$Literal;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValues ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexValidator$Null : eu/wynq/convex/core/functions/ConvexValidator {
+	public static final field INSTANCE Leu/wynq/convex/core/functions/ConvexValidator$Null;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexValidator$Object : eu/wynq/convex/core/functions/ConvexValidator {
+	public fun <init> (Ljava/util/Map;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Leu/wynq/convex/core/functions/ConvexValidator$Object;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/functions/ConvexValidator$Object;Ljava/util/Map;ILjava/lang/Object;)Leu/wynq/convex/core/functions/ConvexValidator$Object;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFields ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexValidator$String : eu/wynq/convex/core/functions/ConvexValidator {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Leu/wynq/convex/core/functions/ConvexValidator$String;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/functions/ConvexValidator$String;Ljava/lang/String;ILjava/lang/Object;)Leu/wynq/convex/core/functions/ConvexValidator$String;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDescription ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexValidator$Union : eu/wynq/convex/core/functions/ConvexValidator {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Leu/wynq/convex/core/functions/ConvexValidator$Union;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/functions/ConvexValidator$Union;Ljava/util/List;ILjava/lang/Object;)Leu/wynq/convex/core/functions/ConvexValidator$Union;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getVariants ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexValidatorField {
+	public fun <init> (Leu/wynq/convex/core/functions/ConvexValidator;Z)V
+	public final fun component1 ()Leu/wynq/convex/core/functions/ConvexValidator;
+	public final fun component2 ()Z
+	public final fun copy (Leu/wynq/convex/core/functions/ConvexValidator;Z)Leu/wynq/convex/core/functions/ConvexValidatorField;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/functions/ConvexValidatorField;Leu/wynq/convex/core/functions/ConvexValidator;ZILjava/lang/Object;)Leu/wynq/convex/core/functions/ConvexValidatorField;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOptional ()Z
+	public final fun getValidator ()Leu/wynq/convex/core/functions/ConvexValidator;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class eu/wynq/convex/core/protocol/AuthenticationToken {
 }
 
