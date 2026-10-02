@@ -1,0 +1,37 @@
+# Pinned Convex backend for conformance recording and integration tests.
+#
+# The image is pinned by the full backend commit SHA so fixtures stay
+# byte-identical against a known protocol revision. Do not change this pin
+# without re-recording fixtures (see the `capture-conformance` skill and
+# .github/upstream-pins.json).
+#
+# The dashboard service is intentionally omitted: the conformance harness talks
+# to the backend over its WebSocket API directly and never needs the UI.
+#
+# Storage is the backend's default local SQLite database in the named volume.
+
+name: convex-kt-conformance
+
+services:
+  backend:
+    image: ghcr.io/get-convex/convex-backend:d2ca8533c52e2dbd8e55e20181988973dcbabe41
+    stop_grace_period: 10s
+    stop_signal: SIGINT
+    ports:
+      - "3210:3210"
+      - "3211:3211"
+    volumes:
+      - data:/convex/data
+    environment:
+      - CONVEX_CLOUD_ORIGIN=http://127.0.0.1:3210
+      - CONVEX_SITE_ORIGIN=http://127.0.0.1:3211
+      - DISABLE_METRICS_ENDPOINT=true
+      - DOCUMENT_RETENTION_DELAY=172800
+      - RUST_LOG=info
+    healthcheck:
+      test: curl -f http://localhost:3210/version
+      interval: 5s
+      start_period: 10s
+
+volumes:
+  data:

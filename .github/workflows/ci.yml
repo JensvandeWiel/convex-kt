@@ -56,6 +56,31 @@ jobs:
       - name: Validate parity.yaml against upstream tracking
         run: ./gradlew :tools:parity:run --args="--manifest parity.yaml"
 
-  # The per-commit real-backend integration job is added with the conformance
-  # harness in plan step 3. It boots conformance/docker-compose.yml (SQLite) and
-  # runs the integration test task; it does not use mocked server responses.
+  conformance:
+    name: Conformance fixtures
+    needs: wrapper-validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      # Boots the pinned backend (SQLite) and re-records the committed fixtures,
+      # then fails if they changed. This is the real-backend check: it never
+      # substitutes mocked server responses.
+      - name: Start pinned backend
+        run: docker compose -f conformance/docker-compose.yml up -d --wait
+      - name: Record fixtures
+        working-directory: conformance/harness
+        run: |
+          npm ci
+          ADMIN_KEY="$(docker exec "$(docker compose -f ../docker-compose.yml ps -q backend)" ./generate_admin_key.sh | tail -n1)"
+          node record-handshake.mjs --url http://127.0.0.1:3210 --admin-key "$ADMIN_KEY"
+      - name: Fail on fixture drift
+        run: git diff --exit-code -- conformance/fixtures
+      - name: Tear down
+        if: always()
+        run: docker compose -f conformance/docker-compose.yml down -v
+
+  # Additional conformance scenarios are added alongside the protocol features
+  # they cover; each gets its own fixture directory and recorder.

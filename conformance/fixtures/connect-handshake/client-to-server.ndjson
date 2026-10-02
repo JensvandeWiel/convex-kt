@@ -1,0 +1,1 @@
+{"header":{"suite":"convex-kt/conformance-fixture/1","direction":"client-to-server","clientVersion":"convex-kt-conformance-harness"},"data":"{\"type\":\"Connect\",\"sessionId\":\"<SESSION_ID>\",\"connectionCount\":0,\"lastCloseReason\":\"InitialConnect\",\"maxObservedTimestamp\":null,\"clientTs\":null}"}

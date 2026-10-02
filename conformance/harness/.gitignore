@@ -1,0 +1,2 @@
+# Harness dependencies are installed on demand; never commit them.
+node_modules/

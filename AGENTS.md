@@ -64,6 +64,25 @@ Non-negotiable. Where possible they are enforced by tooling.
   OpenAPI/bigint specifications) and mark the detail unknown. Do not assume it
   does not exist.
 
+## Protocol facts discovered from the pinned backend
+
+These were learned by driving the real backend, not read off a type definition.
+See `conformance/fixtures/connect-handshake/README.md` for the raw evidence.
+
+- **Wire keys are camelCase.** `convex-rs` declares `session_id`, but the JSON
+  on the wire is `sessionId`; the serializer renames fields. A snake_case key is
+  rejected with `missing field 'sessionId'`.
+- **`Connect.sessionId` must be a UUID.** An opaque token fails with
+  `invalid length: found 6`.
+- **`Connect.connectionCount` is required**, despite looking optional in the type
+  model.
+- **A fresh session's first server frame is `Ping`, not `Connected`.** Do not
+  infer wire behavior from the `ServerMessage` enum: a variant existing in Rust
+  does not mean it is emitted on this path.
+
+When in doubt, re-record against the pinned backend rather than extrapolating
+from `convex-rs` source.
+
 ## Rust → Kotlin mapping
 
 When porting `convex-rs` logic, use these translations. Do **not** blindly

@@ -1,0 +1,10 @@
+{
+  "name": "convex-kt-conformance-project",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal Convex module pushed to the pinned backend when recording conformance fixtures.",
+  "type": "module",
+  "dependencies": {
+    "convex": "1.46.0"
+  }
+}

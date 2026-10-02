@@ -1,0 +1,17 @@
+{
+  "name": "convex-kt-conformance-harness",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Records Convex WebSocket traffic into byte-identical fixtures for convex-kt.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "record": "node record-handshake.mjs"
+  },
+  "dependencies": {
+    "convex": "1.46.0",
+    "ws": "8.22.0"
+  }
+}
