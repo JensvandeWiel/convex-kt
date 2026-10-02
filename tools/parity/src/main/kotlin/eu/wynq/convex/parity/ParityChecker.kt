@@ -156,19 +156,23 @@ public object ParityChecker {
         validateSchemaVersion(root, errors)
 
         val rawRequirements = root["requirements"]
-        if (rawRequirements !is List<*>) {
+        if (rawRequirements != null && rawRequirements !is List<*>) {
             errors += "'requirements' must be a list"
             return ParityReport(manifest.path, emptyList(), errors, warnings)
         }
+        // A manifest may legitimately be bootstrapping with `requirements:`
+        // (which YAML parses as null) so that emitted entries can be appended as
+        // a block list. Treat absent as empty; only a wrong *type* is an error.
+        val requirementList = rawRequirements as? List<*> ?: emptyList<Any>()
 
-        if (rawRequirements.isEmpty()) {
+        if (requirementList.isEmpty()) {
             warnings += "'requirements' is empty; the parity gate is inactive until entries are added"
         }
 
         val requirements = mutableListOf<ParityRequirement>()
         val seenIds = mutableSetOf<String>()
 
-        rawRequirements.forEachIndexed { index, raw ->
+        requirementList.forEachIndexed { index, raw ->
             if (raw !is Map<*, *>) {
                 errors += "requirements[$index] must be a mapping"
                 return@forEachIndexed

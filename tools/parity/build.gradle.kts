@@ -14,6 +14,14 @@ tasks.named<JavaExec>("run") {
     workingDir = rootProject.projectDir
 }
 
+// The coverage test needs the manifest and the upstream checkout. Inject them
+// as absolute paths so the test does not depend on the working directory, and
+// so developers can run it from an IDE once the properties are configured.
+tasks.named<Test>("test") {
+    systemProperty("convexkt.manifest", rootProject.file("parity.yaml").absolutePath)
+    systemProperty("convexkt.upstreamRoot", rootProject.file("third_party/convex-rs").absolutePath)
+}
+
 dependencies {
     implementation(libs.snakeyaml)
     testImplementation(kotlin("test"))

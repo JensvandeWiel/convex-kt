@@ -1,15 +1,20 @@
 # Machine-readable parity manifest.
 #
-# Every upstream `convex-rs` test must have a Kotlin counterpart listed here.
-# `:tools:parity` validates this file in CI; see the "Full Test-Suite Parity"
-# rule in AGENTS.md and the `check-parity` skill.
+# Every upstream `convex-rs` test must be accounted for here. This is enforced
+# at test time by ParityCoverageTest, which scans the convex-rs submodule and
+# fails if any upstream test is missing from this file. See the "Full Test-Suite
+# Parity" rule in AGENTS.md and the `check-parity` skill.
 #
 # Per-requirement fields:
 #   id           stable, unique identifier
 #   description  what the test proves, in one sentence
 #   status       planned | ported | not-applicable
-#   upstream     references into the convex-rs submodule (third_party/convex-rs)
-#   kotlin       references into this repository
+#   upstream     upstream test references, "<path/relative/to/convex-rs>::<fn>"
+#   kotlin       references into this repository, required when status is ported
+#
+# Maintain it with the tooling, not by hand:
+#   ./gradlew :tools:parity:run --args="--upstream third_party/convex-rs"
+#   ./gradlew :tools:parity:run --args="--emit-missing third_party/convex-rs"
 #
 # Upstream revision: third_party/convex-rs @ a4d04a9f4990078693760c2a08d0032323aa7f1b
 
@@ -23,39 +28,358 @@ requirements:
       which is the single most likely place a port silently corrupts data.
     status: planned
     upstream:
-      - sync_types/src/types/json.rs::proptest_u64_roundtrips
+      - "sync_types/src/types/json.rs::proptest_u64_roundtrips"
 
   - id: value/empty-array-roundtrip
     description: An empty Convex array round-trips through the codec unchanged.
     status: planned
     upstream:
-      - sync_types/src/types/json.rs::test_empty_array_roundtrips
-
-  - id: protocol/connect-frame-shape
-    description: >
-      The Connect frame carries sessionId (a UUID), connectionCount, and
-      lastCloseReason, and the pinned backend answers it with a Ping. Recorded
-      as conformance fixture connect-handshake.
-    status: ported
-    upstream:
-      - sync_types/src/types/mod.rs::ClientMessage
-    kotlin:
-      - conformance/fixtures/connect-handshake
+      - "sync_types/src/types/json.rs::test_empty_array_roundtrips"
 
   - id: client/deployment-url
     description: A deployment URL is normalized into the sync WebSocket URL.
     status: planned
     upstream:
-      - src/client/mod.rs::test_deployment_url
+      - "src/client/mod.rs::test_deployment_url"
 
   - id: value/value-roundtrip
     description: Arbitrary Convex values round-trip through the JSON codec.
     status: planned
     upstream:
-      - src/value/json/mod.rs::test_value_roundtrips
+      - "src/value/json/mod.rs::test_value_roundtrips"
 
   - id: types/udf-path-roundtrip
     description: A UDF path round-trips through its serialized form.
     status: planned
     upstream:
-      - sync_types/src/udf_path.rs::test_udf_path_roundtrips
+      - "sync_types/src/udf_path.rs::test_udf_path_roundtrips"
+  - id: src-base-client-mod-test-cached-query-result-persists-while-subscribers-exist
+    description: "Upstream test 'test_cached_query_result_persists_while_subscribers_exist' in 'src/base_client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/base_client/mod.rs::test_cached_query_result_persists_while_subscribers_exist"
+
+  - id: src-base-client-mod-test-final-unsubscribe-removes-cached-query-result
+    description: "Upstream test 'test_final_unsubscribe_removes_cached_query_result' in 'src/base_client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/base_client/mod.rs::test_final_unsubscribe_removes_cached_query_result"
+
+  - id: src-base-client-mod-test-reconnect-does-not-send-duplicate-version-messages
+    description: "Upstream test 'test_reconnect_does_not_send_duplicate_version_messages' in 'src/base_client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/base_client/mod.rs::test_reconnect_does_not_send_duplicate_version_messages"
+
+  - id: src-base-client-mod-test-reconnect-path-requests-refreshed-token
+    description: "Upstream test 'test_reconnect_path_requests_refreshed_token' in 'src/base_client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/base_client/mod.rs::test_reconnect_path_requests_refreshed_token"
+
+  - id: src-base-client-query-result-test-query-results
+    description: "Upstream test 'test_query_results' in 'src/base_client/query_result.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/base_client/query_result.rs::test_query_results"
+
+  - id: src-client-mod-test-action
+    description: "Upstream test 'test_action' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/client/mod.rs::test_action"
+
+  - id: src-client-mod-test-auth
+    description: "Upstream test 'test_auth' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/client/mod.rs::test_auth"
+
+  - id: src-client-mod-test-auth-callback
+    description: "Upstream test 'test_auth_callback' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/client/mod.rs::test_auth_callback"
+
+  - id: src-client-mod-test-auth-callback-returning-none
+    description: "Upstream test 'test_auth_callback_returning_none' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/client/mod.rs::test_auth_callback_returning_none"
+
+  - id: src-client-mod-test-client-consistent-view-watch
+    description: "Upstream test 'test_client_consistent_view_watch' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/client/mod.rs::test_client_consistent_view_watch"
+
+  - id: src-client-mod-test-client-separate-queries
+    description: "Upstream test 'test_client_separate_queries' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/client/mod.rs::test_client_separate_queries"
+
+  - id: src-client-mod-test-client-single-subscription
+    description: "Upstream test 'test_client_single_subscription' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/client/mod.rs::test_client_single_subscription"
+
+  - id: src-client-mod-test-client-subscribe-unsubscribe-subscribe
+    description: "Upstream test 'test_client_subscribe_unsubscribe_subscribe' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/client/mod.rs::test_client_subscribe_unsubscribe_subscribe"
+
+  - id: src-client-mod-test-client-two-identical-queries
+    description: "Upstream test 'test_client_two_identical_queries' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/client/mod.rs::test_client_two_identical_queries"
+
+  - id: src-client-mod-test-drop-client
+    description: "Upstream test 'test_drop_client' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/client/mod.rs::test_drop_client"
+
+  - id: src-client-mod-test-mutation
+    description: "Upstream test 'test_mutation' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/client/mod.rs::test_mutation"
+
+  - id: src-client-mod-test-mutation-error
+    description: "Upstream test 'test_mutation_error' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/client/mod.rs::test_mutation_error"
+
+  - id: src-client-mod-test-set-auth-uses-callback-path
+    description: "Upstream test 'test_set_auth_uses_callback_path' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/client/mod.rs::test_set_auth_uses_callback_path"
+
+  - id: src-value-export-mod-arrays-are-exported-as-arrays
+    description: "Upstream test 'arrays_are_exported_as_arrays' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/mod.rs::arrays_are_exported_as_arrays"
+
+  - id: src-value-export-mod-booleans-are-exported-as-booleans
+    description: "Upstream test 'booleans_are_exported_as_booleans' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/mod.rs::booleans_are_exported_as_booleans"
+
+  - id: src-value-export-mod-bytes-are-exported-as-base64
+    description: "Upstream test 'bytes_are_exported_as_base64' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/mod.rs::bytes_are_exported_as_base64"
+
+  - id: src-value-export-mod-export-rustdoc-example
+    description: "Upstream test 'export_rustdoc_example' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/mod.rs::export_rustdoc_example"
+
+  - id: src-value-export-mod-finite-floats-are-exported-as-numbers
+    description: "Upstream test 'finite_floats_are_exported_as_numbers' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/mod.rs::finite_floats_are_exported_as_numbers"
+
+  - id: src-value-export-mod-infinite-floats-are-exported-as-strings
+    description: "Upstream test 'infinite_floats_are_exported_as_strings' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/mod.rs::infinite_floats_are_exported_as_strings"
+
+  - id: src-value-export-mod-ints-are-exported-as-strings
+    description: "Upstream test 'ints_are_exported_as_strings' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/mod.rs::ints_are_exported_as_strings"
+
+  - id: src-value-export-mod-nan-is-exported-as-string
+    description: "Upstream test 'nan_is_exported_as_string' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/mod.rs::nan_is_exported_as_string"
+
+  - id: src-value-export-mod-neg-zero-is-exported-as-number
+    description: "Upstream test 'neg_zero_is_exported_as_number' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/mod.rs::neg_zero_is_exported_as_number"
+
+  - id: src-value-export-mod-nulls-are-exported-as-null
+    description: "Upstream test 'nulls_are_exported_as_null' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/mod.rs::nulls_are_exported_as_null"
+
+  - id: src-value-export-mod-objects-are-exported-as-objects
+    description: "Upstream test 'objects_are_exported_as_objects' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/mod.rs::objects_are_exported_as_objects"
+
+  - id: src-value-export-mod-pos-zero-is-exported-as-number
+    description: "Upstream test 'pos_zero_is_exported_as_number' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/mod.rs::pos_zero_is_exported_as_number"
+
+  - id: src-value-export-mod-strings-are-exported-as-strings
+    description: "Upstream test 'strings_are_exported_as_strings' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/mod.rs::strings_are_exported_as_strings"
+
+  - id: src-value-export-roundtrip-export-roundtrips-with-type-hint
+    description: "Upstream test 'export_roundtrips_with_type_hint' in 'src/value/export/roundtrip.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/export/roundtrip.rs::export_roundtrips_with_type_hint"
+
+  - id: src-value-json-mod-test-value-roundtrips-trophies
+    description: "Upstream test 'test_value_roundtrips_trophies' in 'src/value/json/mod.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "src/value/json/mod.rs::test_value_roundtrips_trophies"
+
+  - id: sync-types-src-identifier-test-control-char-as-identifier-start
+    description: "Upstream test 'test_control_char_as_identifier_start' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/identifier.rs::test_control_char_as_identifier_start"
+
+  - id: sync-types-src-identifier-test-control-char-in-field-name
+    description: "Upstream test 'test_control_char_in_field_name' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/identifier.rs::test_control_char_in_field_name"
+
+  - id: sync-types-src-identifier-test-control-char-in-identifier-body
+    description: "Upstream test 'test_control_char_in_identifier_body' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/identifier.rs::test_control_char_in_identifier_body"
+
+  - id: sync-types-src-identifier-test-emoji-in-field-name
+    description: "Upstream test 'test_emoji_in_field_name' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/identifier.rs::test_emoji_in_field_name"
+
+  - id: sync-types-src-identifier-test-field-name-fast-path
+    description: "Upstream test 'test_field_name_fast_path' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/identifier.rs::test_field_name_fast_path"
+
+  - id: sync-types-src-identifier-test-identifier-fast-path
+    description: "Upstream test 'test_identifier_fast_path' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/identifier.rs::test_identifier_fast_path"
+
+  - id: sync-types-src-identifier-test-min-identifier
+    description: "Upstream test 'test_min_identifier' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/identifier.rs::test_min_identifier"
+
+  - id: sync-types-src-identifier-test-newline-in-identifier
+    description: "Upstream test 'test_newline_in_identifier' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/identifier.rs::test_newline_in_identifier"
+
+  - id: sync-types-src-identifier-test-regular-char-as-identifier-start
+    description: "Upstream test 'test_regular_char_as_identifier_start' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/identifier.rs::test_regular_char_as_identifier_start"
+
+  - id: sync-types-src-identifier-test-regular-char-in-identifier-body
+    description: "Upstream test 'test_regular_char_in_identifier_body' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/identifier.rs::test_regular_char_in_identifier_body"
+
+  - id: sync-types-src-module-path-test-module-path
+    description: "Upstream test 'test_module_path' in 'sync_types/src/module_path.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/module_path.rs::test_module_path"
+
+  - id: sync-types-src-timestamp-test-secs-since-f64-positive-zero
+    description: "Upstream test 'test_secs_since_f64_positive_zero' in 'sync_types/src/timestamp.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/timestamp.rs::test_secs_since_f64_positive_zero"
+
+  - id: sync-types-src-types-json-authentication-token-backwards-compatability
+    description: "Upstream test 'authentication_token_backwards_compatability' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/types/json.rs::authentication_token_backwards_compatability"
+
+  - id: sync-types-src-types-json-proptest-client-message-roundtrips
+    description: "Upstream test 'proptest_client_message_roundtrips' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/types/json.rs::proptest_client_message_roundtrips"
+
+  - id: sync-types-src-types-json-proptest-server-message-roundtrips
+    description: "Upstream test 'proptest_server_message_roundtrips' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/types/json.rs::proptest_server_message_roundtrips"
+
+  - id: sync-types-src-types-json-proptest-user-identity-attributes-roundtrips
+    description: "Upstream test 'proptest_user_identity_attributes_roundtrips' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/types/json.rs::proptest_user_identity_attributes_roundtrips"
+
+  - id: sync-types-src-types-json-server-message-mutation-response-with-null-error-data-roundtrips
+    description: "Upstream test 'server_message_mutation_response_with_null_error_data_roundtrips' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/types/json.rs::server_message_mutation_response_with_null_error_data_roundtrips"
+
+  - id: sync-types-src-types-json-server-message-transition-with-null-error-data-roundtrips
+    description: "Upstream test 'server_message_transition_with_null_error_data_roundtrips' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/types/json.rs::server_message_transition_with_null_error_data_roundtrips"
+
+  - id: sync-types-src-types-json-user-identity-attributes-deserialize-token-identifier-cannot-derive
+    description: "Upstream test 'user_identity_attributes_deserialize_token_identifier_cannot_derive' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/types/json.rs::user_identity_attributes_deserialize_token_identifier_cannot_derive"
+
+  - id: sync-types-src-types-json-user-identity-attributes-deserialize-token-identifier-deriver
+    description: "Upstream test 'user_identity_attributes_deserialize_token_identifier_deriver' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/types/json.rs::user_identity_attributes_deserialize_token_identifier_deriver"
+
+  - id: sync-types-src-types-json-user-identity-attributes-deserialize-token-identifier-given
+    description: "Upstream test 'user_identity_attributes_deserialize_token_identifier_given' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/types/json.rs::user_identity_attributes_deserialize_token_identifier_given"
+
+  - id: sync-types-src-udf-path-test-strip
+    description: "Upstream test 'test_strip' in 'sync_types/src/udf_path.rs' has no Kotlin counterpart yet."
+    status: planned
+    upstream:
+      - "sync_types/src/udf_path.rs::test_strip"
+

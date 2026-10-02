@@ -91,7 +91,7 @@ guarantees the build cannot make, here is the honest mapping:
 | Key presence over key value | No | Review only — no rule can infer intent |
 | `delay`, never `yield`, in `runTest` | Partly | Detekt coroutines rules flag risky patterns; the `yield`-loop case is review |
 | Wire/codec correctness | Yes | Conformance fixtures + real-backend CI |
-| Test-suite parity | Yes | `parity.yaml` + `:tools:parity` |
+| Test-suite parity | Yes | `ParityCoverageTest` scans the convex-rs submodule each `check` |
 
 Anything marked "No" or "Partly" is a review responsibility, not a build failure.
 
@@ -100,9 +100,10 @@ Anything marked "No" or "Partly" is a review responsibility, not a build failure
 Non-negotiable. Where possible they are enforced by tooling.
 
 1. **Full test-suite parity.** Every upstream `convex-rs` test has a Kotlin
-   counterpart, tracked in `parity.yaml`. `:tools:parity` validates that
-   manifest, and CI fails when it drifts. Never port upstream logic without
-   adding the manifest entry in the same change.
+   counterpart, tracked in `parity.yaml`. `ParityCoverageTest` scans the
+   `third_party/convex-rs` submodule on every `./gradlew check` and fails if any
+   upstream test is unaccounted for, so drift cannot merge silently. Never port
+   upstream logic without updating the manifest in the same change.
 2. **Automated upstream detection.** A watcher monitors the
    `get-convex/convex-backend` and `get-convex/convex-rs` releases and diffs
    protocol paths. It **only drafts issues**. It never auto-merges and never
@@ -212,8 +213,14 @@ Use the wrapper. Android requires `local.properties` (git-ignored) or
 # one module's JVM tests
 ./gradlew :convex-core:jvmTest
 
-# the parity gate
+# the parity gate (structural validation)
 ./gradlew :tools:parity:run --args="--manifest parity.yaml"
+
+# parity coverage: every upstream test must be accounted for
+./gradlew :tools:parity:run --args="--upstream third_party/convex-rs"
+
+# absorb a new upstream revision: append the emitted entries to parity.yaml
+./gradlew :tools:parity:run --args="--emit-missing third_party/convex-rs"
 ```
 
 The upstream `convex-rs` source is available as a git submodule at

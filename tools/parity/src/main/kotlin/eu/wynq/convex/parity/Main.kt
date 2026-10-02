@@ -26,34 +26,79 @@ private const val EXIT_USAGE = 2
 /**
  * Entry point for the `:tools:parity` command-line validator.
  *
- * Usage: `parity [--manifest <path>]`. The exit code is `0` when the manifest
- * is valid, `1` when validation fails, and `2` for a usage error. This contract
- * is what the CI parity job depends on, so it is documented here.
+ * Modes:
+ * - default: validate the manifest's structure.
+ * - `--upstream <root>`: also require every upstream test to be accounted for.
+ * - `--emit-missing <root>`: print manifest entries for unaccounted tests.
+ *
+ * Usage: `parity [--manifest <path>] [--upstream <root> | --emit-missing <root>]`.
+ * The exit code is `0` on success, `1` on a failed check, and `2` for a usage
+ * error, which is the contract the CI parity job depends on.
+ *
+ * Run `--emit-missing` and append its output to `parity.yaml` when adding a new
+ * upstream revision, rather than inventing references by hand.
  */
 public fun main(args: Array<String>) {
-    val manifest = parseManifestArgument(args)
-    if (manifest == null) {
-        System.err.println("usage: parity [--manifest <path>]")
+    val options = parseArguments(args)
+    if (options == null) {
+        System.err.println(
+            "usage: parity [--manifest <path>] [--upstream <root> | --emit-missing <root>]",
+        )
         exitProcess(EXIT_USAGE)
     }
 
-    val report = ParityChecker.check(manifest)
+    if (options.emitMissingRoot != null) {
+        val report = ParityCoverage.check(options.manifest, options.emitMissingRoot)
+        if (!report.schema.isOk) {
+            println(report.schema.render())
+            exitProcess(EXIT_FAILURE)
+        }
+        print(ParityCoverage.emitMissing(report))
+        exitProcess(EXIT_OK)
+    }
+
+    if (options.upstreamRoot != null) {
+        val report = ParityCoverage.check(options.manifest, options.upstreamRoot)
+        println(report.render())
+        exitProcess(if (report.isOk) EXIT_OK else EXIT_FAILURE)
+    }
+
+    val report = ParityChecker.check(options.manifest)
     println(report.render())
     exitProcess(if (report.isOk) EXIT_OK else EXIT_FAILURE)
 }
 
-private fun parseManifestArgument(args: Array<String>): File? {
-    var path = DEFAULT_MANIFEST
+private data class Options(
+    val manifest: File,
+    val upstreamRoot: File?,
+    val emitMissingRoot: File?,
+)
+
+private fun parseArguments(args: Array<String>): Options? =
+    try {
+        parseOrThrow(args)
+    } catch (_: IllegalArgumentException) {
+        null
+    }
+
+private fun parseOrThrow(args: Array<String>): Options {
+    var manifest = DEFAULT_MANIFEST
+    var upstream: File? = null
+    var emitMissing: File? = null
     var index = 0
     while (index < args.size) {
+        val value = args.getOrNull(index + 1)
+            ?: throw IllegalArgumentException("missing value for ${args[index]}")
         when (args[index]) {
-            "--manifest", "-m" -> {
-                if (index + 1 >= args.size) return null
-                path = args[index + 1]
-                index += 2
-            }
-            else -> return null
+            "--manifest", "-m" -> manifest = value
+            "--upstream" -> upstream = File(value)
+            "--emit-missing" -> emitMissing = File(value)
+            else -> throw IllegalArgumentException("unknown argument: ${args[index]}")
         }
+        index += 2
     }
-    return File(path)
+    require(upstream == null || emitMissing == null) {
+        "--upstream and --emit-missing are mutually exclusive"
+    }
+    return Options(File(manifest), upstream, emitMissing)
 }

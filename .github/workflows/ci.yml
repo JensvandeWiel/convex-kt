@@ -92,8 +92,8 @@ jobs:
           distribution: corretto
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
-      - name: Validate parity.yaml against upstream tracking
-        run: ./gradlew :tools:parity:run --args="--manifest parity.yaml"
+      - name: Validate parity coverage against upstream
+        run: ./gradlew :tools:parity:run --args="--upstream third_party/convex-rs"
 
   conformance:
     name: Conformance fixtures

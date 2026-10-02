@@ -54,10 +54,19 @@ legitimate code" in `CONTRIBUTING.md`.
 
 ## Parity gate
 
-Every upstream `convex-rs` test is tracked in `parity.yaml`. Validate it with:
+Every upstream `convex-rs` test is tracked in `parity.yaml`. This is enforced at
+test time: `ParityCoverageTest` scans the `third_party/convex-rs` submodule
+during `./gradlew check` and fails if any upstream test is unaccounted for. The
+same logic is available as a CLI:
 
 ```bash
-./gradlew :tools:parity:run --args="--manifest parity.yaml"
+./gradlew :tools:parity:run --args="--upstream third_party/convex-rs"
+```
+
+To absorb a new upstream revision, append the generated entries:
+
+```bash
+./gradlew :tools:parity:run --args="--emit-missing third_party/convex-rs"
 ```
 
 ## Documentation
