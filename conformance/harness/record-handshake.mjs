@@ -189,17 +189,12 @@ async function main() {
     throw new Error("no server frame was recorded; the handshake did not complete");
   }
 
-  // Overflow guard: if a frame carries a 64-bit value, stringify would corrupt
-  // it, so scan the raw text for the Connect response and extract it directly.
-  const connectedRaw = handshake.frames.find(
-    (f) => f.direction === "server-to-client" && f.data.includes('"type":"Connected"'),
-  )?.data ?? "";
-  const timestampU64 = connectedRaw.match(/"timestamp":"(\d+)"/)?.[1];
-
+  // Only values observed in this scenario are substituted. `placeholders.mjs`
+  // also defines a 64-bit timestamp token for scenarios that carry one, but a
+  // fresh handshake answers with Ping, so there is none to replace here.
   const subs = substitutions({
     token: args.adminKey,
     sessionId,
-    timestampU64,
   });
 
   mkdirSync(FIXTURE, { recursive: true });
@@ -211,19 +206,11 @@ async function main() {
     writeFileSync(resolve(FIXTURE, `${direction}.ndjson`), `${lines.join("\n")}\n`);
   }
 
-  // Keep the concrete timestamp out of the fixture but record it for the README.
-  writeFileSync(
-    resolve(FIXTURE, "observed.json"),
-    `${JSON.stringify({ convexUrl, timestampU64: timestampU64 ?? null }, null, 2)}\n`,
-  );
-
   adminClient.close();
   console.log(`wrote fixtures to ${FIXTURE}`);
   console.log(`  client frames: ${handshake.frames.filter((f) => f.direction === "client-to-server").length}`);
   console.log(`  server frames: ${handshake.frames.filter((f) => f.direction === "server-to-client").length}`);
   console.log(`  placeholders:  ${subs.map((s) => s.token).join(", ") || "(none)"}`);
-  console.log(`  timestamp:     ${timestampU64 ?? "(none in this scenario)"}`);
-  console.log("  placeholders:  see conformance/harness/placeholders.mjs");
 }
 
 main().catch((error) => {

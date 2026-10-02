@@ -55,7 +55,6 @@ References: `get-convex/convex-rs` → `sync_types/src/types/mod.rs`
 | --- | --- |
 | `client-to-server.ndjson` | every frame the client sent, in order |
 | `server-to-client.ndjson` | every frame the server sent, in order |
-| `observed.json` | concrete values seen during the run (not consumed by tests) |
 
 Each line is `{"header": {...}, "data": "<raw frame text>"}`. The raw text is
 authoritative because Convex encodes 64-bit integers as JSON numbers that a
