@@ -38,17 +38,17 @@ Ordered roughly by how likely they are to matter.
    `NotImplementedError` on iOS; tokens are forwarded to the backend, which
    verifies them. JVM and Android verify locally.
 2. **Pagination helpers.** Each query's journal is carried across reconnects,
-   but there is no paged-query API on top of it.
-3. **Server-side function HTTP API.** The client speaks the sync WebSocket;
-   one-off `/api/query` and `/api/mutation` calls over HTTP are not exposed.
-4. **Parity depth.** Coverage enforcement is real, but most entries are
+   but there is no paged-query API on top of it; Convex pagination is assembled
+   from a cursor argument the app defines.
+3. **Parity depth.** Coverage enforcement is real, but most entries are
    `planned`; porting them is ongoing work.
 
 Closed during refinement: automatic reconnection with exponential backoff,
 mutation/action call timeouts, `TransitionChunk` reassembly, server `AuthError`
 surfacing, descriptor-based calls (codegen wiring), pagination-journal carry,
-storage transfers (fixture-proven against the pinned backend), and optimistic
-updates (`OptimisticUpdate`, shown until the next transition).
+storage transfers (fixture-proven against the pinned backend), optimistic
+updates (`OptimisticUpdate`, shown until the next transition), the one-off HTTP
+functions API (`ConvexHttpApi`), and two more parity ports.
 
 ## Upstream pins
 

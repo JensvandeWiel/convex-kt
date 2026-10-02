@@ -6,6 +6,16 @@ public final class eu/wynq/convex/client/ConvexClientException : eu/wynq/convex/
 	public fun <init> (Ljava/lang/String;)V
 }
 
+public final class eu/wynq/convex/client/ConvexHttpApi {
+	public fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;)V
+	public final fun action (Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun action$default (Leu/wynq/convex/client/ConvexHttpApi;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun mutation (Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun mutation$default (Leu/wynq/convex/client/ConvexHttpApi;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun query (Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun query$default (Leu/wynq/convex/client/ConvexHttpApi;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
 public final class eu/wynq/convex/client/ConvexSyncClient {
 	public synthetic fun <init> (Leu/wynq/convex/client/SyncProtocolFactory;Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;Leu/wynq/convex/client/AuthTokenFetcher;Leu/wynq/convex/client/ReconnectPolicy;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Leu/wynq/convex/client/SyncProtocolFactory;Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;Leu/wynq/convex/client/AuthTokenFetcher;Leu/wynq/convex/client/ReconnectPolicy;Ljava/lang/Long;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
