@@ -59,7 +59,70 @@ Therefore:
 and, if taken literally, would produce a *worse* API (dropping mutation
 results). Call them typed calls / descriptors.
 
-## 4. The design fork we were deciding (unresolved)
+## 4. The three kinds (queries, mutations, **and actions**)
+
+The user is right that Convex has more than two: **query**, **mutation**, and
+**action**. The API must give each a clean, fully typed call path, and they are
+*not* interchangeable. Facts verified against the pinned backend and the Convex
+docs (2026-10-02):
+
+| Kind | Wire order | Result | Server timestamp | Transactional | Retried on error | Runs on |
+| --- | --- | --- | --- | --- | --- | --- |
+| `query` | subscribe via `ModifyQuerySet`; results arrive as `Transition`/`QueryUpdated` | any value | yes (in the transition) | yes (consistent read) | n/a (read) | Convex runtime |
+| `mutation` | `Mutation` -> `MutationResponse` | any value | **yes** (`ts`) | yes | safe to retry | Convex runtime |
+| `action` | `Action` -> `ActionResponse` | optional (`void` allowed) | **no** (`ActionResponse` has no `ts`) | **no** | **not safe to retry** | Convex or Node.js |
+
+Action-specific facts that shape the design:
+
+1. **Actions are not transactional.** They touch the database only *indirectly*,
+   via `ctx.runQuery` / `ctx.runMutation`.
+2. **Actions may return nothing.** The docs: "an action can but does not have
+   to return a value." So an action's result is `Option<T>`, not `T`.
+3. **Actions are parallelized per client.** "Each action will be executed as
+   soon as it reaches the server, even if other actions and mutations from the
+   same client are running." Mutations from one client are serialized; actions
+   are not. Ordering guarantees therefore differ, and the API should not imply
+   action ordering.
+4. **Actions cannot be auto-retried.** They may have side effects, so a retry
+   could double-send. Our client must **never** retry an action on reconnect;
+   mutations are safe to leave to the caller, actions are not safe at all.
+5. **Actions time out at 10 minutes**; up to 1000 concurrent operations.
+6. **Calling an action directly from a client is often an anti-pattern.** The
+   docs recommend a mutation that schedules the action. So an action call is a
+   first-class API, but the generator's docs should point users at the
+   mutation-plus-scheduler pattern for most cases.
+
+**Design consequence (the clean way to call all three):** three typed
+descriptor families, one per kind, sharing mechanics but differing in
+signature so the type system carries the differences:
+
+```kotlin
+// queries: live subscription, typed args and result
+val messages: Flow<QueryState<List<Message>>> = rememberQuery(client, Api.messagesList)
+
+// mutations: transactional, returns T, has a server timestamp
+val length: Int = client.mutate(Api.messagesSend, SendMessageArgs(body = "hi"))
+
+// actions: non-transactional, optional result, no timestamp, no retry
+val echo: String? = client.action(Api.messagesEcho, EchoArgs(body = "hi"))
+```
+
+Concretely:
+
+- `ConvexQuery<Args, Result>` -> `subscribe` / `rememberQuery`, decoded to
+  `Result`.
+- `ConvexMutation<Args, Result>` -> `mutate`, returns `Result` (never
+  `Result?`: a mutation either returns a value or fails).
+- `ConvexAction<Args, Result?>` -> `action`, returns `Result?` (a `void` action
+  is modelled by `Result = Unit` and a present-but-null value, or by `Unit`).
+
+Open sub-question for the decision: does `Result` include the mutation
+timestamp (`MutationResponse.ts`) or is that dropped? It is currently dropped
+in `ConvexResult`. Proposal: keep `ConvexResult` as the raw transport result,
+and let typed mutation calls return the decoded value; expose the timestamp via
+a separate typed result only if a caller needs it.
+
+## 5. The design fork we were deciding (unresolved)
 
 The user's sketch fuses the **descriptor** (path, kind, validators,
 serializers — a singleton, identical for every call, cacheable/comparable) with
@@ -85,7 +148,7 @@ Two secondary forks also unresolved:
   fields with `= null` defaults, **vs** allow omitting the args argument
   entirely for no-arg calls.
 
-## 5. "Fix all limitations" — the concrete work list
+## 6. "Fix all limitations" — the concrete work list
 
 Current `convex-codegen` limitations (from the previous review):
 
@@ -97,12 +160,12 @@ Current `convex-codegen` limitations (from the previous review):
    pass `Map<String, ConvexValue>`. *Fix: generate `@Serializable` args data
    classes from the `args` validator.*
 3. **Validators are metadata only.** Not represented as Kotlin types.
-   *Fix: map validators to Kotlin types (see §6).*
+   *Fix: map validators to Kotlin types (see §7).*
 4. **No typed results.** `returns` is carried but not used to type anything.
    *Fix (if chosen): generate result types/decoders.*
 5. **Nothing regenerates automatically.** No task wired into `build`.
 
-## 6. Validator → Kotlin mapping (proposed)
+## 7. Validator → Kotlin mapping (proposed)
 
 | Validator | Kotlin |
 | --- | --- |
@@ -121,23 +184,28 @@ Current `convex-codegen` limitations (from the previous review):
 Hard cases fall back to `ConvexValue` rather than failing, so generation never
 breaks on a validator we do not model yet.
 
-## 7. Runtime pieces required (in `convex-core` / `convex-client`)
+## 8. Runtime pieces required (in `convex-core` / `convex-client`)
 
 1. **`ConvexValueEncoder`** — `Kotlin args → ConvexValue.Object`, **preserving
    `Int64`**. A plain `Json.encodeToJsonElement` gives JSON numbers, which our
    `ConvexJson` would decode as `Float64`; the encoder must inspect the JSON
    number text (`.`/`e` present → `Float64`, else `Int64`). This is the single
    most important correctness detail.
-2. **Typed descriptors** — `ConvexQuery<Args>`, `ConvexMutation<Args>`,
-   `ConvexAction<Args>` carrying the `ConvexFunction` plus a
-   `KSerializer<Args>?`; constructed with `Args.serializer()`.
+2. **Typed descriptors** — three families, one per kind, so the type system
+   carries the differences in §4:
+   - `ConvexQuery<Args, Result>` (`subscribe` / `rememberQuery`)
+   - `ConvexMutation<Args, Result>` (`mutate`, always returns `Result`)
+   - `ConvexAction<Args, Result?>` (`action`, optional result, no timestamp, no
+     retry)
+   Each carries the `ConvexFunction` plus a `KSerializer<Args>?`, built with
+   `Args.serializer()`.
 3. **Client overloads** —
    `subscribe(query, args)`, `mutate(mutation, args)`, `action(action, args)`,
-   each encoding `args` via the serializer.
+   each encoding `args` via the serializer. `action` must not retry.
 4. **Compose overload** — `rememberQuery(client, query, args, decoder)`.
 5. **`KSerializer<ConvexValue>`** — needed for the untyped fallback fields.
 
-## 8. Constraints and conventions to honour
+## 10. Constraints and conventions to honour
 
 - `AGENTS.md`: exhaustive `when` with no `else` over sealed types; KDoc on all
   public declarations; `explicitApi`; no Detekt baselines; inline `@Suppress`
@@ -153,15 +221,18 @@ breaks on a validator we do not model yet.
   `_system/cli/modules:apiSpec` (a query), which our own `ConvexHttpApi` can
   call with an admin key.
 
-## 9. Next action when the session resumes
+## 11. Next action when the session resumes
 
-1. Ask the user to choose §4 (A / B / C) and the two secondary forks.
-2. Then implement in this order: `ConvexValueEncoder` → typed descriptors →
-   client/compose overloads → codegen args generation → CLI → tests.
+1. Ask the user to choose §5 (A / B / C) and the two secondary forks, and to
+   confirm the action modelling in §4 (optional result, no retry, no
+   timestamp).
+2. Then implement in this order: `ConvexValueEncoder` → three typed descriptor
+   families → client/compose overloads (including a non-retrying `action`) →
+   codegen args generation → CLI → tests.
 3. Keep `parity.yaml`, `docs/STATUS.md`, and the `new-function` skill in sync
    as the codegen surface grows.
 
-## 10. Do not forget (session housekeeping)
+## 12. Do not forget (session housekeeping)
 
 - The conformance backend is **still running** on ports 3210/3211. Stop it with
   `docker compose -f conformance/docker-compose.yml down -v`.
