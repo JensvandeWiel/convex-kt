@@ -329,9 +329,11 @@ requirements:
 
   - id: sync-types-src-timestamp-test-secs-since-f64-positive-zero
     description: "Upstream test 'test_secs_since_f64_positive_zero' in 'sync_types/src/timestamp.rs' has no Kotlin counterpart yet."
-    status: planned
+    status: ported
     upstream:
       - "sync_types/src/timestamp.rs::test_secs_since_f64_positive_zero"
+    kotlin:
+      - "convex-core.TimestampTest.secondsSinceIsPositiveZeroForEqualTimestamps"
 
   - id: sync-types-src-types-json-authentication-token-backwards-compatability
     description: "Upstream test 'authentication_token_backwards_compatability' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."

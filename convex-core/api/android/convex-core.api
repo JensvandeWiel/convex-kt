@@ -663,6 +663,7 @@ public final class eu/wynq/convex/core/protocol/Timestamp {
 	public final fun getValue-s-VKNKU ()J
 	public fun hashCode ()I
 	public static fun hashCode-impl (J)I
+	public static final fun secondsSince-44L_PnM (JJ)D
 	public fun toString ()Ljava/lang/String;
 	public static fun toString-impl (J)Ljava/lang/String;
 	public final synthetic fun unbox-impl ()J

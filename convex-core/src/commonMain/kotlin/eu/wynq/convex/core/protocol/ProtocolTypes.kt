@@ -81,15 +81,36 @@ public value class SessionId private constructor(public val value: String) {
 }
 
 /**
- * A Convex timestamp: an unsigned 64-bit count of milliseconds.
+ * A Convex timestamp: an unsigned 64-bit count of **nanoseconds** since the
+ * Unix epoch.
  *
  * JSON numbers cannot hold it without precision loss, so it is encoded as
  * base64 little-endian bytes on the wire.
  *
- * @property value milliseconds since the Unix epoch.
+ * @property value nanoseconds since the Unix epoch.
  */
 @JvmInline
-public value class Timestamp(public val value: ULong)
+public value class Timestamp(public val value: ULong) {
+    /**
+     * The number of seconds from [base] to this timestamp, signed.
+     *
+     * Works when this timestamp is before [base]; the result is then negative.
+     * For equal timestamps the result is positive zero.
+     *
+     * @param base the reference timestamp.
+     * @return the signed difference in seconds.
+     */
+    public fun secondsSince(base: Timestamp): Double =
+        if (value >= base.value) {
+            (value - base.value).toDouble() / NANOS_PER_SECOND
+        } else {
+            -(base.value - value).toDouble() / NANOS_PER_SECOND
+        }
+
+    private companion object {
+        private const val NANOS_PER_SECOND = 1_000_000_000.0
+    }
+}
 
 /**
  * Identifies a subscribed query within a session.
