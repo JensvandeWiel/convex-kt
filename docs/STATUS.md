@@ -34,20 +34,21 @@ this file records the seams that remain.
 
 Ordered roughly by how likely they are to matter.
 
-1. **Optimistic updates.** Deferred by decision; `RemoteQuerySet` is the server
-   truth and mutations do not predict query changes (upstream is also a stub).
-2. **JWT verification on Apple targets.** `verifySignature` throws
+1. **JWT verification on Apple targets.** `verifySignature` throws
    `NotImplementedError` on iOS; tokens are forwarded to the backend, which
    verifies them. JVM and Android verify locally.
-3. **Pagination helpers.** Each query's journal is now carried across reconnects,
+2. **Pagination helpers.** Each query's journal is carried across reconnects,
    but there is no paged-query API on top of it.
+3. **Server-side function HTTP API.** The client speaks the sync WebSocket;
+   one-off `/api/query` and `/api/mutation` calls over HTTP are not exposed.
 4. **Parity depth.** Coverage enforcement is real, but most entries are
    `planned`; porting them is ongoing work.
 
 Closed during refinement: automatic reconnection with exponential backoff,
 mutation/action call timeouts, `TransitionChunk` reassembly, server `AuthError`
-surfacing, descriptor-based calls (codegen wiring), and storage transfers, which
-are now recorded against the pinned backend and replayed by a fixture test.
+surfacing, descriptor-based calls (codegen wiring), pagination-journal carry,
+storage transfers (fixture-proven against the pinned backend), and optimistic
+updates (`OptimisticUpdate`, shown until the next transition).
 
 ## Upstream pins
 

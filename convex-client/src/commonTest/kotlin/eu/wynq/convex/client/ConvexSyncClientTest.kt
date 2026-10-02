@@ -23,6 +23,7 @@ import eu.wynq.convex.core.protocol.IdentityVersion
 import eu.wynq.convex.core.protocol.QueryId
 import eu.wynq.convex.core.protocol.QuerySetModification
 import eu.wynq.convex.core.protocol.QuerySetVersion
+import eu.wynq.convex.core.protocol.RequestId
 import eu.wynq.convex.core.protocol.ServerMessage
 import eu.wynq.convex.core.protocol.ServerMessageJson
 import eu.wynq.convex.core.protocol.StateModification
@@ -269,6 +270,46 @@ class ConvexSyncClientTest {
             ConvexResult.Success(ConvexValue.String("chunked")),
             client.results.value[subscriber.queryId],
         )
+    }
+
+    @Test
+    fun optimisticUpdateShowsUntilTheNextTransition() = runTest {
+        val fake = FakeSyncProtocol()
+        val client = client(fake)
+        client.connect()
+        runCurrent()
+        val subscriber = assertNotNull(client.subscribe("messages:list"))
+        runCurrent()
+        val queryId = subscriber.queryId
+
+        val mutation = async {
+            client.mutate("messages:send", mapOf("body" to ConvexValue.String("hi"))) { results ->
+                results + (queryId to ConvexResult.Success(ConvexValue.String("optimistic")))
+            }
+        }
+        runCurrent()
+        assertEquals(
+            ConvexResult.Success(ConvexValue.String("optimistic")),
+            client.results.value[queryId],
+        )
+
+        fake.push(ServerMessageJson.encode(queryUpdatedTransition(queryId, ConvexValue.String("server"))))
+        runCurrent()
+        fake.push(
+            ServerMessageJson.encode(
+                ServerMessage.MutationResponse(
+                    requestId = RequestId(0u),
+                    result = ConvexResult.Success(ConvexValue.Int64(1)),
+                    ts = null,
+                    logLines = emptyList(),
+                ),
+            ),
+        )
+        runCurrent()
+        advanceUntilIdle()
+
+        assertEquals(ConvexResult.Success(ConvexValue.String("server")), client.results.value[queryId])
+        assertEquals(ConvexResult.Success(ConvexValue.Int64(1)), mutation.await())
     }
 
     private fun kotlinx.coroutines.test.TestScope.client(fake: SyncProtocol): ConvexSyncClient =

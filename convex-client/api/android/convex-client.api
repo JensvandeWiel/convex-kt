@@ -9,12 +9,14 @@ public final class eu/wynq/convex/client/ConvexClientException : eu/wynq/convex/
 public final class eu/wynq/convex/client/ConvexSyncClient {
 	public synthetic fun <init> (Leu/wynq/convex/client/SyncProtocolFactory;Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;Leu/wynq/convex/client/AuthTokenFetcher;Leu/wynq/convex/client/ReconnectPolicy;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Leu/wynq/convex/client/SyncProtocolFactory;Lkotlinx/coroutines/CoroutineScope;Ljava/lang/String;Leu/wynq/convex/client/AuthTokenFetcher;Leu/wynq/convex/client/ReconnectPolicy;Ljava/lang/Long;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun action (Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun action (Ljava/lang/String;Ljava/util/Map;Leu/wynq/convex/client/OptimisticUpdate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun action$default (Leu/wynq/convex/client/ConvexSyncClient;Ljava/lang/String;Ljava/util/Map;Leu/wynq/convex/client/OptimisticUpdate;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getAuthErrors ()Lkotlinx/coroutines/flow/SharedFlow;
 	public final fun getResults ()Lkotlinx/coroutines/flow/StateFlow;
-	public final fun mutate (Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun mutate (Ljava/lang/String;Ljava/util/Map;Leu/wynq/convex/client/OptimisticUpdate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun mutate$default (Leu/wynq/convex/client/ConvexSyncClient;Ljava/lang/String;Ljava/util/Map;Leu/wynq/convex/client/OptimisticUpdate;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun reconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun subscribe (Ljava/lang/String;Ljava/util/Map;)Leu/wynq/convex/core/sync/SubscriberId;
 	public static synthetic fun subscribe$default (Leu/wynq/convex/client/ConvexSyncClient;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Leu/wynq/convex/core/sync/SubscriberId;
@@ -39,6 +41,10 @@ public final class eu/wynq/convex/client/KtorSyncProtocolFactory : eu/wynq/conve
 public final class eu/wynq/convex/client/KtorSyncProtocolKt {
 	public static final fun defaultHttpClient ()Lio/ktor/client/HttpClient;
 	public static final fun syncUrl (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public abstract interface class eu/wynq/convex/client/OptimisticUpdate {
+	public abstract fun apply (Ljava/util/Map;)Ljava/util/Map;
 }
 
 public final class eu/wynq/convex/client/ReconnectPolicy {

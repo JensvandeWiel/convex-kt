@@ -86,6 +86,7 @@ public class ConvexSyncClient(
     private var senderJob: Job? = null
     private var receiverJob: Job? = null
     private var reconnectJob: Job? = null
+    private var optimistic: OptimisticUpdate? = null
 
     /** The latest known result for every subscribed query. */
     public val results: StateFlow<Map<QueryId, ConvexResult>> = resultsState.asStateFlow()
@@ -222,26 +223,34 @@ public class ConvexSyncClient(
      *
      * @param udfPath the function path.
      * @param args the single argument object.
+     * @param optimistic an optional prediction shown until the next transition.
      * @return the mutation's result.
      * @throws ConvexClientException when [callTimeoutMillis] elapses first.
      */
-    public suspend fun mutate(udfPath: String, args: Map<String, ConvexValue>): ConvexResult =
-        call { requestId ->
-            ClientMessage.Mutation(requestId, udfPath, listOf(ConvexValue.Object(args)))
-        }
+    public suspend fun mutate(
+        udfPath: String,
+        args: Map<String, ConvexValue>,
+        optimistic: OptimisticUpdate? = null,
+    ): ConvexResult = call(optimistic) { requestId ->
+        ClientMessage.Mutation(requestId, udfPath, listOf(ConvexValue.Object(args)))
+    }
 
     /**
      * Runs an action and waits for its response.
      *
      * @param udfPath the function path.
      * @param args the single argument object.
+     * @param optimistic an optional prediction shown until the next transition.
      * @return the action's result.
      * @throws ConvexClientException when [callTimeoutMillis] elapses first.
      */
-    public suspend fun action(udfPath: String, args: Map<String, ConvexValue>): ConvexResult =
-        call { requestId ->
-            ClientMessage.Action(requestId, udfPath, listOf(ConvexValue.Object(args)))
-        }
+    public suspend fun action(
+        udfPath: String,
+        args: Map<String, ConvexValue>,
+        optimistic: OptimisticUpdate? = null,
+    ): ConvexResult = call(optimistic) { requestId ->
+        ClientMessage.Action(requestId, udfPath, listOf(ConvexValue.Object(args)))
+    }
 
     /** Cancels the loops and closes the connection. */
     public suspend fun close() {
@@ -255,7 +264,14 @@ public class ConvexSyncClient(
         receiverJob = null
     }
 
-    private suspend fun call(build: (RequestId) -> ClientMessage): ConvexResult {
+    private suspend fun call(
+        optimistic: OptimisticUpdate?,
+        build: (RequestId) -> ClientMessage,
+    ): ConvexResult {
+        if (optimistic != null) {
+            this.optimistic = optimistic
+            publish()
+        }
         val requestId = RequestId(nextRequestId)
         nextRequestId += 1u
         val deferred = CompletableDeferred<ConvexResult>()
@@ -263,9 +279,22 @@ public class ConvexSyncClient(
         outgoing.send(build(requestId))
         return try {
             awaitResult(deferred)
+        } catch (expected: Exception) {
+            // A failed call must not leave its prediction on screen.
+            if (optimistic != null) {
+                this.optimistic = null
+                publish()
+            }
+            throw expected
         } finally {
             pending.remove(requestId)
         }
+    }
+
+    /** Republishes results, applying any optimistic prediction. */
+    private fun publish() {
+        val prediction = optimistic
+        resultsState.value = prediction?.apply(remoteState.results()) ?: remoteState.results()
     }
 
     private suspend fun awaitResult(deferred: CompletableDeferred<ConvexResult>): ConvexResult {
@@ -322,7 +351,11 @@ public class ConvexSyncClient(
 
     private fun applyTransition(transition: ServerMessage.Transition) {
         when (remoteState.transition(transition)) {
-            is TransitionOutcome.Applied -> resultsState.value = remoteState.results()
+            is TransitionOutcome.Applied -> {
+                // The server has caught up; drop any prediction it supersedes.
+                optimistic = null
+                publish()
+            }
             is TransitionOutcome.VersionMismatch -> Unit
         }
     }
