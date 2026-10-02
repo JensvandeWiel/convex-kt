@@ -35,13 +35,13 @@ import eu.wynq.convex.core.value.ConvexValue
  *
  * @param function a query descriptor.
  * @param args the single argument object.
- * @return the subscriber handle, or `null` if not connected.
+ * @return the subscriber handle.
  * @throws ConvexClientException when [function] is not a query.
  */
 public fun ConvexSyncClient.subscribe(
     function: ConvexFunction,
     args: Map<String, ConvexValue> = emptyMap(),
-): SubscriberId? {
+): SubscriberId {
     function.requireKind(ConvexFunctionKind.QUERY)
     return subscribe(function.path, args)
 }

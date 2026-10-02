@@ -28,7 +28,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
-import kotlin.test.assertNotNull
 
 /** Covers the descriptor-based entry points. */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -41,7 +40,7 @@ class FunctionsTest {
         client.connect()
         runCurrent()
 
-        assertNotNull(client.subscribe(ConvexFunction("messages:list", ConvexFunctionKind.QUERY)))
+        client.subscribe(ConvexFunction("messages:list", ConvexFunctionKind.QUERY))
         runCurrent()
 
         val modify = assertIs<ClientMessage.ModifyQuerySet>(ClientMessageJson.decode(fake.sent[1]))

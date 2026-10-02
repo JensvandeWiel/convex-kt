@@ -40,7 +40,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
@@ -83,7 +82,7 @@ class ConvexSyncClientTest {
         val client = client(fake)
         client.connect()
         runCurrent()
-        val subscriber = assertNotNull(client.subscribe("messages:list"))
+        val subscriber = client.subscribe("messages:list")
         runCurrent()
 
         fake.push(ServerMessageJson.encode(queryUpdatedTransition(subscriber.queryId)))
@@ -128,9 +127,19 @@ class ConvexSyncClientTest {
     }
 
     @Test
-    fun subscribeBeforeConnectIsRejected() = runTest {
-        val client = client(FakeSyncProtocol())
-        assertTrue(client.subscribe("messages:list") == null)
+    fun subscriptionRequestedBeforeConnectIsSentOnConnect() = runTest {
+        val fake = FakeSyncProtocol()
+        val client = ConvexSyncClient(SyncProtocolFactory { fake }, backgroundScope)
+        // Requested before connecting; it must still be established.
+        client.subscribe("messages:list")
+        client.connect()
+        runCurrent()
+
+        val decoded = fake.sent.map(ClientMessageJson::decode)
+        assertIs<ClientMessage.Connect>(decoded.first())
+        val modify = assertIs<ClientMessage.ModifyQuerySet>(decoded[1])
+        val add = assertIs<QuerySetModification.Add>(modify.modifications.single())
+        assertEquals("messages:list", add.query.udfPath)
     }
 
     @Test
@@ -256,7 +265,7 @@ class ConvexSyncClientTest {
         val client = client(fake)
         client.connect()
         runCurrent()
-        val subscriber = assertNotNull(client.subscribe("messages:list"))
+        val subscriber = client.subscribe("messages:list")
         runCurrent()
 
         val full = ServerMessageJson.encode(queryUpdatedTransition(subscriber.queryId, ConvexValue.String("chunked")))
@@ -278,7 +287,7 @@ class ConvexSyncClientTest {
         val client = client(fake)
         client.connect()
         runCurrent()
-        val subscriber = assertNotNull(client.subscribe("messages:list"))
+        val subscriber = client.subscribe("messages:list")
         runCurrent()
         val queryId = subscriber.queryId
 

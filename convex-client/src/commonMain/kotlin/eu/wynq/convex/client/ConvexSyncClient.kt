@@ -77,6 +77,7 @@ public class ConvexSyncClient(
     private val outgoing = Channel<ClientMessage>(Channel.UNLIMITED)
     private val pending = mutableMapOf<RequestId, CompletableDeferred<ConvexResult>>()
     private val resultsState = MutableStateFlow<Map<QueryId, ConvexResult>>(emptyMap())
+    private val connectionStateState = MutableStateFlow(ConnectionState.Disconnected)
     private val authErrorsState = MutableSharedFlow<String>(extraBufferCapacity = AUTH_ERROR_BUFFER)
     private val transitionChunks = mutableMapOf<String, ChunkBuffer>()
 
@@ -90,6 +91,9 @@ public class ConvexSyncClient(
 
     /** The latest known result for every subscribed query. */
     public val results: StateFlow<Map<QueryId, ConvexResult>> = resultsState.asStateFlow()
+
+    /** The connection lifecycle, for UI and diagnostics. */
+    public val connectionState: StateFlow<ConnectionState> = connectionStateState.asStateFlow()
 
     /**
      * Authentication failures reported by the server.
@@ -124,6 +128,7 @@ public class ConvexSyncClient(
     }
 
     private suspend fun establish(reconnecting: Boolean) {
+        connectionStateState.value = ConnectionState.Connecting
         if (reconnecting) {
             senderJob?.cancel()
             receiverJob?.cancel()
@@ -142,9 +147,13 @@ public class ConvexSyncClient(
             localState.resetIdentityVersion()
         }
         sendAuthentication(forceRefresh = reconnecting)
-        if (reconnecting) {
+        // Establish the query set after Connect: this sends subscriptions that
+        // were requested before a connection existed, and it resends them on a
+        // reconnect, in both cases from version zero with any known journals.
+        if (localState.queryCount > 0) {
             outgoing.trySend(localState.resendQueries { remoteState.journal(it) })
         }
+        connectionStateState.value = ConnectionState.Connected
         senderJob = scope.launch { sendLoop(open) }
         receiverJob = scope.launch {
             receiveLoop(open)
@@ -173,6 +182,7 @@ public class ConvexSyncClient(
     /** Schedules a backoff reconnect after the receive loop ends. */
     private fun onConnectionClosed() {
         connection = null
+        connectionStateState.value = ConnectionState.Disconnected
         senderJob?.cancel()
         if (!reconnectPolicy.automatic) return
         if (reconnectJob?.isActive == true) return
@@ -198,14 +208,20 @@ public class ConvexSyncClient(
      * Subscribes to a query, reusing the server-side query when an identical
      * subscription already exists.
      *
+     * May be called before [connect]: the request is queued and sent once a
+     * connection opens, and it survives reconnects.
+     *
      * @param udfPath the function path, for example `messages:list`.
      * @param args the single argument object.
-     * @return the subscriber handle, or `null` if not connected.
+     * @return the subscriber handle.
      */
-    public fun subscribe(udfPath: String, args: Map<String, ConvexValue> = emptyMap()): SubscriberId? {
-        if (connection == null) return null
+    public fun subscribe(udfPath: String, args: Map<String, ConvexValue> = emptyMap()): SubscriberId {
         val subscription = localState.subscribe(udfPath, args)
-        subscription.message?.let(outgoing::trySend)
+        // Before connecting, the query set is established on connect instead, so
+        // the Change cannot be sent out of order ahead of Connect.
+        if (connection != null) {
+            subscription.message?.let(outgoing::trySend)
+        }
         return subscription.subscriberId
     }
 
@@ -215,7 +231,10 @@ public class ConvexSyncClient(
      * @param subscriberId a handle from [subscribe].
      */
     public fun unsubscribe(subscriberId: SubscriberId) {
-        localState.unsubscribe(subscriberId)?.let(outgoing::trySend)
+        val message = localState.unsubscribe(subscriberId)
+        if (connection != null) {
+            message?.let(outgoing::trySend)
+        }
     }
 
     /**
@@ -259,6 +278,7 @@ public class ConvexSyncClient(
         receiverJob?.cancel()
         connection?.close()
         connection = null
+        connectionStateState.value = ConnectionState.Disconnected
         reconnectJob = null
         senderJob = null
         receiverJob = null

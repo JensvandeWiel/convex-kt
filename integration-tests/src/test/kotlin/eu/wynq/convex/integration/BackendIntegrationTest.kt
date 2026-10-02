@@ -44,7 +44,6 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -63,7 +62,7 @@ import kotlin.test.fail
 class BackendIntegrationTest {
     @Test
     fun subscriptionAndMutationUpdateTheList() = withSyncClient { client, _ ->
-        val subscriber = assertNotNull(client.subscribe("messages:list"))
+        val subscriber = client.subscribe("messages:list")
         val queryId = subscriber.queryId
         awaitUntil("the first query result") {
             client.results.value[queryId] is ConvexResult.Success
@@ -86,7 +85,7 @@ class BackendIntegrationTest {
     @Test
     fun optimisticUpdateIsVisibleBeforeTheServerConfirms() {
         withSyncClient { client, scope ->
-            val subscriber = assertNotNull(client.subscribe("messages:list"))
+            val subscriber = client.subscribe("messages:list")
             val queryId = subscriber.queryId
             awaitUntil("the first query result") {
                 client.results.value[queryId] is ConvexResult.Success

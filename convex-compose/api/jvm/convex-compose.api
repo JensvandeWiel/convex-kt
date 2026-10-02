@@ -12,7 +12,7 @@ public final class eu/wynq/convex/compose/QueryController {
 	public fun <init> (Leu/wynq/convex/client/ConvexSyncClient;Ljava/lang/String;Ljava/util/Map;Leu/wynq/convex/compose/ConvexDecoder;)V
 	public synthetic fun <init> (Leu/wynq/convex/client/ConvexSyncClient;Ljava/lang/String;Ljava/util/Map;Leu/wynq/convex/compose/ConvexDecoder;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun close ()V
-	public final fun getQueryId-Oaxfsfk ()Leu/wynq/convex/core/protocol/QueryId;
+	public final fun getQueryId-2mWXCjo ()I
 	public final fun getState ()Lkotlinx/coroutines/flow/Flow;
 }
 

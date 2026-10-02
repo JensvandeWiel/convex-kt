@@ -39,19 +39,18 @@ public class QueryController<T>(
     args: Map<String, ConvexValue> = emptyMap(),
     private val decoder: ConvexDecoder<T>,
 ) {
-    private val subscriberId: SubscriberId? = client.subscribe(udfPath, args)
-    private val subscriberQueryId: QueryId? = subscriberId?.queryId
+    private val subscriberId: SubscriberId = client.subscribe(udfPath, args)
 
-    /** The server query id this controller observes, or `null` when not connected. */
-    public val queryId: QueryId? get() = subscriberQueryId
+    /** The server query id this controller observes. */
+    public val queryId: QueryId = subscriberId.queryId
 
     /** The query's state as it changes over time. */
     public val state: Flow<QueryState<T>> = client.results.map { results ->
-        queryStateOf(subscriberQueryId?.let(results::get), decoder)
+        queryStateOf(results[queryId], decoder)
     }
 
     /** Unsubscribes from the query. */
     public fun close() {
-        subscriberId?.let(client::unsubscribe)
+        client.unsubscribe(subscriberId)
     }
 }

@@ -53,7 +53,7 @@ class FixtureReplayTest {
         client.connect()
         runCurrent()
 
-        assertNotNull(client.subscribe("messages:list"))
+        client.subscribe("messages:list")
         runCurrent()
         val mutation = async { client.mutate("messages:send", mapOf("body" to ConvexValue.String("hello"))) }
         runCurrent()

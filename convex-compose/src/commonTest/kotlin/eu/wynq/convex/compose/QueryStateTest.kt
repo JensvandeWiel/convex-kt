@@ -34,7 +34,6 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 /** Covers the pure mapping from results to states. */
 class QueryStateTest {
@@ -73,7 +72,7 @@ class QueryControllerTest {
 
         val controller = QueryController(client, "messages:list", decoder = ConvexDecoder { it })
         runCurrent()
-        val queryId = assertNotNull(controller.queryId)
+        val queryId = controller.queryId
         assertEquals(QueryState.Loading, controller.state.first())
 
         fake.push(queryUpdated(queryId, ConvexValue.String("hi")))
