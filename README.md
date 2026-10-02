@@ -37,23 +37,20 @@ On Windows use `.\gradlew.bat`. Clone with `--recurse-submodules` (the upstream
 `local.properties` (git-ignored) or `ANDROID_HOME`. Apple targets only build on
 macOS.
 
-## Quality gates
+## Quality and parity
 
-| Gate | Command | Standard |
-| --- | --- | --- |
-| Formatting | `./gradlew spotlessCheck` | Spotless + `ktlint_official` |
-| Static analysis | `./gradlew detekt` | Detekt, `config/detekt/detekt.yml`, no baselines |
-| Public API | `./gradlew apiCheck` | binary-compatibility-validator dumps |
-| Coverage | `./gradlew koverVerify` | Kover, floor ratcheted over time |
+Formatting, static analysis, the public-API surface, coverage, and the
+upstream-test parity gate are all wired into the build:
 
-See `CONTRIBUTING.md` for the full standard and `AGENTS.md` for which guardrails
-are mechanically enforced versus reviewed by a human.
+```bash
+./gradlew build          # compile, tests, formatting, analysis, API, coverage
+./gradlew checkAll       # the same gates across every module
+./gradlew :tools:parity:run --args="--upstream third_party/convex-rs"
+```
 
-When a rule rejects a genuinely correct pattern, suppress it **inline** at the
-narrowest scope **with a comment explaining why**, rather than weakening the
-shared ruleset. Relaxing a rule in `config/detekt/detekt.yml` is a last resort,
-because it silences that rule for every module. See "When a rule blocks
-legitimate code" in `CONTRIBUTING.md`.
+The rules that govern these gates live in `AGENTS.md` (including which ones the
+build enforces versus a human review, and how to relax a rule that rejects a
+correct pattern). The contributor workflow is in `CONTRIBUTING.md`.
 
 ## Example
 
@@ -92,7 +89,11 @@ To absorb a new upstream revision, append the generated entries:
 
 ## Documentation
 
-- `AGENTS.md` — hard rules, guardrails, and Rust → Kotlin mapping.
+- `AGENTS.md` — the authoritative working agreement: hard rules, guardrails,
+  the Rust → Kotlin mapping, and the quality standard.
+- `CONTRIBUTING.md` — setup and the contributor workflow.
+- `docs/STATUS.md` — what is implemented and the known gaps.
+- `docs/state-machine-design.md` — the sync state machine's design record.
 - `.opencode/skills/` — workflows: `port-from-rust`, `capture-conformance`,
   `check-parity`, `new-function`.
 

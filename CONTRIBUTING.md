@@ -1,17 +1,16 @@
 # Contributing to convex-kt
 
-Thanks for helping build a Kotlin Multiplatform client for Convex. This file is
-the short path in; `AGENTS.md` is the authoritative working agreement and wins if
-the two disagree.
+`AGENTS.md` is the authoritative working agreement and wins if anything here
+disagrees. This file is only the practical path for making a change.
 
 ## Before you start
 
 Read, in order:
 
 1. `AGENTS.md` — the three hard rules, development guardrails, and the
-   Rust → Kotlin mapping. This is not optional reading.
-2. `README.md` — module map and build commands.
-3. `.opencode/skills/` — the executable workflows (`port-from-rust`,
+   Rust → Kotlin mapping.
+2. `README.md` — the module map.
+3. The relevant skill under `.opencode/skills/` (`port-from-rust`,
    `capture-conformance`, `check-parity`, `new-function`).
 
 ## Setup
@@ -33,27 +32,30 @@ Requirements:
 - JDK 17+ (the build targets 17).
 - Android SDK 36, with `local.properties` (`sdk.dir=...`, git-ignored) or
   `ANDROID_HOME`.
-- Docker, for conformance recordings.
-- Node 20+, for the conformance harness.
+- Docker and Node 20+, for conformance recordings and the integration tests.
 
-Apple targets build only on macOS. On other hosts they are skipped.
+Apple targets build only on macOS; other hosts skip them.
 
-## The standard
-
-Every change must pass:
+## Workflow
 
 ```bash
-./gradlew spotlessCheck   # formatting (ktlint_official)
-./gradlew detekt          # static analysis, including the AGENTS.md guardrails
-./gradlew apiCheck        # public API surface matches the committed dumps
-./gradlew check           # tests + Spotless + Detekt + Kover
-./gradlew koverVerify     # coverage floor
-./gradlew :tools:parity:run --args="--manifest parity.yaml"
+./gradlew build           # compile, tests, formatting, analysis, API, coverage
+./gradlew checkAll        # the same gates across every module
+./gradlew spotlessApply   # fix formatting
 ```
 
-`./gradlew build` runs everything. There are **no Detekt baselines**: a finding
-is either fixed or the rule is changed deliberately, with a comment explaining
-why.
+On Windows use `.\gradlew.bat`. To run the individual gates, or the parity and
+integration checks:
+
+```bash
+./gradlew spotlessCheck detekt apiCheck koverVerify
+./gradlew :tools:parity:run --args="--upstream third_party/convex-rs"
+./gradlew :integration-tests:integrationTest     # needs Docker and Node
+```
+
+There are **no Detekt baselines**: a finding is either fixed or the rule is
+changed deliberately, with a reason. See "When a rule blocks legitimate code" in
+`AGENTS.md` for the policy.
 
 ### Changing the public API
 
@@ -61,53 +63,16 @@ why.
 change the public surface, run `./gradlew apiDump` and commit the diff so the
 change is reviewable.
 
-### When a rule blocks legitimate code
-
-Static analysis serves the code, not the other way around. If a rule rejects a
-pattern that is genuinely correct, in order of preference:
-
-1. **Fix the code.** Almost always the right answer.
-2. **Inline `@Suppress`, on the narrowest declaration, with a comment** naming
-   the false positive and the pattern that is correct. This is the preferred
-   escape hatch: it applies only where the exception exists, so the rule stays
-   full-strength everywhere else.
-3. **Relax the rule in `config/detekt/detekt.yml`, with a comment.** Last
-   resort, because a config relaxation silences that rule for **every** module.
-   Use it only when the rule is wrong in principle.
-
-Never add a Detekt baseline or lower the Kover floor just to unblock a change.
-A suppression without a written reason is a review defect.
-
-### Formatting
-
-`./gradlew spotlessApply` fixes most style issues. Spotless is the single
-formatter; do not enable Detekt's `formatting` ruleset.
-
-## Guardrails you must not break
-
-These are enforced by the build where possible:
-
-- Exhaustive `when` over sealed types, with **no `else`**.
-- Parse backend responses by **key presence**, not nullability.
-- `delay`, never `yield`, in `runTest` loops.
-- KDoc on every public declaration.
-- `explicitApi` stays enabled on public modules.
-
 ## Tests
 
 - Unit tests live beside the code in `commonTest` (KMP) or `src/test` (JVM).
 - Integration tests run against the **real** pinned backend; there are no mocked
   server responses in integration tests.
-- Conformance tests replay the recorded fixtures in
-  `conformance/fixtures/`. If a fixture disagrees with the live backend, the
-  fixture is wrong — re-record it (see the `capture-conformance` skill).
-
-## Parity
-
-Every upstream `convex-rs` test needs a Kotlin counterpart recorded in
-`parity.yaml`. The `convex-rs` source is available at
-`third_party/convex-rs` (a pinned submodule). Keep the manifest and the test in
-the same pull request.
+- Conformance tests replay the recorded fixtures in `conformance/fixtures/`. If
+  a fixture disagrees with the live backend, the fixture is wrong — re-record it
+  (see the `capture-conformance` skill).
+- Every upstream `convex-rs` test needs a counterpart in `parity.yaml`; the
+  `check-parity` skill covers the mechanics.
 
 ## Pull requests
 
