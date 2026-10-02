@@ -19,14 +19,10 @@ import eu.wynq.convex.core.internal.LittleEndianBase64
 import eu.wynq.convex.core.value.ConvexJson
 import eu.wynq.convex.core.value.ConvexJsonException
 import eu.wynq.convex.core.value.ConvexValue
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.longOrNull
 
 /**
  * The JSON codec for [ClientMessage].
@@ -79,7 +75,7 @@ public object ClientMessageJson {
      * @throws ConvexJsonException when the text is not a valid client message.
      */
     public fun decode(text: String): ClientMessage {
-        val message = parseObject(text)
+        val message = parseJsonObject(text)
         return when (val type = message.string("type")) {
             "Connect" -> decodeConnect(message)
             "ModifyQuerySet" -> decodeModifyQuerySet(message)
@@ -93,16 +89,6 @@ public object ClientMessageJson {
             "Event" -> decodeEvent(message)
             else -> throw ConvexJsonException("unknown client message type '$type'")
         }
-    }
-
-    private fun parseObject(text: String): JsonObject {
-        val element = try {
-            Json.parseToJsonElement(text)
-        } catch (failure: SerializationException) {
-            throw ConvexJsonException("invalid JSON: ${failure.message}", failure)
-        }
-        return element as? JsonObject
-            ?: throw ConvexJsonException("client message must be a JSON object")
     }
 
     private fun connectElement(message: ClientMessage.Connect): JsonObject {
@@ -259,45 +245,4 @@ public object ClientMessageJson {
             message["event"] ?: throw ConvexJsonException("Event lacks event"),
         ),
     )
-}
-
-private fun JsonObject.string(key: String): String {
-    val primitive = this[key] as? JsonPrimitive
-    if (primitive == null || !primitive.isString) {
-        throw ConvexJsonException("'$key' must be a string")
-    }
-    return primitive.content
-}
-
-private fun JsonObject.optionalString(key: String): String? {
-    val element = this[key] ?: return null
-    if (element is JsonNull) return null
-    return (element as? JsonPrimitive)?.takeIf { it.isString }?.content
-        ?: throw ConvexJsonException("'$key' must be a string or null")
-}
-
-private fun JsonObject.uint(key: String): UInt = long(key).toUInt()
-
-private fun JsonObject.long(key: String): Long {
-    val primitive = this[key] as? JsonPrimitive
-    val value = primitive?.longOrNull
-    if (value == null) throw ConvexJsonException("'$key' must be an integer")
-    return value
-}
-
-private fun JsonObject.optionalLong(key: String): Long? {
-    val element = this[key] ?: return null
-    if (element is JsonNull) return null
-    return (element as? JsonPrimitive)?.longOrNull
-        ?: throw ConvexJsonException("'$key' must be an integer or null")
-}
-
-private fun JsonObject.requireArray(key: String): JsonArray =
-    this[key] as? JsonArray ?: throw ConvexJsonException("'$key' must be an array")
-
-private fun JsonObject.optionalValueList(key: String): List<ConvexValue> {
-    val element = this[key] ?: return emptyList()
-    if (element is JsonNull) return emptyList()
-    val array = element as? JsonArray ?: throw ConvexJsonException("'$key' must be an array")
-    return array.map(ConvexJson::fromJsonElement)
 }
