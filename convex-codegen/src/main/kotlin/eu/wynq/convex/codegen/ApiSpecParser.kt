@@ -28,22 +28,29 @@ import kotlinx.serialization.json.JsonPrimitive
 /**
  * Parses a Convex `apiSpec` document into [ConvexFunction] descriptors.
  *
- * The parser is tolerant of the field-name variations that appear across
- * Convex versions: a function's path may be given as `name` or as
- * `module` + `functionName`, and its kind as `functionType` or `type`.
- * Unknown validator types degrade to [ConvexValidator.Any] rather than failing,
- * because a newer backend must not break code generation.
+ * The backend's `apiSpec` system function returns an array of function records;
+ * the Convex CLI wraps the same array in a `functions` field. Both shapes are
+ * accepted, and the parser tolerates the field-name variations that appear
+ * across Convex versions: a function's path may be given as `name`, as an
+ * `identifier` (for example `messages.js:send`), or as `module` +
+ * `functionName`; its kind as `functionType` or `type`. Unknown validator types
+ * degrade to [ConvexValidator.Any] rather than failing, because a newer backend
+ * must not break code generation.
  */
 public object ApiSpecParser {
     /**
      * Parses an `apiSpec` document.
      *
-     * @param specJson the JSON text.
+     * @param specJson the JSON text: either the array of functions or an object
+     *   with a `functions` array.
      * @return the functions it declares, in document order.
      */
     public fun parse(specJson: String): List<ConvexFunction> {
-        val root = Json.parseToJsonElement(specJson) as? JsonObject ?: return emptyList()
-        val functions = root["functions"] as? JsonArray ?: return emptyList()
+        val functions = when (val root = Json.parseToJsonElement(specJson)) {
+            is JsonArray -> root
+            is JsonObject -> root["functions"] as? JsonArray ?: return emptyList()
+            is JsonPrimitive -> return emptyList()
+        }
         return functions.mapNotNull { element ->
             (element as? JsonObject)?.let(::parseFunction)
         }
@@ -51,16 +58,22 @@ public object ApiSpecParser {
 
     private fun parseFunction(obj: JsonObject): ConvexFunction? {
         val path = obj.string("name")
+            ?: obj.identifierPath()
             ?: obj.moduleAndName()
             ?: return null
         val kindName = obj.string("functionType") ?: obj.string("type") ?: ConvexFunctionKind.QUERY.wireName
         return ConvexFunction(
             path = path,
             kind = ConvexFunctionKind.fromWire(kindName),
-            args = obj["args"]?.let(::parseValidator),
-            returns = obj["returns"]?.let(::parseValidator),
+            // `returns` is often null, meaning unspecified; treat it as absent.
+            args = (obj["args"] as? JsonObject)?.let(::parseValidator),
+            returns = (obj["returns"] as? JsonObject)?.let(::parseValidator),
         )
     }
+
+    /** Turns a module identifier like `messages.js:send` into `messages:send`. */
+    private fun JsonObject.identifierPath(): String? =
+        string("identifier")?.replace(".js:", ":")
 
     private fun JsonObject.moduleAndName(): String? {
         val module = string("module") ?: return null

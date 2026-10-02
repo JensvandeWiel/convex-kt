@@ -74,6 +74,29 @@ class CodegenTest {
     }
 
     @Test
+    fun parsesTheBackendApiSpecShape() {
+        // Captured from the backend's `_system/cli/modules:apiSpec`: a bare
+        // array of records with an `identifier` and a capitalized
+        // `functionType`.
+        val spec = """
+        [
+          {"args":{"type":"object","value":{}},"functionType":"Query","identifier":"ping.js:ping","returns":null},
+          {"args":{"type":"object","value":{"body":{"fieldType":{"type":"string"},"optional":false}}},"functionType":"Mutation","identifier":"messages.js:send","returns":null}
+        ]
+        """.trimIndent()
+
+        val functions = ApiSpecParser.parse(spec)
+        assertEquals(2, functions.size)
+        assertEquals("ping:ping", functions[0].path)
+        assertEquals(ConvexFunctionKind.QUERY, functions[0].kind)
+        assertEquals(null, functions[0].returns)
+        assertEquals("messages:send", functions[1].path)
+        assertEquals(ConvexFunctionKind.MUTATION, functions[1].kind)
+        val args = assertIs<ConvexValidator.Object>(functions[1].args)
+        assertEquals(false, args.fields.getValue("body").optional)
+    }
+
+    @Test
     fun toleratesModuleAndFunctionNameFields() {
         val functions = ApiSpecParser.parse(
             """{"functions":[{"module":"tasks","functionName":"run","type":"action"}]}""",
