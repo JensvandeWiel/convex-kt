@@ -1,0 +1,28 @@
+name: Upstream watch
+
+# Monitors the pinned upstream repositories for new releases and drafts an issue
+# when the pin drifts. It never edits code and never merges. This implements the
+# "Automated Upstream Detection" hard rule in AGENTS.md.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays at 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    name: Diff upstream releases
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Draft issues for drifted pins
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node tools/upstream-watch/watch.mjs

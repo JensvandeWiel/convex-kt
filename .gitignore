@@ -1,0 +1,33 @@
+# Gradle
+.gradle/
+build/
+**/build/
+!src/**/build/
+gradle-app.setting
+.gradletasknamecache
+
+# Android / IntelliJ
+local.properties
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Kotlin
+.kotlin/
+
+# macOS
+.DS_Store
+
+# Conformance runs (fixtures are committed; transient captures are not)
+conformance/out/
+conformance/.cache/
+
+# Node tooling used by the conformance harness
+node_modules/
+
+# JVM crash logs
+*.hprof
+hs_err_pid*.log
+replay_pid*.log

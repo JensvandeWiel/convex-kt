@@ -1,0 +1,20 @@
+# Machine-readable parity manifest.
+#
+# Every upstream `convex-rs` test must have a Kotlin counterpart listed here.
+# `:tools:parity` validates this file in CI; see the "Full Test-Suite Parity"
+# rule in AGENTS.md and the `check-parity` skill.
+#
+# Per-requirement fields:
+#   id           stable, unique identifier (kebab/case as you like, must be unique)
+#   description  what the test proves, in one sentence
+#   status       planned | ported | not-applicable
+#   upstream     list of references into get-convex/convex-rs
+#   kotlin       list of references into this repository
+#
+# `requirements` is intentionally empty at bootstrap. The `capture-conformance`
+# workflow (plan step 3) records the first real upstream references; until then
+# the tool reports a warning rather than failing the build.
+
+schemaVersion: 1
+
+requirements: []

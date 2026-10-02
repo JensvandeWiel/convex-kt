@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  wrapper-validation:
+    name: Validate Gradle wrapper
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/wrapper-validation@v4
+
+  build:
+    name: Build and test (${{ matrix.os }})
+    needs: wrapper-validation
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      # macOS additionally compiles and links the Apple targets; the other two
+      # hosts build Android + JVM. `kotlin.native.ignoreDisabledTargets` keeps
+      # the non-Apple hosts quiet.
+      - name: Build and test
+        shell: bash
+        run: ./gradlew build --stacktrace --console=plain
+
+  parity:
+    name: Parity gate
+    needs: wrapper-validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Validate parity.yaml against upstream tracking
+        run: ./gradlew :tools:parity:run --args="--manifest parity.yaml"
+
+  # The per-commit real-backend integration job is added with the conformance
+  # harness in plan step 3. It boots conformance/docker-compose.yml (SQLite) and
+  # runs the integration test task; it does not use mocked server responses.

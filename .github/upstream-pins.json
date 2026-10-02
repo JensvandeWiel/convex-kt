@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "repositories": [
+    {
+      "name": "convex-backend",
+      "repo": "get-convex/convex-backend",
+      "pinned": "d2ca853"
+    },
+    {
+      "name": "convex-rs",
+      "repo": "get-convex/convex-rs",
+      "pinned": ""
+    }
+  ]
+}

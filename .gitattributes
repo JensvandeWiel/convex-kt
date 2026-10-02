@@ -1,0 +1,6 @@
+# Normalize line endings in the repository. Source files use LF (see
+# .editorconfig); Windows batch files must stay CRLF to run correctly.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.jar binary
+*.png binary
