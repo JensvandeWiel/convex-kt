@@ -15,6 +15,7 @@
  */
 package eu.wynq.convex.client
 
+import eu.wynq.convex.core.protocol.AuthenticationToken
 import eu.wynq.convex.core.protocol.ClientMessage
 import eu.wynq.convex.core.protocol.ClientMessageJson
 import eu.wynq.convex.core.protocol.ConvexResult
@@ -127,6 +128,67 @@ class ConvexSyncClientTest {
     fun subscribeBeforeConnectIsRejected() = runTest {
         val client = client(FakeSyncProtocol())
         assertTrue(client.subscribe("messages:list") == null)
+    }
+
+    @Test
+    fun authFetcherIsSentAfterConnect() = runTest {
+        val fake = FakeSyncProtocol()
+        val client = ConvexSyncClient(
+            SyncProtocolFactory { fake },
+            backgroundScope,
+            authFetcher = AuthTokenFetcher { AuthenticationToken.User("jwt") },
+        )
+        client.connect()
+        runCurrent()
+
+        val decoded = fake.sent.map(ClientMessageJson::decode)
+        assertIs<ClientMessage.Connect>(decoded[0])
+        val authenticate = assertIs<ClientMessage.Authenticate>(decoded[1])
+        assertEquals(AuthenticationToken.User("jwt"), authenticate.token)
+        assertEquals(0u, authenticate.baseVersion.value)
+    }
+
+    @Test
+    fun authFetcherRefreshIsSkippedForNone() = runTest {
+        val fake = FakeSyncProtocol()
+        val client = ConvexSyncClient(
+            SyncProtocolFactory { fake },
+            backgroundScope,
+            authFetcher = AuthTokenFetcher { AuthenticationToken.None },
+        )
+        client.connect()
+        runCurrent()
+
+        assertTrue(fake.sent.map(ClientMessageJson::decode).none { it is ClientMessage.Authenticate })
+    }
+
+    @Test
+    fun reconnectResendsQueriesFromVersionZero() = runTest {
+        val fake = FakeSyncProtocol()
+        var forceRefresh = false
+        val client = ConvexSyncClient(
+            SyncProtocolFactory { fake },
+            backgroundScope,
+            authFetcher = AuthTokenFetcher { force ->
+                forceRefresh = force
+                AuthenticationToken.User("jwt")
+            },
+        )
+        client.connect()
+        runCurrent()
+        client.subscribe("messages:list")
+        runCurrent()
+        fake.sent.clear()
+
+        client.reconnect()
+        runCurrent()
+
+        val decoded = fake.sent.map(ClientMessageJson::decode)
+        assertIs<ClientMessage.Connect>(decoded.first())
+        val modify = decoded.filterIsInstance<ClientMessage.ModifyQuerySet>().single()
+        assertEquals(0u, modify.baseVersion.value)
+        assertIs<QuerySetModification.Add>(modify.modifications.single())
+        assertTrue(forceRefresh, "reconnect must force a token refresh")
     }
 
     private fun kotlinx.coroutines.test.TestScope.client(fake: SyncProtocol): ConvexSyncClient =

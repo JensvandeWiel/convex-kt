@@ -141,6 +141,16 @@ public class LocalSyncState {
     }
 
     /**
+     * Resets the identity version after a reconnect.
+     *
+     * The server forgets the previous connection's identity version, so the
+     * next [authenticate] must start from zero again.
+     */
+    public fun resetIdentityVersion() {
+        identityVersion = IdentityVersion(0u)
+    }
+
+    /**
      * Builds an authentication message and advances the identity version.
      *
      * @param token the new authentication state.

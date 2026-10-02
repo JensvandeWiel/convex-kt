@@ -84,8 +84,12 @@ subscribing twice to `messages:list {}` reuses one query id.
   bookkeeping live (likely `convex-client`, or a small core slice).
 - **Pagination / journal.** `Query.journal` is carried but unused; confirm it can
   be layered on without changing the state-machine shape.
-- **Auth refresh.** `resendQueries` covers subscriptions; forced token refresh
-  on reconnect is a `convex-client` concern to design.
+- **Auth refresh.** Implemented: `AuthTokenFetcher` is called on connect and
+  again from `reconnect` with `forceRefresh = true`, and the identity version is
+  reset before re-authenticating.
+- **Automatic reconnection.** Still open: a lost connection requires an explicit
+  `reconnect()` call. A backoff loop with a `ReconnectPolicy` is the next step,
+  and it must drain the outgoing queue before resending the session.
 
 ## Test strategy
 

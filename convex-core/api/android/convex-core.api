@@ -507,6 +507,7 @@ public final class eu/wynq/convex/core/sync/LocalSyncState {
 	public final fun authenticate (Leu/wynq/convex/core/protocol/AuthenticationToken;)Leu/wynq/convex/core/protocol/ClientMessage;
 	public final fun getQueryCount ()I
 	public final fun resendQueries ()Leu/wynq/convex/core/protocol/ClientMessage;
+	public final fun resetIdentityVersion ()V
 	public final fun subscribe (Ljava/lang/String;Ljava/util/Map;)Leu/wynq/convex/core/sync/Subscription;
 	public static synthetic fun subscribe$default (Leu/wynq/convex/core/sync/LocalSyncState;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Leu/wynq/convex/core/sync/Subscription;
 	public final fun unsubscribe (Leu/wynq/convex/core/sync/SubscriberId;)Leu/wynq/convex/core/protocol/ClientMessage;

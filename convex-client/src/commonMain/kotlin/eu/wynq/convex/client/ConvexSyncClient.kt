@@ -15,6 +15,7 @@
  */
 package eu.wynq.convex.client
 
+import eu.wynq.convex.core.protocol.AuthenticationToken
 import eu.wynq.convex.core.protocol.ClientMessage
 import eu.wynq.convex.core.protocol.ClientMessageJson
 import eu.wynq.convex.core.protocol.ConvexResult
@@ -52,11 +53,13 @@ import kotlinx.coroutines.launch
  * @property factory opens connections.
  * @property scope owns the send and receive coroutines.
  * @property sessionId the session identifier; random unless supplied.
+ * @property authFetcher supplies the authentication state, if any.
  */
 public class ConvexSyncClient(
     private val factory: SyncProtocolFactory,
     private val scope: CoroutineScope,
     private val sessionId: SessionId = SessionId.random(),
+    private val authFetcher: AuthTokenFetcher? = null,
 ) {
     private val localState = LocalSyncState()
     private val remoteState = RemoteQuerySet()
@@ -65,6 +68,7 @@ public class ConvexSyncClient(
     private val resultsState = MutableStateFlow<Map<QueryId, ConvexResult>>(emptyMap())
 
     private var nextRequestId = 0u
+    private var connectionCount = 0u
     private var connection: SyncProtocol? = null
     private var senderJob: Job? = null
     private var receiverJob: Job? = null
@@ -79,17 +83,66 @@ public class ConvexSyncClient(
      */
     public suspend fun connect() {
         check(connection == null) { "already connected" }
+        openConnection()
+    }
+
+    /**
+     * Replaces the connection and restores the session on the server.
+     *
+     * The server has forgotten the previous connection, so the identity version
+     * resets, authentication is refetched (forcing a refresh), and every
+     * subscription is re-added. Known results are kept until the server's
+     * transitions replace them.
+     *
+     * @throws IllegalStateException when not connected.
+     */
+    public suspend fun reconnect() {
+        val previous = connection ?: error("not connected")
+        senderJob?.cancel()
+        receiverJob?.cancel()
+        previous.close()
+        connection = null
+
         val open = factory.connect()
         connection = open
-        outgoing.trySend(
-            ClientMessage.Connect(
-                sessionId = sessionId,
-                connectionCount = 0u,
-                lastCloseReason = "InitialConnect",
-            ),
-        )
+        // Drop anything queued for the dead connection; the resend below is the
+        // authoritative state.
+        while (outgoing.tryReceive().isSuccess) {
+            // discard
+        }
+        outgoing.trySend(connectMessage())
+        localState.resetIdentityVersion()
+        sendAuthentication(forceRefresh = true)
+        outgoing.trySend(localState.resendQueries())
         senderJob = scope.launch { sendLoop(open) }
         receiverJob = scope.launch { receiveLoop(open) }
+    }
+
+    private suspend fun openConnection() {
+        val open = factory.connect()
+        connection = open
+        outgoing.trySend(connectMessage())
+        sendAuthentication(forceRefresh = false)
+        senderJob = scope.launch { sendLoop(open) }
+        receiverJob = scope.launch { receiveLoop(open) }
+    }
+
+    private fun connectMessage(): ClientMessage.Connect {
+        val message = ClientMessage.Connect(
+            sessionId = sessionId,
+            connectionCount = connectionCount,
+            lastCloseReason = if (connectionCount == 0u) "InitialConnect" else "Reconnect",
+        )
+        connectionCount += 1u
+        return message
+    }
+
+    private suspend fun sendAuthentication(forceRefresh: Boolean) {
+        val fetcher = authFetcher ?: return
+        val token = fetcher.fetch(forceRefresh)
+        if (token != AuthenticationToken.None) {
+            outgoing.trySend(localState.authenticate(token))
+        }
     }
 
     /**
