@@ -192,8 +192,9 @@ Dependencies point inward: `convex-core` depends on nothing in this repository.
 and `tools/parity` are JVM-only build tools, and `examples/chat` is a leaf.
 Do not introduce a dependency that points the other way.
 
-See `docs/STATUS.md` for what is implemented and the known gaps, and
-`docs/state-machine-design.md` for the state machine's design record.
+See `docs/STATUS.md` for what is implemented and the known gaps,
+`docs/state-machine-design.md` for the state machine's design record, and
+`docs/ACTIVE_DECISION.md` for any design decision still awaiting a call.
 
 ## Build and test
 
