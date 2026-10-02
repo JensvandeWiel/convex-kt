@@ -34,26 +34,23 @@ this file records the seams that remain.
 
 Ordered roughly by how likely they are to matter.
 
-1. **`TransitionChunk` reassembly.** Chunked transitions are decoded but
-   ignored, so a very large transition would be lost.
-2. **`AuthError` handling.** Received and dropped; the app is not told that its
-   token expired.
-3. **Optimistic updates.** Deferred by decision; `RemoteQuerySet` is the server
+1. **Optimistic updates.** Deferred by decision; `RemoteQuerySet` is the server
    truth and mutations do not predict query changes (upstream is also a stub).
-4. **JWT verification on Apple targets.** `verifySignature` throws
+2. **JWT verification on Apple targets.** `verifySignature` throws
    `NotImplementedError` on iOS; tokens are forwarded to the backend, which
    verifies them. JVM and Android verify locally.
-5. **Pagination / journal.** `Query.journal` is carried and unused.
-6. **Storage against a live backend.** The storage client is unit-tested with a
+3. **Pagination / journal.** `Query.journal` is carried and unused.
+4. **Storage against a live backend.** The storage client is unit-tested with a
    mock engine; its endpoints have not been exercised against the pinned
    backend, so the exact paths/auth scheme are not yet fixture-proven.
-7. **Codegen wiring.** Descriptors are generated but the client still takes
+5. **Codegen wiring.** Descriptors are generated but the client still takes
    string paths; nothing yet maps a `ConvexFunction` to a typed call.
-8. **Parity depth.** Coverage enforcement is real, but most entries are
+6. **Parity depth.** Coverage enforcement is real, but most entries are
    `planned`; porting them is ongoing work.
 
-Automatic reconnection (exponential backoff via `ReconnectPolicy`) and a
-mutation/action call timeout are implemented and tested.
+Closed during refinement: automatic reconnection with exponential backoff,
+mutation/action call timeouts, `TransitionChunk` reassembly, and surfacing
+server `AuthError`s (now a `SharedFlow<String>`).
 
 ## Upstream pins
 

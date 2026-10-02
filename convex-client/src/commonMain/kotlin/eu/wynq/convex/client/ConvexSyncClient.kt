@@ -34,8 +34,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -74,6 +77,8 @@ public class ConvexSyncClient(
     private val outgoing = Channel<ClientMessage>(Channel.UNLIMITED)
     private val pending = mutableMapOf<RequestId, CompletableDeferred<ConvexResult>>()
     private val resultsState = MutableStateFlow<Map<QueryId, ConvexResult>>(emptyMap())
+    private val authErrorsState = MutableSharedFlow<String>(extraBufferCapacity = AUTH_ERROR_BUFFER)
+    private val transitionChunks = mutableMapOf<String, ChunkBuffer>()
 
     private var nextRequestId = 0u
     private var connectionCount = 0u
@@ -84,6 +89,14 @@ public class ConvexSyncClient(
 
     /** The latest known result for every subscribed query. */
     public val results: StateFlow<Map<QueryId, ConvexResult>> = resultsState.asStateFlow()
+
+    /**
+     * Authentication failures reported by the server.
+     *
+     * Emitted when a token is rejected or expires; the client does not clear its
+     * subscriptions, so the app can refresh credentials and keep rendering.
+     */
+    public val authErrors: SharedFlow<String> = authErrorsState.asSharedFlow()
 
     /**
      * Opens a connection and starts the send and receive loops.
@@ -281,12 +294,30 @@ public class ConvexSyncClient(
             is ServerMessage.Transition -> applyTransition(message)
             is ServerMessage.MutationResponse -> pending.remove(message.requestId)?.complete(message.result)
             is ServerMessage.ActionResponse -> pending.remove(message.requestId)?.complete(message.result)
-            is ServerMessage.AuthError -> Unit
+            is ServerMessage.AuthError -> authErrorsState.tryEmit(message.error)
             is ServerMessage.FatalError -> return false
-            is ServerMessage.TransitionChunk -> Unit
+            is ServerMessage.TransitionChunk -> handleChunk(message)
             ServerMessage.Ping -> Unit
         }
         return true
+    }
+
+    /**
+     * Buffers transition chunks and applies the transition once every part has
+     * arrived. A chunked transition is otherwise lost, which is why this is not
+     * a no-op.
+     */
+    private fun handleChunk(chunk: ServerMessage.TransitionChunk) {
+        val totalParts = chunk.totalParts.toInt()
+        if (totalParts <= 0) return
+        val buffer = transitionChunks.getOrPut(chunk.transitionId) { ChunkBuffer(totalParts) }
+        buffer.append(chunk.partNumber.toInt(), chunk.chunk)
+        if (!buffer.isComplete()) return
+        transitionChunks.remove(chunk.transitionId)
+        val reassembled = ServerMessageJson.decode(buffer.join())
+        if (reassembled is ServerMessage.Transition) {
+            applyTransition(reassembled)
+        }
     }
 
     private fun applyTransition(transition: ServerMessage.Transition) {
@@ -294,5 +325,25 @@ public class ConvexSyncClient(
             is TransitionOutcome.Applied -> resultsState.value = remoteState.results()
             is TransitionOutcome.VersionMismatch -> Unit
         }
+    }
+
+    /** Accumulates the parts of one chunked transition. */
+    private class ChunkBuffer(private val totalParts: Int) {
+        private val parts = arrayOfNulls<String>(totalParts)
+        private var received = 0
+
+        fun append(index: Int, chunk: String) {
+            if (index !in parts.indices || parts[index] != null) return
+            parts[index] = chunk
+            received += 1
+        }
+
+        fun isComplete(): Boolean = received == totalParts
+
+        fun join(): String = parts.joinToString("") { it ?: "" }
+    }
+
+    private companion object {
+        private const val AUTH_ERROR_BUFFER = 8
     }
 }

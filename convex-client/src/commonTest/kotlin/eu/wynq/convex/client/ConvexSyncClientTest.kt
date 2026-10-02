@@ -31,6 +31,7 @@ import eu.wynq.convex.core.protocol.Timestamp
 import eu.wynq.convex.core.value.ConvexValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
@@ -232,14 +233,55 @@ class ConvexSyncClientTest {
         assertIs<ConvexClientException>(failure)
     }
 
+    @Test
+    fun surfacesAuthErrors() = runTest {
+        val fake = FakeSyncProtocol()
+        val client = client(fake)
+        client.connect()
+        runCurrent()
+
+        val received = async { client.authErrors.first() }
+        runCurrent()
+        fake.push(ServerMessageJson.encode(ServerMessage.AuthError("expired", null, null)))
+        runCurrent()
+        advanceUntilIdle()
+
+        assertEquals("expired", received.await())
+    }
+
+    @Test
+    fun reassemblesChunkedTransitions() = runTest {
+        val fake = FakeSyncProtocol()
+        val client = client(fake)
+        client.connect()
+        runCurrent()
+        val subscriber = assertNotNull(client.subscribe("messages:list"))
+        runCurrent()
+
+        val full = ServerMessageJson.encode(queryUpdatedTransition(subscriber.queryId, ConvexValue.String("chunked")))
+        val half = full.length / 2
+        fake.push(ServerMessageJson.encode(ServerMessage.TransitionChunk(full.substring(0, half), 0u, 2u, "t1")))
+        fake.push(ServerMessageJson.encode(ServerMessage.TransitionChunk(full.substring(half), 1u, 2u, "t1")))
+        runCurrent()
+        advanceUntilIdle()
+
+        assertEquals(
+            ConvexResult.Success(ConvexValue.String("chunked")),
+            client.results.value[subscriber.queryId],
+        )
+    }
+
     private fun kotlinx.coroutines.test.TestScope.client(fake: SyncProtocol): ConvexSyncClient =
         ConvexSyncClient(SyncProtocolFactory { fake }, backgroundScope)
 
-    private fun queryUpdatedTransition(queryId: QueryId): ServerMessage.Transition = ServerMessage.Transition(
+    private fun queryUpdatedTransition(
+        queryId: QueryId,
+        value: ConvexValue = ConvexValue.String("v"),
+    ): ServerMessage.Transition = ServerMessage.Transition(
         startVersion = StateVersion(QuerySetVersion(0u), IdentityVersion(0u), Timestamp(0u)),
         endVersion = StateVersion(QuerySetVersion(1u), IdentityVersion(0u), Timestamp(0u)),
         modifications = listOf(
-            StateModification.QueryUpdated(queryId, ConvexValue.String("v"), emptyList(), null),
+            StateModification.QueryUpdated(queryId, value, emptyList(), null),
         ),
         clientClockSkew = null,
         serverTs = null,

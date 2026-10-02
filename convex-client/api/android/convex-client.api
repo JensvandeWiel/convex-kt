@@ -12,6 +12,7 @@ public final class eu/wynq/convex/client/ConvexSyncClient {
 	public final fun action (Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getAuthErrors ()Lkotlinx/coroutines/flow/SharedFlow;
 	public final fun getResults ()Lkotlinx/coroutines/flow/StateFlow;
 	public final fun mutate (Ljava/lang/String;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun reconnect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
