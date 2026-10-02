@@ -11,6 +11,17 @@ public final class eu/wynq/convex/client/ConvexSyncClient {
 	public final fun unsubscribe (Leu/wynq/convex/core/sync/SubscriberId;)V
 }
 
+public final class eu/wynq/convex/client/KtorSyncProtocolFactory : eu/wynq/convex/client/SyncProtocolFactory {
+	public fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class eu/wynq/convex/client/KtorSyncProtocolKt {
+	public static final fun defaultHttpClient ()Lio/ktor/client/HttpClient;
+	public static final fun syncUrl (Ljava/lang/String;)Ljava/lang/String;
+}
+
 public abstract interface class eu/wynq/convex/client/SyncProtocol {
 	public abstract fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun receive (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

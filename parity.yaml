@@ -42,9 +42,11 @@ requirements:
 
   - id: client/deployment-url
     description: A deployment URL is normalized into the sync WebSocket URL.
-    status: planned
+    status: ported
     upstream:
       - "src/client/mod.rs::test_deployment_url"
+    kotlin:
+      - "convex-client.SyncUrlTest.normalizesDeploymentUrls"
 
   - id: value/value-roundtrip
     description: Arbitrary Convex values round-trip through the JSON codec.
