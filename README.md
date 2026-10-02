@@ -6,21 +6,24 @@ targeting **Android**, **Windows desktop (JVM)**, and **iOS**.
 Built with Compose Multiplatform, Coroutines (`Flow`), and a direct WebSocket
 transport. No Rust FFI.
 
-> **Status: project scaffold.** The build, module skeleton, CI, parity gate, and
-> agent tooling are in place. The protocol implementation lands in the plan's
-> later steps. See `AGENTS.md` for the working agreement.
+> **Status: implementation complete, hardening in progress.** All modules are
+> implemented and tested: the value codec and sync state machine, the client and
+> Ktor transport, auth, storage, Compose bindings, and codegen. The build, CI,
+> parity gate, and agent tooling are in place. See `AGENTS.md` for the working
+> agreement and `docs/` for design records.
 
 ## Modules
 
 | Module | Responsibility |
 | --- | --- |
-| `convex-core` | Pure values, JSON codecs (64-bit precision preserved), protocol messages, sync state machine |
+| `convex-core` | Pure values, JSON codecs (64-bit precision preserved), protocol messages, sync state machine, function descriptors |
 | `convex-client` | Ktor WebSocket transport + client driving the state machine |
-| `convex-auth` | Token lifecycle and JWT verification (RS256 + ES256) |
+| `convex-auth` | JWT parsing and RS256/ES256 verification |
 | `convex-storage` | File upload, download, and URL generation (the only HTTP module) |
 | `convex-compose` | `QueryState<T>` controllers and `@Composable` bindings |
 | `convex-codegen` | Build-time `apiSpec` → typed `ConvexFunction` generator |
 | `tools/parity` | CI validator for `parity.yaml` |
+| `examples/chat` | Compose Desktop chat example against a live backend |
 
 ## Build
 
@@ -51,6 +54,15 @@ narrowest scope **with a comment explaining why**, rather than weakening the
 shared ruleset. Relaxing a rule in `config/detekt/detekt.yml` is a last resort,
 because it silences that rule for every module. See "When a rule blocks
 legitimate code" in `CONTRIBUTING.md`.
+
+## Example
+
+`examples/chat` is a Compose Desktop app that subscribes to `messages:list`
+and sends `messages:send`:
+
+```bash
+CONVEX_URL=http://127.0.0.1:3210 ./gradlew :examples:chat:run
+```
 
 ## Parity gate
 

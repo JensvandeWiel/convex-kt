@@ -4,12 +4,12 @@
     {
       "name": "convex-backend",
       "repo": "get-convex/convex-backend",
-      "pinned": "d2ca853"
+      "pinned": "d2ca8533c52e2dbd8e55e20181988973dcbabe41"
     },
     {
       "name": "convex-rs",
       "repo": "get-convex/convex-rs",
-      "pinned": ""
+      "pinned": "a4d04a9f4990078693760c2a08d0032323aa7f1b"
     }
   ]
 }

@@ -37,4 +37,5 @@ include(
     ":convex-compose",
     ":convex-codegen",
     ":tools:parity",
+    ":examples:chat",
 )
