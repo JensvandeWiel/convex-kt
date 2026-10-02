@@ -42,6 +42,24 @@ tasks.withType<Detekt>().configureEach {
     }
 }
 
+// On a Kotlin Multiplatform project the plain `detekt` task is an inert
+// aggregate: the real analysis happens in per-source-set tasks such as
+// `detektMetadataCommonMain` and `detektJvmMain`. Without wiring, `./gradlew
+// detekt` succeeds while analyzing nothing, which is a silently disabled gate.
+// Make the aggregate depend on every analyzing task in this project.
+val detektAnalysisTasks = tasks.matching { task ->
+    task.name.startsWith("detekt") &&
+        !task.name.startsWith("detektBaseline") &&
+        task.name != "detektGenerateConfig" &&
+        task.name != "detekt"
+}
+
+tasks.named("detekt") {
+    // The aggregate task has no sources of its own; the depended-on per-source-set
+    // tasks perform the actual analysis.
+    dependsOn(detektAnalysisTasks)
+}
+
 tasks.withType<DetektCreateBaselineTask>().configureEach {
     // Baselines are intentionally unsupported; see the note above.
     enabled = false

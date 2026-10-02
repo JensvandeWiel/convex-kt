@@ -52,21 +52,31 @@ committed `apiDump` diff.
 
 ### When a rule blocks legitimate code
 
-Rules must not be satisfied by contorting correct code, and they must not be
-silenced invisibly. In order of preference:
+Static analysis serves the code, not the other way around. If a rule rejects a
+pattern that is genuinely correct, in order of preference:
 
-1. **Fix the code.** The default, and almost always correct.
-2. **Relax the specific rule in `config/detekt/detekt.yml`, with a comment
-   explaining the false positive and the pattern that is actually correct.**
-   Preferred over inline suppression because the reason lives with the rule, is
-   visible to every module, and cannot be forgotten in a source file.
-3. **Inline `@Suppress`** only when the exception is genuinely local, with a
-   comment stating why. Last resort: suppressions scatter and outlive their
-   justification.
+1. **Fix the code.** Almost always the right answer.
+2. **Inline `@Suppress`, scoped to the narrowest declaration, with a comment
+   naming the false positive and the pattern that is actually correct.**
+   This is the preferred escape hatch: the suppression applies only where the
+   exception exists, so every other file keeps the full-strength rule.
+3. **Relax that specific rule in `config/detekt/detekt.yml`, with a comment.**
+   Last resort, because a config relaxation is a **global blind spot**: it
+   silences that rule for every module, including code where it was working. Use
+   it only when the rule is wrong in principle (in which case say so), never to
+   silence one awkward call site.
 
-A relaxation or suppression without a written reason is a review defect, not a
-style preference. Never add a baseline to make a gate pass — that hides the
-finding instead of resolving it.
+A suppression or relaxation without a written reason is a review defect, not a
+style preference. Never add a Detekt baseline or lower the Kover floor to
+unblock a change.
+
+When suppressing, keep it legible:
+
+```kotlin
+// Convex encodes 64-bit timestamps as base64 little-endian; 8 is the width of
+// the payload, not a tunable. MagicNumber cannot express that.
+@Suppress("MagicNumber")
+```
 
 ### Which rules are actually enforced
 

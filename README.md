@@ -46,10 +46,11 @@ macOS.
 See `CONTRIBUTING.md` for the full standard and `AGENTS.md` for which guardrails
 are mechanically enforced versus reviewed by a human.
 
-When a rule rejects a genuinely correct pattern, relax that specific rule in
-`config/detekt/detekt.yml` **with a comment explaining why**, rather than adding
-a baseline or suppressing inline. See "When a rule blocks legitimate code" in
-`CONTRIBUTING.md`.
+When a rule rejects a genuinely correct pattern, suppress it **inline** at the
+narrowest scope **with a comment explaining why**, rather than weakening the
+shared ruleset. Relaxing a rule in `config/detekt/detekt.yml` is a last resort,
+because it silences that rule for every module. See "When a rule blocks
+legitimate code" in `CONTRIBUTING.md`.
 
 ## Parity gate
 
