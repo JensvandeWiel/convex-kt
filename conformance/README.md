@@ -1,27 +1,34 @@
-# Conformance fixtures
+# Conformance
 
-This directory will hold the recorded WebSocket traffic used to prove wire
-compatibility, plus the harness that captures it. It is populated in plan step 3
-and used by the `capture-conformance` skill.
+Recorded WebSocket traffic used to prove the Kotlin codecs are byte-compatible
+with the pinned backend, plus the harness that captures it.
 
-Planned layout:
+## Layout
 
 ```
 conformance/
-├── docker-compose.yml            # pinned backend (d2ca853), SQLite storage
-├── harness/                      # Node + convex-js scenario drivers
-└── fixtures/
-    └── <scenario>/
-        ├── client-to-server.ndjson
-        ├── server-to-client.ndjson
-        └── README.md             # pin + normalization decisions
+├── docker-compose.yml              # pinned backend (d2ca853), SQLite
+├── harness/                        # Node recorders driven by convex-js / ws
+│   ├── record-handshake.mjs        # `connect-handshake`
+│   ├── record-subscription.mjs     # `query-and-mutation`
+│   ├── placeholders.mjs            # placeholder vocabulary for the handshake
+│   └── project/                    # minimal Convex module pushed for recordings
+├── fixtures/
+│   ├── connect-handshake/          # raw Connect -> Ping exchange
+│   └── query-and-mutation/         # subscribe + mutate, real Transition/MutationResponse
+└── out/                            # scratch output (git-ignored)
 ```
 
-Rules:
+## Rules
 
-- Raw frames are authoritative; never hand-edit them.
-- Normalize only non-deterministic values (session ids, tokens, timestamps) and
-  document every substitution in the scenario README.
-- Never commit live secrets.
-- Fixtures are unit-level inputs. The real-backend integration run remains
-  mandatory (see `AGENTS.md`, hard rule 3).
+- Raw frames are authoritative; never hand-edit a fixture. Re-record it.
+- Normalize only run-variant values, and document every substitution in the
+  scenario README. Keep normalized values correctly typed so fixtures still
+  decode without substitution.
+- Fixtures are unit-level inputs. The real-backend run remains mandatory: CI
+  re-records every scenario and fails on drift
+  (`git diff --exit-code -- conformance/fixtures`).
+- Fixtures are decoded by `convex-core`'s `ProtocolFixtureTest`, which runs as
+  part of `./gradlew check`.
+
+See the `capture-conformance` skill for the full workflow.

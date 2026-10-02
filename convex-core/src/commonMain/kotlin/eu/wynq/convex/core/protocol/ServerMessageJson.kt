@@ -114,9 +114,10 @@ public object ServerMessageJson {
             "endVersion" to stateVersionElement(message.endVersion),
             "modifications" to JsonArray(message.modifications.map(::modificationElement)),
             "clientClockSkew" to (message.clientClockSkew?.let { JsonPrimitive(it) } ?: JsonNull),
-            "serverTs" to (
-                message.serverTs?.let { JsonPrimitive(LittleEndianBase64.encodeULong(it.value)) } ?: JsonNull
-                ),
+            // The backend sends serverTs as a plain (large) integer, unlike the
+            // base64 used for StateVersion.ts and MutationResponse.ts. Verified
+            // against a captured Transition frame.
+            "serverTs" to (message.serverTs?.let { JsonPrimitive(it.value.toLong()) } ?: JsonNull),
         ),
     )
 

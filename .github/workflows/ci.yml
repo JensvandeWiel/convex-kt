@@ -110,13 +110,14 @@ jobs:
       # then fails if they changed. This is the real-backend check: it never
       # substitutes mocked server responses.
       - name: Start pinned backend
-        run: docker compose -f conformance/docker-compose.yml up -d --wait
+        run: docker compose -f conformance/docker-compose.yml up -d --wait --force-recreate
       - name: Record fixtures
         working-directory: conformance/harness
         run: |
           npm ci
           ADMIN_KEY="$(docker exec "$(docker compose -f ../docker-compose.yml ps -q backend)" ./generate_admin_key.sh | tail -n1)"
           node record-handshake.mjs --url http://127.0.0.1:3210 --admin-key "$ADMIN_KEY"
+          node record-subscription.mjs --url http://127.0.0.1:3210 --admin-key "$ADMIN_KEY"
       - name: Fail on fixture drift
         run: git diff --exit-code -- conformance/fixtures
       - name: Tear down
