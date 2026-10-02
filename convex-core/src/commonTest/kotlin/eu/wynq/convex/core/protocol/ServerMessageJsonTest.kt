@@ -99,7 +99,7 @@ class ServerMessageJsonTest {
     fun mutationResponseSuccessRoundTrips() {
         val message = ServerMessage.MutationResponse(
             requestId = RequestId(3u),
-            result = CallResult.Success(ConvexValue.Int64(42)),
+            result = ConvexResult.Success(ConvexValue.Int64(42)),
             ts = Timestamp(99u),
             logLines = listOf("logged"),
         )
@@ -110,21 +110,21 @@ class ServerMessageJsonTest {
     fun mutationResponseMessageFailureHasNoErrorDataKey() {
         val message = ServerMessage.MutationResponse(
             requestId = RequestId(3u),
-            result = CallResult.Failure(ErrorPayload.Message("bad")),
+            result = ConvexResult.Failure(ErrorPayload.Message("bad")),
             ts = null,
             logLines = emptyList(),
         )
         val encoded = ServerMessageJson.encode(message)
         assertEquals(false, encoded.contains("errorData"))
         val decoded = ServerMessageJson.decode(encoded) as ServerMessage.MutationResponse
-        assertEquals(ErrorPayload.Message("bad"), (decoded.result as CallResult.Failure).error)
+        assertEquals(ErrorPayload.Message("bad"), (decoded.result as ConvexResult.Failure).error)
     }
 
     @Test
     fun mutationResponseErrorDataFailureRoundTrips() {
         val message = ServerMessage.MutationResponse(
             requestId = RequestId(4u),
-            result = CallResult.Failure(ErrorPayload.ErrorData("bad", ConvexValue.String("detail"))),
+            result = ConvexResult.Failure(ErrorPayload.ErrorData("bad", ConvexValue.String("detail"))),
             ts = Timestamp(1u),
             logLines = emptyList(),
         )
@@ -136,7 +136,7 @@ class ServerMessageJsonTest {
     fun actionResponseRoundTripsWithoutTimestamp() {
         val message = ServerMessage.ActionResponse(
             requestId = RequestId(1u),
-            result = CallResult.Success(ConvexValue.Boolean(true)),
+            result = ConvexResult.Success(ConvexValue.Boolean(true)),
             logLines = emptyList(),
         )
         val encoded = ServerMessageJson.encode(message)

@@ -60,37 +60,32 @@ subscribing twice to `messages:list {}` reuses one query id.
    the core testable with plain unit tests and avoids the `.await`-in-a-loop
    deadlock trap entirely.
 
-## Open questions (please steer)
+## Decisions resolved in review
 
-1. **Where does the one-object argument unwrapping live?** Options: (a) the
-   public API takes `Map<String, ConvexValue>` and the codec wraps; (b) the
-   public API takes `ConvexValue.Object` and callers build it; (c) codegen
-   produces typed arg objects. Currently (a)/(b) mix: `Query.args` is a
-   `List<ConvexValue>` (raw wire form) while `subscribe` takes a map. Should the
-   public surface be uniformly typed, with raw `List<ConvexValue>` internal?
-2. **Optimistic update model.** `OptimisticQueryResults` upstream is a stub
-   (a TODO drops optimistic updates). Should we implement real optimistic
-   updates now (mutations predict query changes, dropped when the server
-   transition acknowledges), or mirror the stub and defer? The plan's step 5
-   says "settle the optimistic update mechanics (`QueryState<T>`)".
-3. **Consistent views / `FunctionResult`.** Upstream exposes
-   `FunctionResult { Value | ErrorMessage | ConvexError }`. Our `CallResult`
-   (`Success | Failure(ErrorPayload)`) is close but named for calls. Should
-   results and call outcomes share one type, or stay separate?
-4. **Reconnect policy.** `resendQueries` resets the query-set version. Do we
-   also need to drop all query results on reconnect, or keep serving stale
-   values until the first new transition? Upstream keeps them and lets the
-   `QueryUpdated`/`QueryRemoved` replace them.
-5. **Threading / exposure.** The eventual `convex-client` needs to expose
-   `Flow<QueryState<T>>`. Should the state machine own a `StateFlow` of results,
-   or stay a pure reducer and let the transport publish? Pure keeps testing
-   simple; a `StateFlow` is ergonomic but couples the core to coroutines.
-6. **Mutation id ownership.** `RequestId` allocation lives where? Upstream
-   `BaseConvexClient.mutation` allocates and tracks pending requests. Not
-   implemented yet.
-7. **Journal / pagination.** `Query.journal` is carried but unused. Pagination
-   is a later step; confirm it can be layered without changing the state machine
-   shape.
+1. **Argument typing.** The public surface takes `Map<String, ConvexValue>` (and
+   later codegen'd typed args); `Query.args` stays the raw wire form and is
+   internal to the codec. The ergonomic API and the faithful wire model are kept
+   separate.
+2. **Optimistic updates.** Deferred to their own slice, mirroring the upstream
+   stub for now. `RemoteQuerySet` remains the server truth; an
+   `OptimisticQueryResults` layer will be added later.
+3. **Result type.** Query results and call outcomes share one `ConvexResult`
+   (`Success | Failure(ErrorPayload)`), matching upstream `FunctionResult`.
+   `CallResult` was renamed accordingly.
+4. **Reconnect.** Keep known values until the server's transitions replace them;
+   `resendQueries` only resets the version.
+5. **Reactive exposure.** `convex-core` stays a pure synchronous reducer.
+   `Flow`/`StateFlow` and `QueryState<T>` live in `convex-client` and
+   `convex-compose`, never in the core.
+
+## Remaining open items
+
+- **Mutation tracking.** Where `RequestId` allocation and pending-request
+  bookkeeping live (likely `convex-client`, or a small core slice).
+- **Pagination / journal.** `Query.journal` is carried but unused; confirm it can
+  be layered on without changing the state-machine shape.
+- **Auth refresh.** `resendQueries` covers subscriptions; forced token refresh
+  on reconnect is a `convex-client` concern to design.
 
 ## Test strategy
 

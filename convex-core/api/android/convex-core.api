@@ -33,31 +33,6 @@ public final class eu/wynq/convex/core/protocol/AuthenticationToken$User : eu/wy
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class eu/wynq/convex/core/protocol/CallResult {
-}
-
-public final class eu/wynq/convex/core/protocol/CallResult$Failure : eu/wynq/convex/core/protocol/CallResult {
-	public fun <init> (Leu/wynq/convex/core/protocol/ErrorPayload;)V
-	public final fun component1 ()Leu/wynq/convex/core/protocol/ErrorPayload;
-	public final fun copy (Leu/wynq/convex/core/protocol/ErrorPayload;)Leu/wynq/convex/core/protocol/CallResult$Failure;
-	public static synthetic fun copy$default (Leu/wynq/convex/core/protocol/CallResult$Failure;Leu/wynq/convex/core/protocol/ErrorPayload;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/CallResult$Failure;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getError ()Leu/wynq/convex/core/protocol/ErrorPayload;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class eu/wynq/convex/core/protocol/CallResult$Success : eu/wynq/convex/core/protocol/CallResult {
-	public fun <init> (Leu/wynq/convex/core/value/ConvexValue;)V
-	public final fun component1 ()Leu/wynq/convex/core/value/ConvexValue;
-	public final fun copy (Leu/wynq/convex/core/value/ConvexValue;)Leu/wynq/convex/core/protocol/CallResult$Success;
-	public static synthetic fun copy$default (Leu/wynq/convex/core/protocol/CallResult$Success;Leu/wynq/convex/core/value/ConvexValue;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/CallResult$Success;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getValue ()Leu/wynq/convex/core/value/ConvexValue;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public abstract interface class eu/wynq/convex/core/protocol/ClientMessage {
 }
 
@@ -162,6 +137,31 @@ public final class eu/wynq/convex/core/protocol/ClientMessageJson {
 	public static final field INSTANCE Leu/wynq/convex/core/protocol/ClientMessageJson;
 	public final fun decode (Ljava/lang/String;)Leu/wynq/convex/core/protocol/ClientMessage;
 	public final fun encode (Leu/wynq/convex/core/protocol/ClientMessage;)Ljava/lang/String;
+}
+
+public abstract interface class eu/wynq/convex/core/protocol/ConvexResult {
+}
+
+public final class eu/wynq/convex/core/protocol/ConvexResult$Failure : eu/wynq/convex/core/protocol/ConvexResult {
+	public fun <init> (Leu/wynq/convex/core/protocol/ErrorPayload;)V
+	public final fun component1 ()Leu/wynq/convex/core/protocol/ErrorPayload;
+	public final fun copy (Leu/wynq/convex/core/protocol/ErrorPayload;)Leu/wynq/convex/core/protocol/ConvexResult$Failure;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/protocol/ConvexResult$Failure;Leu/wynq/convex/core/protocol/ErrorPayload;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/ConvexResult$Failure;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Leu/wynq/convex/core/protocol/ErrorPayload;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/ConvexResult$Success : eu/wynq/convex/core/protocol/ConvexResult {
+	public fun <init> (Leu/wynq/convex/core/value/ConvexValue;)V
+	public final fun component1 ()Leu/wynq/convex/core/value/ConvexValue;
+	public final fun copy (Leu/wynq/convex/core/value/ConvexValue;)Leu/wynq/convex/core/protocol/ConvexResult$Success;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/protocol/ConvexResult$Success;Leu/wynq/convex/core/value/ConvexValue;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/ConvexResult$Success;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Leu/wynq/convex/core/value/ConvexValue;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface class eu/wynq/convex/core/protocol/ErrorPayload {
@@ -297,16 +297,16 @@ public abstract interface class eu/wynq/convex/core/protocol/ServerMessage {
 }
 
 public final class eu/wynq/convex/core/protocol/ServerMessage$ActionResponse : eu/wynq/convex/core/protocol/ServerMessage {
-	public synthetic fun <init> (ILeu/wynq/convex/core/protocol/CallResult;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (ILeu/wynq/convex/core/protocol/ConvexResult;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-Ff6PGV0 ()I
-	public final fun component2 ()Leu/wynq/convex/core/protocol/CallResult;
+	public final fun component2 ()Leu/wynq/convex/core/protocol/ConvexResult;
 	public final fun component3 ()Ljava/util/List;
-	public final fun copy-u5R4Sm0 (ILeu/wynq/convex/core/protocol/CallResult;Ljava/util/List;)Leu/wynq/convex/core/protocol/ServerMessage$ActionResponse;
-	public static synthetic fun copy-u5R4Sm0$default (Leu/wynq/convex/core/protocol/ServerMessage$ActionResponse;ILeu/wynq/convex/core/protocol/CallResult;Ljava/util/List;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/ServerMessage$ActionResponse;
+	public final fun copy-u5R4Sm0 (ILeu/wynq/convex/core/protocol/ConvexResult;Ljava/util/List;)Leu/wynq/convex/core/protocol/ServerMessage$ActionResponse;
+	public static synthetic fun copy-u5R4Sm0$default (Leu/wynq/convex/core/protocol/ServerMessage$ActionResponse;ILeu/wynq/convex/core/protocol/ConvexResult;Ljava/util/List;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/ServerMessage$ActionResponse;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getLogLines ()Ljava/util/List;
 	public final fun getRequestId-Ff6PGV0 ()I
-	public final fun getResult ()Leu/wynq/convex/core/protocol/CallResult;
+	public final fun getResult ()Leu/wynq/convex/core/protocol/ConvexResult;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -338,17 +338,17 @@ public final class eu/wynq/convex/core/protocol/ServerMessage$FatalError : eu/wy
 }
 
 public final class eu/wynq/convex/core/protocol/ServerMessage$MutationResponse : eu/wynq/convex/core/protocol/ServerMessage {
-	public synthetic fun <init> (ILeu/wynq/convex/core/protocol/CallResult;Leu/wynq/convex/core/protocol/Timestamp;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (ILeu/wynq/convex/core/protocol/ConvexResult;Leu/wynq/convex/core/protocol/Timestamp;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-Ff6PGV0 ()I
-	public final fun component2 ()Leu/wynq/convex/core/protocol/CallResult;
+	public final fun component2 ()Leu/wynq/convex/core/protocol/ConvexResult;
 	public final fun component3-knBMw-Q ()Leu/wynq/convex/core/protocol/Timestamp;
 	public final fun component4 ()Ljava/util/List;
-	public final fun copy-Z-fC3vU (ILeu/wynq/convex/core/protocol/CallResult;Leu/wynq/convex/core/protocol/Timestamp;Ljava/util/List;)Leu/wynq/convex/core/protocol/ServerMessage$MutationResponse;
-	public static synthetic fun copy-Z-fC3vU$default (Leu/wynq/convex/core/protocol/ServerMessage$MutationResponse;ILeu/wynq/convex/core/protocol/CallResult;Leu/wynq/convex/core/protocol/Timestamp;Ljava/util/List;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/ServerMessage$MutationResponse;
+	public final fun copy-Z-fC3vU (ILeu/wynq/convex/core/protocol/ConvexResult;Leu/wynq/convex/core/protocol/Timestamp;Ljava/util/List;)Leu/wynq/convex/core/protocol/ServerMessage$MutationResponse;
+	public static synthetic fun copy-Z-fC3vU$default (Leu/wynq/convex/core/protocol/ServerMessage$MutationResponse;ILeu/wynq/convex/core/protocol/ConvexResult;Leu/wynq/convex/core/protocol/Timestamp;Ljava/util/List;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/ServerMessage$MutationResponse;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getLogLines ()Ljava/util/List;
 	public final fun getRequestId-Ff6PGV0 ()I
-	public final fun getResult ()Leu/wynq/convex/core/protocol/CallResult;
+	public final fun getResult ()Leu/wynq/convex/core/protocol/ConvexResult;
 	public final fun getTs-knBMw-Q ()Leu/wynq/convex/core/protocol/Timestamp;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -515,7 +515,7 @@ public final class eu/wynq/convex/core/sync/LocalSyncState {
 public final class eu/wynq/convex/core/sync/RemoteQuerySet {
 	public fun <init> ()V
 	public final fun getVersion ()Leu/wynq/convex/core/protocol/StateVersion;
-	public final fun result-RQrkFsg (I)Leu/wynq/convex/core/protocol/CallResult;
+	public final fun result-RQrkFsg (I)Leu/wynq/convex/core/protocol/ConvexResult;
 	public final fun results ()Ljava/util/Map;
 	public final fun transition (Leu/wynq/convex/core/protocol/ServerMessage$Transition;)Leu/wynq/convex/core/sync/TransitionOutcome;
 }

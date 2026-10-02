@@ -15,7 +15,7 @@
  */
 package eu.wynq.convex.core.sync
 
-import eu.wynq.convex.core.protocol.CallResult
+import eu.wynq.convex.core.protocol.ConvexResult
 import eu.wynq.convex.core.protocol.ErrorPayload
 import eu.wynq.convex.core.protocol.IdentityVersion
 import eu.wynq.convex.core.protocol.QueryId
@@ -57,7 +57,7 @@ class RemoteQuerySetTest {
         )
 
         assertEquals(TransitionOutcome.Applied(listOf(QueryId(0u))), outcome)
-        assertEquals(CallResult.Success(ConvexValue.Int64(5)), remote.result(QueryId(0u)))
+        assertEquals(ConvexResult.Success(ConvexValue.Int64(5)), remote.result(QueryId(0u)))
         assertEquals(version(1u), remote.version)
     }
 
@@ -85,7 +85,7 @@ class RemoteQuerySetTest {
                 ),
             ),
         )
-        val failure = assertIs<CallResult.Failure>(remote.result(QueryId(1u)))
+        val failure = assertIs<ConvexResult.Failure>(remote.result(QueryId(1u)))
         assertEquals(ErrorPayload.Message("boom"), failure.error)
     }
 
@@ -101,7 +101,7 @@ class RemoteQuerySetTest {
                 ),
             ),
         )
-        val failure = assertIs<CallResult.Failure>(remote.result(QueryId(1u)))
+        val failure = assertIs<ConvexResult.Failure>(remote.result(QueryId(1u)))
         assertEquals(ErrorPayload.ErrorData("boom", ConvexValue.Null), failure.error)
     }
 

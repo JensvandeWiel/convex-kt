@@ -173,24 +173,24 @@ public object ServerMessageJson {
     private fun responseElement(
         type: String,
         requestId: RequestId,
-        result: CallResult,
+        result: ConvexResult,
         ts: Timestamp?,
         logLines: List<String>,
     ): JsonObject {
         val fields = linkedMapOf<String, JsonElement>(
             "type" to JsonPrimitive(type),
             "requestId" to JsonPrimitive(requestId.value.toLong()),
-            "success" to JsonPrimitive(result is CallResult.Success),
+            "success" to JsonPrimitive(result is ConvexResult.Success),
             "result" to when (result) {
-                is CallResult.Success -> ConvexJson.toJsonElement(result.value)
-                is CallResult.Failure -> JsonPrimitive(result.error.message)
+                is ConvexResult.Success -> ConvexJson.toJsonElement(result.value)
+                is ConvexResult.Failure -> JsonPrimitive(result.error.message)
             },
         )
         if (type == MUTATION_RESPONSE) {
             fields["ts"] = ts?.let { JsonPrimitive(LittleEndianBase64.encodeULong(it.value)) } ?: JsonNull
         }
         fields["logLines"] = JsonArray(logLines.map(::JsonPrimitive))
-        (result as? CallResult.Failure)?.error?.let { error ->
+        (result as? ConvexResult.Failure)?.error?.let { error ->
             if (error is ErrorPayload.ErrorData) {
                 fields["errorData"] = ConvexJson.toJsonElement(error.data)
             }
@@ -253,9 +253,9 @@ public object ServerMessageJson {
         }
     }
 
-    private fun decodeResult(message: JsonObject): CallResult {
+    private fun decodeResult(message: JsonObject): ConvexResult {
         if (message.boolean("success")) {
-            return CallResult.Success(message.value("result"))
+            return ConvexResult.Success(message.value("result"))
         }
         val resultElement = message["result"] ?: throw ConvexJsonException("response lacks result")
         val text = (resultElement as? JsonPrimitive)?.takeIf { it.isString }?.content
@@ -265,7 +265,7 @@ public object ServerMessageJson {
         } else {
             ErrorPayload.Message(text)
         }
-        return CallResult.Failure(error)
+        return ConvexResult.Failure(error)
     }
 
     private const val MUTATION_RESPONSE = "MutationResponse"

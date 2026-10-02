@@ -15,7 +15,7 @@
  */
 package eu.wynq.convex.core.sync
 
-import eu.wynq.convex.core.protocol.CallResult
+import eu.wynq.convex.core.protocol.ConvexResult
 import eu.wynq.convex.core.protocol.ErrorPayload
 import eu.wynq.convex.core.protocol.IdentityVersion
 import eu.wynq.convex.core.protocol.QueryId
@@ -58,16 +58,16 @@ public sealed interface TransitionOutcome {
  */
 public class RemoteQuerySet {
     private var currentVersion = StateVersion(QuerySetVersion(0u), IdentityVersion(0u), Timestamp(0u))
-    private val results = mutableMapOf<QueryId, CallResult>()
+    private val results = mutableMapOf<QueryId, ConvexResult>()
 
     /** The version the server state is currently at. */
     public val version: StateVersion get() = currentVersion
 
     /** The latest result for [queryId], or `null` when unknown. */
-    public fun result(queryId: QueryId): CallResult? = results[queryId]
+    public fun result(queryId: QueryId): ConvexResult? = results[queryId]
 
     /** A snapshot of every known query result. */
-    public fun results(): Map<QueryId, CallResult> = results.toMap()
+    public fun results(): Map<QueryId, ConvexResult> = results.toMap()
 
     /**
      * Applies a transition if it is contiguous with the current version.
@@ -84,11 +84,11 @@ public class RemoteQuerySet {
         message.modifications.forEach { modification ->
             when (modification) {
                 is StateModification.QueryUpdated -> {
-                    results[modification.queryId] = CallResult.Success(modification.value)
+                    results[modification.queryId] = ConvexResult.Success(modification.value)
                     changed += modification.queryId
                 }
                 is StateModification.QueryFailed -> {
-                    results[modification.queryId] = CallResult.Failure(payload(modification))
+                    results[modification.queryId] = ConvexResult.Failure(payload(modification))
                     changed += modification.queryId
                 }
                 is StateModification.QueryRemoved -> {

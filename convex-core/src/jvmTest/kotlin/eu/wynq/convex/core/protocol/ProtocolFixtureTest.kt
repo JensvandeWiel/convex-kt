@@ -72,7 +72,7 @@ class ProtocolFixtureTest {
         val response = assertIs<ServerMessage.MutationResponse>(
             messages.single { it is ServerMessage.MutationResponse },
         )
-        assertEquals(CallResult.Success(ConvexValue.Float64(5.0)), response.result)
+        assertEquals(ConvexResult.Success(ConvexValue.Float64(5.0)), response.result)
         // serverTs is a plain number on the wire, StateVersion.ts is base64; both decode.
         assertEquals(Timestamp(0u), transitions.first().serverTs)
         assertEquals(Timestamp(0u), transitions.first().endVersion.ts)

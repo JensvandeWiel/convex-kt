@@ -109,22 +109,27 @@ public sealed interface ErrorPayload {
 }
 
 /**
- * The outcome of a mutation or action.
+ * The outcome of a query, mutation, or action.
+ *
+ * One type serves both query results and call responses, matching the upstream
+ * `FunctionResult`: a query that fails and a mutation that throws carry the same
+ * [ErrorPayload], and treating them identically avoids two parallel error
+ * models.
  */
-public sealed interface CallResult {
+public sealed interface ConvexResult {
     /**
-     * The call returned a value.
+     * The call or query produced a value.
      *
-     * @property value the returned value.
+     * @property value the value.
      */
-    public data class Success(public val value: ConvexValue) : CallResult
+    public data class Success(public val value: ConvexValue) : ConvexResult
 
     /**
-     * The call threw.
+     * The call or query failed.
      *
      * @property error why it failed.
      */
-    public data class Failure(public val error: ErrorPayload) : CallResult
+    public data class Failure(public val error: ErrorPayload) : ConvexResult
 }
 
 /**
@@ -177,7 +182,7 @@ public sealed interface ServerMessage {
      */
     public data class MutationResponse(
         public val requestId: RequestId,
-        public val result: CallResult,
+        public val result: ConvexResult,
         public val ts: Timestamp?,
         public val logLines: List<String>,
     ) : ServerMessage
@@ -191,7 +196,7 @@ public sealed interface ServerMessage {
      */
     public data class ActionResponse(
         public val requestId: RequestId,
-        public val result: CallResult,
+        public val result: ConvexResult,
         public val logLines: List<String>,
     ) : ServerMessage
 
