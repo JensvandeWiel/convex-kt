@@ -337,9 +337,11 @@ requirements:
 
   - id: sync-types-src-types-json-proptest-client-message-roundtrips
     description: "Upstream test 'proptest_client_message_roundtrips' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
-    status: planned
+    status: ported
     upstream:
       - "sync_types/src/types/json.rs::proptest_client_message_roundtrips"
+    kotlin:
+      - "convex-core.ClientMessageJsonTest.mutationRoundTripsWithArgs"
 
   - id: sync-types-src-types-json-proptest-server-message-roundtrips
     description: "Upstream test 'proptest_server_message_roundtrips' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."

@@ -1,3 +1,279 @@
+public abstract interface class eu/wynq/convex/core/protocol/AuthenticationToken {
+}
+
+public final class eu/wynq/convex/core/protocol/AuthenticationToken$Admin : eu/wynq/convex/core/protocol/AuthenticationToken {
+	public fun <init> (Ljava/lang/String;Leu/wynq/convex/core/value/ConvexValue;)V
+	public synthetic fun <init> (Ljava/lang/String;Leu/wynq/convex/core/value/ConvexValue;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Leu/wynq/convex/core/value/ConvexValue;
+	public final fun copy (Ljava/lang/String;Leu/wynq/convex/core/value/ConvexValue;)Leu/wynq/convex/core/protocol/AuthenticationToken$Admin;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/protocol/AuthenticationToken$Admin;Ljava/lang/String;Leu/wynq/convex/core/value/ConvexValue;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/AuthenticationToken$Admin;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getActingAs ()Leu/wynq/convex/core/value/ConvexValue;
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/AuthenticationToken$None : eu/wynq/convex/core/protocol/AuthenticationToken {
+	public static final field INSTANCE Leu/wynq/convex/core/protocol/AuthenticationToken$None;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/AuthenticationToken$User : eu/wynq/convex/core/protocol/AuthenticationToken {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Leu/wynq/convex/core/protocol/AuthenticationToken$User;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/protocol/AuthenticationToken$User;Ljava/lang/String;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/AuthenticationToken$User;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class eu/wynq/convex/core/protocol/ClientMessage {
+}
+
+public final class eu/wynq/convex/core/protocol/ClientMessage$Action : eu/wynq/convex/core/protocol/ClientMessage {
+	public synthetic fun <init> (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-Ff6PGV0 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy-1fOKNuM (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;)Leu/wynq/convex/core/protocol/ClientMessage$Action;
+	public static synthetic fun copy-1fOKNuM$default (Leu/wynq/convex/core/protocol/ClientMessage$Action;ILjava/lang/String;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/ClientMessage$Action;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArgs ()Ljava/util/List;
+	public final fun getComponentPath ()Ljava/lang/String;
+	public final fun getRequestId-Ff6PGV0 ()I
+	public final fun getUdfPath ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/ClientMessage$Authenticate : eu/wynq/convex/core/protocol/ClientMessage {
+	public synthetic fun <init> (ILeu/wynq/convex/core/protocol/AuthenticationToken;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-K2NLZxY ()I
+	public final fun component2 ()Leu/wynq/convex/core/protocol/AuthenticationToken;
+	public final fun copy-C7ikD00 (ILeu/wynq/convex/core/protocol/AuthenticationToken;)Leu/wynq/convex/core/protocol/ClientMessage$Authenticate;
+	public static synthetic fun copy-C7ikD00$default (Leu/wynq/convex/core/protocol/ClientMessage$Authenticate;ILeu/wynq/convex/core/protocol/AuthenticationToken;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/ClientMessage$Authenticate;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBaseVersion-K2NLZxY ()I
+	public final fun getToken ()Leu/wynq/convex/core/protocol/AuthenticationToken;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/ClientMessage$Connect : eu/wynq/convex/core/protocol/ClientMessage {
+	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/String;Leu/wynq/convex/core/protocol/Timestamp;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/String;Leu/wynq/convex/core/protocol/Timestamp;Ljava/lang/Long;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-127anUo ()Ljava/lang/String;
+	public final fun component2-pVg5ArA ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4-knBMw-Q ()Leu/wynq/convex/core/protocol/Timestamp;
+	public final fun component5 ()Ljava/lang/Long;
+	public final fun copy-BG63SSE (Ljava/lang/String;ILjava/lang/String;Leu/wynq/convex/core/protocol/Timestamp;Ljava/lang/Long;)Leu/wynq/convex/core/protocol/ClientMessage$Connect;
+	public static synthetic fun copy-BG63SSE$default (Leu/wynq/convex/core/protocol/ClientMessage$Connect;Ljava/lang/String;ILjava/lang/String;Leu/wynq/convex/core/protocol/Timestamp;Ljava/lang/Long;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/ClientMessage$Connect;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClientTs ()Ljava/lang/Long;
+	public final fun getConnectionCount-pVg5ArA ()I
+	public final fun getLastCloseReason ()Ljava/lang/String;
+	public final fun getMaxObservedTimestamp-knBMw-Q ()Leu/wynq/convex/core/protocol/Timestamp;
+	public final fun getSessionId-127anUo ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/ClientMessage$Event : eu/wynq/convex/core/protocol/ClientMessage {
+	public fun <init> (Ljava/lang/String;Leu/wynq/convex/core/value/ConvexValue;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Leu/wynq/convex/core/value/ConvexValue;
+	public final fun copy (Ljava/lang/String;Leu/wynq/convex/core/value/ConvexValue;)Leu/wynq/convex/core/protocol/ClientMessage$Event;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/protocol/ClientMessage$Event;Ljava/lang/String;Leu/wynq/convex/core/value/ConvexValue;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/ClientMessage$Event;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEvent ()Leu/wynq/convex/core/value/ConvexValue;
+	public final fun getEventType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/ClientMessage$ModifyQuerySet : eu/wynq/convex/core/protocol/ClientMessage {
+	public synthetic fun <init> (IILjava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-2hWMfKU ()I
+	public final fun component2-2hWMfKU ()I
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy-7l5y2Fc (IILjava/util/List;)Leu/wynq/convex/core/protocol/ClientMessage$ModifyQuerySet;
+	public static synthetic fun copy-7l5y2Fc$default (Leu/wynq/convex/core/protocol/ClientMessage$ModifyQuerySet;IILjava/util/List;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/ClientMessage$ModifyQuerySet;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBaseVersion-2hWMfKU ()I
+	public final fun getModifications ()Ljava/util/List;
+	public final fun getNewVersion-2hWMfKU ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/ClientMessage$Mutation : eu/wynq/convex/core/protocol/ClientMessage {
+	public synthetic fun <init> (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-Ff6PGV0 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy-1fOKNuM (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;)Leu/wynq/convex/core/protocol/ClientMessage$Mutation;
+	public static synthetic fun copy-1fOKNuM$default (Leu/wynq/convex/core/protocol/ClientMessage$Mutation;ILjava/lang/String;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/ClientMessage$Mutation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArgs ()Ljava/util/List;
+	public final fun getComponentPath ()Ljava/lang/String;
+	public final fun getRequestId-Ff6PGV0 ()I
+	public final fun getUdfPath ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/ClientMessageJson {
+	public static final field INSTANCE Leu/wynq/convex/core/protocol/ClientMessageJson;
+	public final fun decode (Ljava/lang/String;)Leu/wynq/convex/core/protocol/ClientMessage;
+	public final fun encode (Leu/wynq/convex/core/protocol/ClientMessage;)Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/IdentityVersion {
+	public static final synthetic fun box-impl (I)Leu/wynq/convex/core/protocol/IdentityVersion;
+	public static fun constructor-impl (I)I
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (ILjava/lang/Object;)Z
+	public static final fun equals-impl0 (II)Z
+	public final fun getValue-pVg5ArA ()I
+	public fun hashCode ()I
+	public static fun hashCode-impl (I)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (I)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()I
+}
+
+public final class eu/wynq/convex/core/protocol/Query {
+	public synthetic fun <init> (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-2mWXCjo ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy-lgOKFic (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)Leu/wynq/convex/core/protocol/Query;
+	public static synthetic fun copy-lgOKFic$default (Leu/wynq/convex/core/protocol/Query;ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/Query;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArgs ()Ljava/util/List;
+	public final fun getComponentPath ()Ljava/lang/String;
+	public final fun getJournal ()Ljava/lang/String;
+	public final fun getQueryId-2mWXCjo ()I
+	public final fun getUdfPath ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/QueryId {
+	public static final synthetic fun box-impl (I)Leu/wynq/convex/core/protocol/QueryId;
+	public static fun constructor-impl (I)I
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (ILjava/lang/Object;)Z
+	public static final fun equals-impl0 (II)Z
+	public final fun getValue-pVg5ArA ()I
+	public fun hashCode ()I
+	public static fun hashCode-impl (I)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (I)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()I
+}
+
+public abstract interface class eu/wynq/convex/core/protocol/QuerySetModification {
+}
+
+public final class eu/wynq/convex/core/protocol/QuerySetModification$Add : eu/wynq/convex/core/protocol/QuerySetModification {
+	public fun <init> (Leu/wynq/convex/core/protocol/Query;)V
+	public final fun component1 ()Leu/wynq/convex/core/protocol/Query;
+	public final fun copy (Leu/wynq/convex/core/protocol/Query;)Leu/wynq/convex/core/protocol/QuerySetModification$Add;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/protocol/QuerySetModification$Add;Leu/wynq/convex/core/protocol/Query;ILjava/lang/Object;)Leu/wynq/convex/core/protocol/QuerySetModification$Add;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getQuery ()Leu/wynq/convex/core/protocol/Query;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/QuerySetModification$Remove : eu/wynq/convex/core/protocol/QuerySetModification {
+	public synthetic fun <init> (ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-2mWXCjo ()I
+	public final fun copy-RQrkFsg (I)Leu/wynq/convex/core/protocol/QuerySetModification$Remove;
+	public static synthetic fun copy-RQrkFsg$default (Leu/wynq/convex/core/protocol/QuerySetModification$Remove;IILjava/lang/Object;)Leu/wynq/convex/core/protocol/QuerySetModification$Remove;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getQueryId-2mWXCjo ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/QuerySetVersion {
+	public static final synthetic fun box-impl (I)Leu/wynq/convex/core/protocol/QuerySetVersion;
+	public static fun constructor-impl (I)I
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (ILjava/lang/Object;)Z
+	public static final fun equals-impl0 (II)Z
+	public final fun getValue-pVg5ArA ()I
+	public fun hashCode ()I
+	public static fun hashCode-impl (I)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (I)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()I
+}
+
+public final class eu/wynq/convex/core/protocol/RequestId {
+	public static final synthetic fun box-impl (I)Leu/wynq/convex/core/protocol/RequestId;
+	public static fun constructor-impl (I)I
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (ILjava/lang/Object;)Z
+	public static final fun equals-impl0 (II)Z
+	public final fun getValue-pVg5ArA ()I
+	public fun hashCode ()I
+	public static fun hashCode-impl (I)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (I)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()I
+}
+
+public final class eu/wynq/convex/core/protocol/SessionId {
+	public static final field Companion Leu/wynq/convex/core/protocol/SessionId$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Leu/wynq/convex/core/protocol/SessionId;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/SessionId$Companion {
+	public final fun parse-TeZyoH0 (Ljava/lang/String;)Ljava/lang/String;
+	public final fun random-TeZyoH0 (Lkotlin/random/Random;)Ljava/lang/String;
+	public static synthetic fun random-TeZyoH0$default (Leu/wynq/convex/core/protocol/SessionId$Companion;Lkotlin/random/Random;ILjava/lang/Object;)Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/protocol/Timestamp {
+	public static final synthetic fun box-impl (J)Leu/wynq/convex/core/protocol/Timestamp;
+	public static fun constructor-impl (J)J
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (JLjava/lang/Object;)Z
+	public static final fun equals-impl0 (JJ)Z
+	public final fun getValue-s-VKNKU ()J
+	public fun hashCode ()I
+	public static fun hashCode-impl (J)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (J)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()J
+}
+
 public final class eu/wynq/convex/core/value/ConvexJson {
 	public static final field INSTANCE Leu/wynq/convex/core/value/ConvexJson;
 	public final fun decode (Ljava/lang/String;)Leu/wynq/convex/core/value/ConvexValue;

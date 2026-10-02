@@ -85,6 +85,18 @@ public object ConvexJson {
         return fromElement(element)
     }
 
+    /**
+     * Converts a value to a JSON element for embedding in a protocol message.
+     * Internal because the public surface is [encode]/[decode].
+     */
+    internal fun toJsonElement(value: ConvexValue): JsonElement = toElement(value)
+
+    /**
+     * Converts a JSON element from a protocol message into a value. Internal for
+     * the same reason as [toJsonElement].
+     */
+    internal fun fromJsonElement(element: JsonElement): ConvexValue = fromElement(element)
+
     private fun toElement(value: ConvexValue): JsonElement = when (value) {
         ConvexValue.Null -> JsonNull
         is ConvexValue.Int64 -> tagged(INTEGER_KEY, LittleEndianBase64.encodeLong(value.value))
