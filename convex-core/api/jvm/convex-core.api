@@ -1,4 +1,95 @@
-public final class eu/wynq/convex/core/ConvexCoreModule {
-	public static final field INSTANCE Leu/wynq/convex/core/ConvexCoreModule;
+public final class eu/wynq/convex/core/value/ConvexJson {
+	public static final field INSTANCE Leu/wynq/convex/core/value/ConvexJson;
+	public final fun decode (Ljava/lang/String;)Leu/wynq/convex/core/value/ConvexValue;
+	public final fun encode (Leu/wynq/convex/core/value/ConvexValue;)Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ConvexJsonException : java/lang/IllegalArgumentException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public abstract interface class eu/wynq/convex/core/value/ConvexValue {
+}
+
+public final class eu/wynq/convex/core/value/ConvexValue$Array : eu/wynq/convex/core/value/ConvexValue {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Leu/wynq/convex/core/value/ConvexValue$Array;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/value/ConvexValue$Array;Ljava/util/List;ILjava/lang/Object;)Leu/wynq/convex/core/value/ConvexValue$Array;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ConvexValue$Boolean : eu/wynq/convex/core/value/ConvexValue {
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Leu/wynq/convex/core/value/ConvexValue$Boolean;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/value/ConvexValue$Boolean;ZILjava/lang/Object;)Leu/wynq/convex/core/value/ConvexValue$Boolean;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ConvexValue$Bytes : eu/wynq/convex/core/value/ConvexValue {
+	public fun <init> ([B)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()[B
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ConvexValue$Float64 : eu/wynq/convex/core/value/ConvexValue {
+	public fun <init> (D)V
+	public final fun component1 ()D
+	public final fun copy (D)Leu/wynq/convex/core/value/ConvexValue$Float64;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/value/ConvexValue$Float64;DILjava/lang/Object;)Leu/wynq/convex/core/value/ConvexValue$Float64;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ConvexValue$Int64 : eu/wynq/convex/core/value/ConvexValue {
+	public fun <init> (J)V
+	public final fun component1 ()J
+	public final fun copy (J)Leu/wynq/convex/core/value/ConvexValue$Int64;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/value/ConvexValue$Int64;JILjava/lang/Object;)Leu/wynq/convex/core/value/ConvexValue$Int64;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ConvexValue$Null : eu/wynq/convex/core/value/ConvexValue {
+	public static final field INSTANCE Leu/wynq/convex/core/value/ConvexValue$Null;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ConvexValue$Object : eu/wynq/convex/core/value/ConvexValue {
+	public fun <init> (Ljava/util/Map;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Leu/wynq/convex/core/value/ConvexValue$Object;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/value/ConvexValue$Object;Ljava/util/Map;ILjava/lang/Object;)Leu/wynq/convex/core/value/ConvexValue$Object;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ConvexValue$String : eu/wynq/convex/core/value/ConvexValue {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Leu/wynq/convex/core/value/ConvexValue$String;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/value/ConvexValue$String;Ljava/lang/String;ILjava/lang/Object;)Leu/wynq/convex/core/value/ConvexValue$String;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 

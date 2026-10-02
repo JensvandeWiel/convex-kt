@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.wynq.convex.core
+package eu.wynq.convex.core.value
 
-import kotlin.test.Test
-import kotlin.test.assertSame
-
-class ConvexCoreModuleTest {
-    @Test
-    fun markerIsASingleton() {
-        assertSame(ConvexCoreModule, ConvexCoreModule)
-    }
-}
+/**
+ * Thrown when a JSON document cannot be decoded into a [ConvexValue], or a
+ * value cannot be encoded.
+ *
+ * Decoding is strict on purpose: the Convex wire format has ambiguous corners
+ * (a tagged `$float` that would have fit in a plain number, retired `$set` and
+ * `$map` types), and accepting them would hide a protocol mismatch instead of
+ * surfacing it at the boundary.
+ *
+ * @property message why decoding failed.
+ */
+public class ConvexJsonException(
+    message: String,
+    cause: Throwable? = null,
+) : IllegalArgumentException(message, cause)

@@ -26,15 +26,19 @@ requirements:
       64-bit unsigned integers survive serialization without precision loss.
       The wire format is double-quoted little-endian base64, not a JSON number,
       which is the single most likely place a port silently corrupts data.
-    status: planned
+    status: ported
     upstream:
       - "sync_types/src/types/json.rs::proptest_u64_roundtrips"
+    kotlin:
+      - "convex-core.U64EncodingTest.u64RoundTripsAcrossFullRange"
 
   - id: value/empty-array-roundtrip
     description: An empty Convex array round-trips through the codec unchanged.
-    status: planned
+    status: ported
     upstream:
       - "sync_types/src/types/json.rs::test_empty_array_roundtrips"
+    kotlin:
+      - "convex-core.ConvexJsonTest.emptyArrayRoundTrips"
 
   - id: client/deployment-url
     description: A deployment URL is normalized into the sync WebSocket URL.
@@ -44,9 +48,11 @@ requirements:
 
   - id: value/value-roundtrip
     description: Arbitrary Convex values round-trip through the JSON codec.
-    status: planned
+    status: ported
     upstream:
       - "src/value/json/mod.rs::test_value_roundtrips"
+    kotlin:
+      - "convex-core.ConvexJsonTest.nestedStructuresRoundTrip"
 
   - id: types/udf-path-roundtrip
     description: A UDF path round-trips through its serialized form.
