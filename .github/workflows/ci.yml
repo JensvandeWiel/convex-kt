@@ -125,5 +125,29 @@ jobs:
         if: always()
         run: docker compose -f conformance/docker-compose.yml down -v
 
+  integration:
+    name: Integration (real backend)
+    needs: wrapper-validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: "21"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: gradle/actions/setup-gradle@v4
+      # The integration tests boot the pinned backend with Testcontainers and
+      # deploy the conformance project into it, so Node dependencies must exist.
+      - name: Install conformance harness dependencies
+        working-directory: conformance/harness
+        run: npm ci
+      - name: Testcontainers integration tests
+        run: ./gradlew :integration-tests:integrationTest --console=plain
+
   # Additional conformance scenarios are added alongside the protocol features
   # they cover; each gets its own fixture directory and recorder.

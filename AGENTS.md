@@ -108,10 +108,12 @@ Non-negotiable. Where possible they are enforced by tooling.
    `get-convex/convex-backend` and `get-convex/convex-rs` releases and diffs
    protocol paths. It **only drafts issues**. It never auto-merges and never
    edits code.
-3. **Real backend integration.** Integration tests run per-commit against the
-   pinned local Docker Compose backend using SQLite. There are no mocked server
-   responses in integration tests. Recorded frames are fixtures for unit-level
-   conformance, not a replacement for the live run.
+3. **Real backend integration.** `:integration-tests` boots the pinned backend
+   with Testcontainers, deploys the conformance project into it, and exercises
+   the real feature set — subscription, mutation, action, auth, storage,
+   optimistic updates, and the HTTP API — with no mocked server responses.
+   Recorded frames are fixtures for fast unit-level conformance; they never
+   replace the live run.
 
 ## Development guardrails
 
@@ -222,6 +224,9 @@ Use the wrapper. Android requires `local.properties` (git-ignored) or
 
 # parity coverage: every upstream test must be accounted for
 ./gradlew :tools:parity:run --args="--upstream third_party/convex-rs"
+
+# integration tests against a real backend (needs Docker + Node)
+./gradlew :integration-tests:integrationTest
 
 # absorb a new upstream revision: append the emitted entries to parity.yaml
 ./gradlew :tools:parity:run --args="--emit-missing third_party/convex-rs"

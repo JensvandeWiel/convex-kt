@@ -15,6 +15,7 @@ ktor = "3.3.0"
 serialization = "1.9.0"
 snakeyaml = "2.4"
 spotless = "8.9.0"
+testcontainers = "1.21.4"
 # Note: Dokka and binary-compatibility-validator are pinned in
 # buildSrc/build.gradle.kts, not here, because the convention plugins apply them
 # and cannot read this catalog.
@@ -30,6 +31,7 @@ ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
+testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "agp" }

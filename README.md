@@ -64,6 +64,15 @@ and sends `messages:send`:
 CONVEX_URL=http://127.0.0.1:3210 ./gradlew :examples:chat:run
 ```
 
+## Integration tests
+
+`:integration-tests` boots the pinned backend with Testcontainers, deploys the
+conformance project, and tests the real feature set (no mocked server):
+
+```bash
+./gradlew :integration-tests:integrationTest   # needs Docker and Node
+```
+
 ## Parity gate
 
 Every upstream `convex-rs` test is tracked in `parity.yaml`. This is enforced at

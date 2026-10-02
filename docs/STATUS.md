@@ -24,9 +24,14 @@ this file records the seams that remain.
 
 - `./gradlew checkAll` (or `build`) runs formatting, Detekt, API checks,
   coverage, and every module's tests. All green.
-- Conformance fixtures: `connect-handshake` and `query-and-mutation`, recorded
-  from the pinned backend and replayed by tests. CI re-records and fails on
-  drift.
+- Conformance fixtures: `connect-handshake`, `query-and-mutation`, and
+  `storage`, recorded from the pinned backend and replayed by tests. CI
+  re-records and fails on drift.
+- Integration tests (`:integration-tests`) boot the pinned backend with
+  Testcontainers and deploy the conformance project into it, then exercise
+  subscription, mutation, action, admin auth, storage upload/download,
+  optimistic updates, and the HTTP functions API against the running server.
+  No mocked server responses.
 - Parity: `ParityCoverageTest` requires every upstream `convex-rs` test to be
   accounted for in `parity.yaml` (60 tests; 9 `ported`, the rest `planned`).
 

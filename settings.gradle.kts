@@ -38,4 +38,5 @@ include(
     ":convex-codegen",
     ":tools:parity",
     ":examples:chat",
+    ":integration-tests",
 )

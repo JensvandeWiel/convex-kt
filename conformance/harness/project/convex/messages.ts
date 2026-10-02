@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { action, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 // Minimal module for the `query-and-mutation` conformance scenario. `list` is
@@ -17,6 +17,23 @@ export const send = mutation({
   handler: async (ctx, { body }) => {
     await ctx.db.insert("messages", { body });
     return body.length;
+  },
+});
+
+export const echo = action({
+  args: { body: v.string() },
+  handler: async (_ctx, { body }) => {
+    return body;
+  },
+});
+
+// Deliberately slow, so an integration test can observe an optimistic update
+// before the server acknowledges it. Actions may await timers.
+export const slowEcho = action({
+  args: { body: v.string() },
+  handler: async (_ctx, { body }) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    return body;
   },
 });
 

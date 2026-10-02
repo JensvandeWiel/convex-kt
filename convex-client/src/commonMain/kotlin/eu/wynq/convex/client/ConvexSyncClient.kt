@@ -279,15 +279,15 @@ public class ConvexSyncClient(
         outgoing.send(build(requestId))
         return try {
             awaitResult(deferred)
-        } catch (expected: Exception) {
-            // A failed call must not leave its prediction on screen.
+        } finally {
+            pending.remove(requestId)
+            // If no transition arrived during the call, the response itself is
+            // the acknowledgement, so drop the prediction now. When a transition
+            // did arrive it already cleared the prediction, so this is a no-op.
             if (optimistic != null) {
                 this.optimistic = null
                 publish()
             }
-            throw expected
-        } finally {
-            pending.remove(requestId)
         }
     }
 
