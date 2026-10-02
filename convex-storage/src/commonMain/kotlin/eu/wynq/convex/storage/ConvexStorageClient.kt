@@ -17,11 +17,11 @@ package eu.wynq.convex.storage
 
 import eu.wynq.convex.core.ConvexException
 import io.ktor.client.HttpClient
-import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
@@ -33,10 +33,12 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 /**
- * Thrown when the storage HTTP API rejects a request.
+ * Thrown when a storage transfer fails.
  *
  * @property statusCode the HTTP status, or 0 when the failure predates a
  *   response (for example a malformed body).
+ * @property message what went wrong.
+ * @property cause the underlying failure, if any.
  */
 public class ConvexStorageException(
     message: String,
@@ -45,49 +47,29 @@ public class ConvexStorageException(
 ) : ConvexException(message, cause)
 
 /**
- * The file storage HTTP API.
+ * File transfer over Convex storage.
  *
- * This is the only module that speaks plain HTTP: the sync protocol carries
- * function calls, but file bytes move over the deployment's HTTP endpoints.
- * The flow is always `generateUploadUrl` then `upload`, or `download` by
- * storage id; [uploadFile] composes the first two.
+ * This is the only module that speaks plain HTTP, but it deliberately does
+ * **not** create URLs: Convex generates upload and download URLs inside
+ * functions (`ctx.storage.generateUploadUrl()` and `ctx.storage.getUrl(id)`),
+ * because they are signed and short-lived. An app exposes those as a function
+ * and calls them through the sync client, then passes the resulting URL here.
  *
- * @property deploymentUrl the deployment origin, for example
- *   `https://example.convex.cloud`.
- * @property client the HTTP client.
- * @property authToken an admin token, sent as `Authorization: Convex <token>`
- *   when present.
+ * The flow is therefore:
+ * 1. call the app's function to get an upload URL,
+ * 2. [upload] the bytes to it and receive a storage id,
+ * 3. call the app's function with that id to get a download URL,
+ * 4. [download] the bytes from it.
+ *
+ * @property client the HTTP client used for the transfers.
  */
 public class ConvexStorageClient(
-    private val deploymentUrl: String,
     private val client: HttpClient,
-    private val authToken: String? = null,
 ) {
-    private val base: String = deploymentUrl.trimEnd('/')
-
     /**
-     * The permanent URL for a stored file.
+     * Uploads bytes to a pre-signed upload URL.
      *
-     * @param storageId the file's storage id.
-     * @return the download URL.
-     */
-    public fun fileUrl(storageId: String): String = "$base/api/storage/$storageId"
-
-    /**
-     * Requests a short-lived URL to upload to.
-     *
-     * @return the upload URL.
-     * @throws ConvexStorageException when the request fails.
-     */
-    public suspend fun generateUploadUrl(): String {
-        val response = client.post("$base/api/storage/generate-upload-url") { authorize() }
-        return response.bodyJson().string("url")
-    }
-
-    /**
-     * Uploads bytes to an upload URL from [generateUploadUrl].
-     *
-     * @param uploadUrl the upload URL.
+     * @param uploadUrl a URL from `storage.generateUploadUrl`.
      * @param bytes the file contents.
      * @param contentType the file's content type.
      * @return the new storage id.
@@ -106,37 +88,21 @@ public class ConvexStorageClient(
     }
 
     /**
-     * Generates an upload URL and uploads in one step.
+     * Downloads bytes from a URL returned by `storage.getUrl`.
      *
-     * @param bytes the file contents.
-     * @param contentType the file's content type.
-     * @return the new storage id.
-     */
-    public suspend fun uploadFile(
-        bytes: ByteArray,
-        contentType: String = DEFAULT_CONTENT_TYPE,
-    ): String = upload(generateUploadUrl(), bytes, contentType)
-
-    /**
-     * Downloads a stored file.
-     *
-     * @param storageId the file's storage id.
+     * @param fileUrl the signed download URL.
      * @return the file contents.
      * @throws ConvexStorageException when the request fails.
      */
-    public suspend fun download(storageId: String): ByteArray {
-        val response = client.get("$base/api/storage/$storageId")
+    public suspend fun download(fileUrl: String): ByteArray {
+        val response = client.get(fileUrl)
         if (!response.status.isSuccess()) {
             throw ConvexStorageException("download failed: ${response.status}", response.status.value)
         }
         return response.readRawBytes()
     }
 
-    private fun HttpRequestBuilder.authorize() {
-        authToken?.let { header(HttpHeaders.Authorization, "Convex $it") }
-    }
-
-    private suspend fun io.ktor.client.statement.HttpResponse.bodyJson(): JsonObject {
+    private suspend fun HttpResponse.bodyJson(): JsonObject {
         val text = bodyAsText()
         if (!status.isSuccess()) {
             throw ConvexStorageException("storage request failed: $status $text", status.value)
@@ -145,7 +111,7 @@ public class ConvexStorageClient(
     }
 
     private fun JsonObject.string(key: String): String =
-        (this[key]?.jsonPrimitive?.content)
+        this[key]?.jsonPrimitive?.content
             ?: throw ConvexStorageException("response lacks '$key'", 0)
 
     private companion object {

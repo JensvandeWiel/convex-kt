@@ -118,6 +118,7 @@ jobs:
           ADMIN_KEY="$(docker exec "$(docker compose -f ../docker-compose.yml ps -q backend)" ./generate_admin_key.sh | tail -n1)"
           node record-handshake.mjs --url http://127.0.0.1:3210 --admin-key "$ADMIN_KEY"
           node record-subscription.mjs --url http://127.0.0.1:3210 --admin-key "$ADMIN_KEY"
+          node record-storage.mjs --url http://127.0.0.1:3210 --admin-key "$ADMIN_KEY"
       - name: Fail on fixture drift
         run: git diff --exit-code -- conformance/fixtures
       - name: Tear down

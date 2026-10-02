@@ -39,18 +39,15 @@ Ordered roughly by how likely they are to matter.
 2. **JWT verification on Apple targets.** `verifySignature` throws
    `NotImplementedError` on iOS; tokens are forwarded to the backend, which
    verifies them. JVM and Android verify locally.
-3. **Pagination / journal.** `Query.journal` is carried and unused.
-4. **Storage against a live backend.** The storage client is unit-tested with a
-   mock engine; its endpoints have not been exercised against the pinned
-   backend, so the exact paths/auth scheme are not yet fixture-proven.
-5. **Codegen wiring.** Descriptors are generated but the client still takes
-   string paths; nothing yet maps a `ConvexFunction` to a typed call.
-6. **Parity depth.** Coverage enforcement is real, but most entries are
+3. **Pagination helpers.** Each query's journal is now carried across reconnects,
+   but there is no paged-query API on top of it.
+4. **Parity depth.** Coverage enforcement is real, but most entries are
    `planned`; porting them is ongoing work.
 
 Closed during refinement: automatic reconnection with exponential backoff,
-mutation/action call timeouts, `TransitionChunk` reassembly, and surfacing
-server `AuthError`s (now a `SharedFlow<String>`).
+mutation/action call timeouts, `TransitionChunk` reassembly, server `AuthError`
+surfacing, descriptor-based calls (codegen wiring), and storage transfers, which
+are now recorded against the pinned backend and replayed by a fixture test.
 
 ## Upstream pins
 

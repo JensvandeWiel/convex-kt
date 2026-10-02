@@ -1,0 +1,8 @@
+{
+  "uploadResponseBody": {
+    "storageId": "<STORAGE_ID>"
+  },
+  "payloadUtf8": "convex-kt storage fixture",
+  "fileUrlIsAbsolute": true,
+  "downloadedBytes": 25
+}

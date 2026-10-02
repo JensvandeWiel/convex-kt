@@ -11,11 +11,13 @@ conformance/
 ├── harness/                        # Node recorders driven by convex-js / ws
 │   ├── record-handshake.mjs        # `connect-handshake`
 │   ├── record-subscription.mjs     # `query-and-mutation`
+│   ├── record-storage.mjs          # `storage`
 │   ├── placeholders.mjs            # placeholder vocabulary for the handshake
 │   └── project/                    # minimal Convex module pushed for recordings
 ├── fixtures/
 │   ├── connect-handshake/          # raw Connect -> Ping exchange
-│   └── query-and-mutation/         # subscribe + mutate, real Transition/MutationResponse
+│   ├── query-and-mutation/         # subscribe + mutate, real Transition/MutationResponse
+│   └── storage/                    # upload/download response shapes
 └── out/                            # scratch output (git-ignored)
 ```
 

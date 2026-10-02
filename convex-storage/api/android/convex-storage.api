@@ -1,13 +1,8 @@
 public final class eu/wynq/convex/storage/ConvexStorageClient {
-	public fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/client/HttpClient;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/client/HttpClient;)V
 	public final fun download (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun fileUrl (Ljava/lang/String;)Ljava/lang/String;
-	public final fun generateUploadUrl (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun upload (Ljava/lang/String;[BLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun upload$default (Leu/wynq/convex/storage/ConvexStorageClient;Ljava/lang/String;[BLjava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun uploadFile ([BLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun uploadFile$default (Leu/wynq/convex/storage/ConvexStorageClient;[BLjava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class eu/wynq/convex/storage/ConvexStorageException : eu/wynq/convex/core/ConvexException {

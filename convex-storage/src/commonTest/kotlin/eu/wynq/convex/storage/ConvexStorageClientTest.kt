@@ -29,27 +29,12 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 /**
- * Covers the storage HTTP client against a mock engine, so request shapes and
- * response parsing are checked without a live backend.
+ * Covers the storage transfer client against a mock engine, so request shapes
+ * and response parsing are checked without a live backend.
  */
 class ConvexStorageClientTest {
-
-    @Test
-    fun generatesUploadUrlWithAuthHeader() = runTest {
-        val engine = MockEngine { request ->
-            assertEquals("/api/storage/generate-upload-url", request.url.encodedPath)
-            assertEquals("Convex admin-key", request.headers[HttpHeaders.Authorization])
-            respond(
-                content = """{"url":"https://upload.example/abc"}""",
-                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
-            )
-        }
-        val client = ConvexStorageClient("https://example.convex.cloud", HttpClient(engine), "admin-key")
-        assertEquals("https://upload.example/abc", client.generateUploadUrl())
-    }
 
     @Test
     fun uploadsBytesAndReadsStorageId() = runTest {
@@ -60,25 +45,8 @@ class ConvexStorageClientTest {
                 headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
             )
         }
-        val client = ConvexStorageClient("https://example.convex.cloud", HttpClient(engine))
-        assertEquals("kg2abc", client.upload("https://upload.example/abc", byteArrayOf(1, 2, 3)))
-    }
-
-    @Test
-    fun uploadFileGeneratesThenUploads() = runTest {
-        val paths = mutableListOf<String>()
-        val engine = MockEngine { request ->
-            paths += request.url.encodedPath
-            val body = if (request.url.encodedPath.endsWith("generate-upload-url")) {
-                """{"url":"https://upload.example/abc"}"""
-            } else {
-                """{"storageId":"kg2abc"}"""
-            }
-            respond(content = body, headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()))
-        }
-        val client = ConvexStorageClient("https://example.convex.cloud", HttpClient(engine))
-        assertEquals("kg2abc", client.uploadFile(byteArrayOf(9)))
-        assertEquals(listOf("/api/storage/generate-upload-url", "/abc"), paths)
+        val client = ConvexStorageClient(HttpClient(engine))
+        assertEquals("kg2abc", client.upload("https://upload.example/abc", byteArrayOf(1, 2, 3), "text/plain"))
     }
 
     @Test
@@ -89,22 +57,25 @@ class ConvexStorageClientTest {
                 headers = headersOf(HttpHeaders.ContentType, ContentType.Application.OctetStream.toString()),
             )
         }
-        val client = ConvexStorageClient("https://example.convex.cloud", HttpClient(engine))
-        assertContentEquals(byteArrayOf(4, 5, 6), client.download("kg2abc"))
+        val client = ConvexStorageClient(HttpClient(engine))
+        assertContentEquals(byteArrayOf(4, 5, 6), client.download("https://files.example/abc"))
     }
 
     @Test
-    fun reportsErrors() = runTest {
+    fun reportsDownloadErrors() = runTest {
         val engine = MockEngine { respondError(HttpStatusCode.NotFound, "nope") }
-        val client = ConvexStorageClient("https://example.convex.cloud", HttpClient(engine))
-        val failure = assertFailsWith<ConvexStorageException> { client.download("kg2abc") }
+        val client = ConvexStorageClient(HttpClient(engine))
+        val failure = assertFailsWith<ConvexStorageException> { client.download("https://files.example/abc") }
         assertEquals(404, failure.statusCode)
     }
 
     @Test
-    fun buildsFileUrl() = runTest {
-        val client = ConvexStorageClient("https://example.convex.cloud/", HttpClient(MockEngine { respond("") }))
-        assertEquals("https://example.convex.cloud/api/storage/kg2abc", client.fileUrl("kg2abc"))
-        assertTrue(client.fileUrl("x").endsWith("/api/storage/x"))
+    fun reportsUploadErrors() = runTest {
+        val engine = MockEngine { respondError(HttpStatusCode.BadRequest, "bad") }
+        val client = ConvexStorageClient(HttpClient(engine))
+        val failure = assertFailsWith<ConvexStorageException> {
+            client.upload("https://upload.example/abc", byteArrayOf(1))
+        }
+        assertEquals(400, failure.statusCode)
     }
 }
