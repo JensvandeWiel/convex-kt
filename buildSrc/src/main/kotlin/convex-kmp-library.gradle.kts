@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.android.library")
+    id("org.jetbrains.dokka")
 }
 
 // `convex-core` -> `eu.wynq.convex.core`. Both the Android namespace and the

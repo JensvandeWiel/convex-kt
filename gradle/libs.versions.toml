@@ -8,11 +8,12 @@
 agp = "8.13.2"
 compose = "1.9.3"
 coroutines = "1.10.2"
-dokka = "2.2.0"
 kotlin = "2.2.21"
 ktor = "3.3.0"
 serialization = "1.9.0"
 snakeyaml = "2.4"
+# Note: Dokka is pinned in buildSrc/build.gradle.kts, not here. The Dokka plugin
+# is applied by the convention plugins, which cannot read this catalog.
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -30,7 +31,6 @@ snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose" }
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

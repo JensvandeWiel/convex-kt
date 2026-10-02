@@ -21,7 +21,8 @@ protocol is reimplemented in Kotlin and proven against recorded fixtures.
 - Group id: `eu.wynq.convex`
 - Kotlin targets: `androidTarget`, `jvm`, `iosX64`, `iosArm64`, `iosSimulatorArm64`
 - Pinned toolchain: Gradle 9.1, Kotlin 2.2.21, AGP 8.13.2, Compose MP 1.9.3,
-  Ktor 3.3.0 (see `gradle/libs.versions.toml`)
+  Ktor 3.3.0 (see `gradle/libs.versions.toml`; Dokka 2.2.0 is pinned in
+  `buildSrc` because the convention plugins apply it)
 
 ## The three hard rules
 
