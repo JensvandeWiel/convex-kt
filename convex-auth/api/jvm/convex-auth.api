@@ -1,4 +1,131 @@
-public final class eu/wynq/convex/auth/ConvexAuthModule {
-	public static final field INSTANCE Leu/wynq/convex/auth/ConvexAuthModule;
+public final class eu/wynq/convex/auth/ConvexJwtException : java/lang/IllegalArgumentException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class eu/wynq/convex/auth/JsonWebKey {
+	public static final field Companion Leu/wynq/convex/auth/JsonWebKey$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Leu/wynq/convex/auth/JsonWebKey;
+	public static synthetic fun copy$default (Leu/wynq/convex/auth/JsonWebKey;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Leu/wynq/convex/auth/JsonWebKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlgorithm ()Ljava/lang/String;
+	public final fun getCurve ()Ljava/lang/String;
+	public final fun getExponent ()Ljava/lang/String;
+	public final fun getKeyId ()Ljava/lang/String;
+	public final fun getKeyType ()Ljava/lang/String;
+	public final fun getModulus ()Ljava/lang/String;
+	public final fun getX ()Ljava/lang/String;
+	public final fun getY ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/auth/JsonWebKey$Companion {
+	public final fun parse (Lkotlinx/serialization/json/JsonElement;)Leu/wynq/convex/auth/JsonWebKey;
+}
+
+public final class eu/wynq/convex/auth/Jwt {
+	public static final field Companion Leu/wynq/convex/auth/Jwt$Companion;
+	public final fun getClaims ()Leu/wynq/convex/auth/JwtClaims;
+	public final fun getHeader ()Leu/wynq/convex/auth/JwtHeader;
+	public final fun isExpired (J)Z
+}
+
+public final class eu/wynq/convex/auth/Jwt$Companion {
+	public final fun parse (Ljava/lang/String;)Leu/wynq/convex/auth/Jwt;
+}
+
+public final class eu/wynq/convex/auth/JwtAlgorithm : java/lang/Enum {
+	public static final field Companion Leu/wynq/convex/auth/JwtAlgorithm$Companion;
+	public static final field ES256 Leu/wynq/convex/auth/JwtAlgorithm;
+	public static final field RS256 Leu/wynq/convex/auth/JwtAlgorithm;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getKeyType ()Ljava/lang/String;
+	public final fun getWireName ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Leu/wynq/convex/auth/JwtAlgorithm;
+	public static fun values ()[Leu/wynq/convex/auth/JwtAlgorithm;
+}
+
+public final class eu/wynq/convex/auth/JwtAlgorithm$Companion {
+	public final fun fromWire (Ljava/lang/String;)Leu/wynq/convex/auth/JwtAlgorithm;
+	public final fun require (Ljava/lang/String;)Leu/wynq/convex/auth/JwtAlgorithm;
+}
+
+public final class eu/wynq/convex/auth/JwtClaims {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/Long;
+	public final fun component5 ()Ljava/lang/Long;
+	public final fun component6 ()Ljava/lang/Long;
+	public final fun component7 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/util/Map;)Leu/wynq/convex/auth/JwtClaims;
+	public static synthetic fun copy$default (Leu/wynq/convex/auth/JwtClaims;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/util/Map;ILjava/lang/Object;)Leu/wynq/convex/auth/JwtClaims;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAudience ()Ljava/lang/String;
+	public final fun getExpiresAtEpochSeconds ()Ljava/lang/Long;
+	public final fun getIssuedAtEpochSeconds ()Ljava/lang/Long;
+	public final fun getIssuer ()Ljava/lang/String;
+	public final fun getNotBeforeEpochSeconds ()Ljava/lang/Long;
+	public final fun getRaw ()Ljava/util/Map;
+	public final fun getSubject ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/auth/JwtHeader {
+	public fun <init> (Leu/wynq/convex/auth/JwtAlgorithm;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Leu/wynq/convex/auth/JwtAlgorithm;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Leu/wynq/convex/auth/JwtAlgorithm;Ljava/lang/String;Ljava/lang/String;)Leu/wynq/convex/auth/JwtHeader;
+	public static synthetic fun copy$default (Leu/wynq/convex/auth/JwtHeader;Leu/wynq/convex/auth/JwtAlgorithm;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Leu/wynq/convex/auth/JwtHeader;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlgorithm ()Leu/wynq/convex/auth/JwtAlgorithm;
+	public final fun getKeyId ()Ljava/lang/String;
+	public final fun getType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class eu/wynq/convex/auth/JwtVerificationResult {
+}
+
+public final class eu/wynq/convex/auth/JwtVerificationResult$Invalid : eu/wynq/convex/auth/JwtVerificationResult {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Leu/wynq/convex/auth/JwtVerificationResult$Invalid;
+	public static synthetic fun copy$default (Leu/wynq/convex/auth/JwtVerificationResult$Invalid;Ljava/lang/String;ILjava/lang/Object;)Leu/wynq/convex/auth/JwtVerificationResult$Invalid;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/auth/JwtVerificationResult$Valid : eu/wynq/convex/auth/JwtVerificationResult {
+	public fun <init> (Leu/wynq/convex/auth/Jwt;)V
+	public final fun component1 ()Leu/wynq/convex/auth/Jwt;
+	public final fun copy (Leu/wynq/convex/auth/Jwt;)Leu/wynq/convex/auth/JwtVerificationResult$Valid;
+	public static synthetic fun copy$default (Leu/wynq/convex/auth/JwtVerificationResult$Valid;Leu/wynq/convex/auth/Jwt;ILjava/lang/Object;)Leu/wynq/convex/auth/JwtVerificationResult$Valid;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getToken ()Leu/wynq/convex/auth/Jwt;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/auth/JwtVerifier {
+	public static final field INSTANCE Leu/wynq/convex/auth/JwtVerifier;
+	public final fun verify (Ljava/lang/String;Ljava/util/List;J)Leu/wynq/convex/auth/JwtVerificationResult;
 }
 

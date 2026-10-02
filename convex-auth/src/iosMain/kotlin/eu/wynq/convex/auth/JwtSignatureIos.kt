@@ -15,12 +15,13 @@
  */
 package eu.wynq.convex.auth
 
-/**
- * Compile-time marker for the `convex-auth` module.
- *
- * `convex-auth` will implement the token lifecycle and JWT verification
- * (RS256 + ES256) behind an `expect`/`actual` crypto boundary, because the
- * signing primitives differ per platform (plan step 6). Until then this marker
- * keeps the module publishable.
- */
-public object ConvexAuthModule
+internal actual fun verifySignature(
+    algorithm: JwtAlgorithm,
+    key: JsonWebKey,
+    data: ByteArray,
+    signature: ByteArray,
+): Boolean =
+    throw NotImplementedError(
+        "JWT signature verification is not implemented on Apple targets yet; " +
+            "the token is forwarded to the backend, which verifies it.",
+    )
