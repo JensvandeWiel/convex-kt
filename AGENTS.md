@@ -50,6 +50,24 @@ implementation is still being built; it is ratcheted upward as `convex-core`
 lands. `apiCheck` means an intentional public-surface change requires a
 committed `apiDump` diff.
 
+### When a rule blocks legitimate code
+
+Rules must not be satisfied by contorting correct code, and they must not be
+silenced invisibly. In order of preference:
+
+1. **Fix the code.** The default, and almost always correct.
+2. **Relax the specific rule in `config/detekt/detekt.yml`, with a comment
+   explaining the false positive and the pattern that is actually correct.**
+   Preferred over inline suppression because the reason lives with the rule, is
+   visible to every module, and cannot be forgotten in a source file.
+3. **Inline `@Suppress`** only when the exception is genuinely local, with a
+   comment stating why. Last resort: suppressions scatter and outlive their
+   justification.
+
+A relaxation or suppression without a written reason is a review defect, not a
+style preference. Never add a baseline to make a gate pass — that hides the
+finding instead of resolving it.
+
 ### Which rules are actually enforced
 
 `AGENTS.md` describes more discipline than any tool can check. To avoid implying

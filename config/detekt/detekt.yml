@@ -5,6 +5,15 @@
 # [guardrail] below are load-bearing for this project; do not relax them without
 # changing AGENTS.md first.
 #
+# RELAXATION POLICY
+# -----------------
+# There are no baselines. When a rule cannot express a legitimate pattern, relax
+# that specific rule rather than suppressing it inline, and leave a comment here
+# saying why (what the false positive is and what the correct pattern is). A
+# relaxation without a written reason is a review defect.
+#
+# See "When a rule blocks legitimate code" in CONTRIBUTING.md.
+#
 # See https://detekt.dev/docs/rules/ for the full rule set.
 
 build:

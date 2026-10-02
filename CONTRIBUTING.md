@@ -61,6 +61,23 @@ why.
 change the public surface, run `./gradlew apiDump` and commit the diff so the
 change is reviewable.
 
+### When a rule blocks legitimate code
+
+Static analysis serves the code, not the other way around. If a rule rejects a
+pattern that is genuinely correct, in order of preference:
+
+1. **Fix the code.** Almost always the right answer.
+2. **Relax that specific rule in `config/detekt/detekt.yml`, with a comment**
+   naming the false positive and the pattern that is correct. This is the
+   preferred escape hatch: the reason sits next to the rule, applies to every
+   module, and cannot drift.
+3. **Inline `@Suppress`** only for a genuinely local exception, with a comment
+   explaining why. Suppressions scatter and outlive their justification, so
+   treat this as a last resort.
+
+Never add a Detekt baseline or lower the Kover floor just to unblock a change.
+A relaxation without a written reason is a review defect.
+
 ### Formatting
 
 `./gradlew spotlessApply` fixes most style issues. Spotless is the single

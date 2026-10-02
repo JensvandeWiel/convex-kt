@@ -46,6 +46,11 @@ macOS.
 See `CONTRIBUTING.md` for the full standard and `AGENTS.md` for which guardrails
 are mechanically enforced versus reviewed by a human.
 
+When a rule rejects a genuinely correct pattern, relax that specific rule in
+`config/detekt/detekt.yml` **with a comment explaining why**, rather than adding
+a baseline or suppressing inline. See "When a rule blocks legitimate code" in
+`CONTRIBUTING.md`.
+
 ## Parity gate
 
 Every upstream `convex-rs` test is tracked in `parity.yaml`. Validate it with:
@@ -59,3 +64,8 @@ Every upstream `convex-rs` test is tracked in `parity.yaml`. Validate it with:
 - `AGENTS.md` — hard rules, guardrails, and Rust → Kotlin mapping.
 - `.opencode/skills/` — workflows: `port-from-rust`, `capture-conformance`,
   `check-parity`, `new-function`.
+
+## License
+
+Apache License 2.0. See `LICENSE`. All source files carry the standard header,
+enforced by Spotless.
