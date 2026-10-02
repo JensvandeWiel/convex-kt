@@ -1,5 +1,61 @@
-public final class eu/wynq/convex/compose/ConvexComposeModule {
+public abstract interface class eu/wynq/convex/compose/ConvexDecoder {
+	public static final field Companion Leu/wynq/convex/compose/ConvexDecoder$Companion;
+	public abstract fun decode (Leu/wynq/convex/core/value/ConvexValue;)Ljava/lang/Object;
+}
+
+public final class eu/wynq/convex/compose/ConvexDecoder$Companion {
+	public final fun identity ()Leu/wynq/convex/compose/ConvexDecoder;
+}
+
+public final class eu/wynq/convex/compose/QueryController {
 	public static final field $stable I
-	public static final field INSTANCE Leu/wynq/convex/compose/ConvexComposeModule;
+	public fun <init> (Leu/wynq/convex/client/ConvexSyncClient;Ljava/lang/String;Ljava/util/Map;Leu/wynq/convex/compose/ConvexDecoder;)V
+	public synthetic fun <init> (Leu/wynq/convex/client/ConvexSyncClient;Ljava/lang/String;Ljava/util/Map;Leu/wynq/convex/compose/ConvexDecoder;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun close ()V
+	public final fun getQueryId-Oaxfsfk ()Leu/wynq/convex/core/protocol/QueryId;
+	public final fun getState ()Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class eu/wynq/convex/compose/QueryKt {
+	public static final fun rememberQuery (Leu/wynq/convex/client/ConvexSyncClient;Ljava/lang/String;Ljava/util/Map;Leu/wynq/convex/compose/ConvexDecoder;Landroidx/compose/runtime/Composer;II)Leu/wynq/convex/compose/QueryState;
+}
+
+public abstract interface class eu/wynq/convex/compose/QueryState {
+}
+
+public final class eu/wynq/convex/compose/QueryState$Failure : eu/wynq/convex/compose/QueryState {
+	public static final field $stable I
+	public fun <init> (Leu/wynq/convex/core/protocol/ErrorPayload;)V
+	public final fun component1 ()Leu/wynq/convex/core/protocol/ErrorPayload;
+	public final fun copy (Leu/wynq/convex/core/protocol/ErrorPayload;)Leu/wynq/convex/compose/QueryState$Failure;
+	public static synthetic fun copy$default (Leu/wynq/convex/compose/QueryState$Failure;Leu/wynq/convex/core/protocol/ErrorPayload;ILjava/lang/Object;)Leu/wynq/convex/compose/QueryState$Failure;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Leu/wynq/convex/core/protocol/ErrorPayload;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/compose/QueryState$Loading : eu/wynq/convex/compose/QueryState {
+	public static final field $stable I
+	public static final field INSTANCE Leu/wynq/convex/compose/QueryState$Loading;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/compose/QueryState$Success : eu/wynq/convex/compose/QueryState {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/Object;)Leu/wynq/convex/compose/QueryState$Success;
+	public static synthetic fun copy$default (Leu/wynq/convex/compose/QueryState$Success;Ljava/lang/Object;ILjava/lang/Object;)Leu/wynq/convex/compose/QueryState$Success;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/compose/QueryStateKt {
+	public static final fun queryStateOf (Leu/wynq/convex/core/protocol/ConvexResult;Leu/wynq/convex/compose/ConvexDecoder;)Leu/wynq/convex/compose/QueryState;
 }
 

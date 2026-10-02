@@ -15,12 +15,22 @@
  */
 package eu.wynq.convex.compose
 
-import kotlin.test.Test
-import kotlin.test.assertSame
+import eu.wynq.convex.client.SyncProtocol
+import kotlinx.coroutines.channels.Channel
 
-class ConvexComposeModuleTest {
-    @Test
-    fun markerIsASingleton() {
-        assertSame(ConvexComposeModule, ConvexComposeModule)
+/** An in-memory transport for compose-module tests. */
+internal class FakeSyncProtocol : SyncProtocol {
+    private val incoming = Channel<String>(Channel.UNLIMITED)
+
+    override suspend fun send(text: String) = Unit
+
+    override suspend fun receive(): String? = incoming.receiveCatching().getOrNull()
+
+    override suspend fun close() {
+        incoming.close()
+    }
+
+    fun push(text: String) {
+        incoming.trySend(text)
     }
 }
