@@ -33,10 +33,13 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Drives the sync protocol over a [SyncProtocol].
@@ -54,12 +57,17 @@ import kotlinx.coroutines.launch
  * @property scope owns the send and receive coroutines.
  * @property sessionId the session identifier; random unless supplied.
  * @property authFetcher supplies the authentication state, if any.
+ * @property reconnectPolicy how an unexpected disconnect is retried.
+ * @property callTimeoutMillis how long a mutation or action waits before
+ *   failing, or `null` to wait indefinitely.
  */
 public class ConvexSyncClient(
     private val factory: SyncProtocolFactory,
     private val scope: CoroutineScope,
     private val sessionId: SessionId = SessionId.random(),
     private val authFetcher: AuthTokenFetcher? = null,
+    private val reconnectPolicy: ReconnectPolicy = ReconnectPolicy(),
+    private val callTimeoutMillis: Long? = null,
 ) {
     private val localState = LocalSyncState()
     private val remoteState = RemoteQuerySet()
@@ -72,6 +80,7 @@ public class ConvexSyncClient(
     private var connection: SyncProtocol? = null
     private var senderJob: Job? = null
     private var receiverJob: Job? = null
+    private var reconnectJob: Job? = null
 
     /** The latest known result for every subscribed query. */
     public val results: StateFlow<Map<QueryId, ConvexResult>> = resultsState.asStateFlow()
@@ -83,7 +92,7 @@ public class ConvexSyncClient(
      */
     public suspend fun connect() {
         check(connection == null) { "already connected" }
-        openConnection()
+        establish(reconnecting = false)
     }
 
     /**
@@ -93,38 +102,40 @@ public class ConvexSyncClient(
      * resets, authentication is refetched (forcing a refresh), and every
      * subscription is re-added. Known results are kept until the server's
      * transitions replace them.
-     *
-     * @throws IllegalStateException when not connected.
      */
     public suspend fun reconnect() {
-        val previous = connection ?: error("not connected")
-        senderJob?.cancel()
-        receiverJob?.cancel()
-        previous.close()
-        connection = null
-
-        val open = factory.connect()
-        connection = open
-        // Drop anything queued for the dead connection; the resend below is the
-        // authoritative state.
-        while (outgoing.tryReceive().isSuccess) {
-            // discard
-        }
-        outgoing.trySend(connectMessage())
-        localState.resetIdentityVersion()
-        sendAuthentication(forceRefresh = true)
-        outgoing.trySend(localState.resendQueries())
-        senderJob = scope.launch { sendLoop(open) }
-        receiverJob = scope.launch { receiveLoop(open) }
+        reconnectJob?.cancel()
+        reconnectJob = null
+        establish(reconnecting = true)
     }
 
-    private suspend fun openConnection() {
+    private suspend fun establish(reconnecting: Boolean) {
+        if (reconnecting) {
+            senderJob?.cancel()
+            receiverJob?.cancel()
+            connection?.close()
+            connection = null
+            // Drop anything queued for the dead connection; the resend below is
+            // the authoritative state.
+            while (outgoing.tryReceive().isSuccess) {
+                // discard
+            }
+        }
         val open = factory.connect()
         connection = open
         outgoing.trySend(connectMessage())
-        sendAuthentication(forceRefresh = false)
+        if (reconnecting) {
+            localState.resetIdentityVersion()
+        }
+        sendAuthentication(forceRefresh = reconnecting)
+        if (reconnecting) {
+            outgoing.trySend(localState.resendQueries())
+        }
         senderJob = scope.launch { sendLoop(open) }
-        receiverJob = scope.launch { receiveLoop(open) }
+        receiverJob = scope.launch {
+            receiveLoop(open)
+            onConnectionClosed()
+        }
     }
 
     private fun connectMessage(): ClientMessage.Connect {
@@ -142,6 +153,30 @@ public class ConvexSyncClient(
         val token = fetcher.fetch(forceRefresh)
         if (token != AuthenticationToken.None) {
             outgoing.trySend(localState.authenticate(token))
+        }
+    }
+
+    /** Schedules a backoff reconnect after the receive loop ends. */
+    private fun onConnectionClosed() {
+        connection = null
+        senderJob?.cancel()
+        if (!reconnectPolicy.automatic) return
+        if (reconnectJob?.isActive == true) return
+        reconnectJob = scope.launch {
+            var delayMillis = reconnectPolicy.initialDelayMillis
+            while (isActive && connection == null) {
+                delay(delayMillis)
+                delayMillis = minOf(
+                    (delayMillis * reconnectPolicy.multiplier).toLong(),
+                    reconnectPolicy.maxDelayMillis,
+                )
+                try {
+                    establish(reconnecting = true)
+                    return@launch
+                } catch (expected: Exception) {
+                    // Keep retrying with backoff until a connection opens.
+                }
+            }
         }
     }
 
@@ -175,6 +210,7 @@ public class ConvexSyncClient(
      * @param udfPath the function path.
      * @param args the single argument object.
      * @return the mutation's result.
+     * @throws ConvexClientException when [callTimeoutMillis] elapses first.
      */
     public suspend fun mutate(udfPath: String, args: Map<String, ConvexValue>): ConvexResult =
         call { requestId ->
@@ -187,6 +223,7 @@ public class ConvexSyncClient(
      * @param udfPath the function path.
      * @param args the single argument object.
      * @return the action's result.
+     * @throws ConvexClientException when [callTimeoutMillis] elapses first.
      */
     public suspend fun action(udfPath: String, args: Map<String, ConvexValue>): ConvexResult =
         call { requestId ->
@@ -195,10 +232,12 @@ public class ConvexSyncClient(
 
     /** Cancels the loops and closes the connection. */
     public suspend fun close() {
+        reconnectJob?.cancel()
         senderJob?.cancel()
         receiverJob?.cancel()
         connection?.close()
         connection = null
+        reconnectJob = null
         senderJob = null
         receiverJob = null
     }
@@ -209,7 +248,17 @@ public class ConvexSyncClient(
         val deferred = CompletableDeferred<ConvexResult>()
         pending[requestId] = deferred
         outgoing.send(build(requestId))
-        return deferred.await()
+        return try {
+            awaitResult(deferred)
+        } finally {
+            pending.remove(requestId)
+        }
+    }
+
+    private suspend fun awaitResult(deferred: CompletableDeferred<ConvexResult>): ConvexResult {
+        val timeout = callTimeoutMillis ?: return deferred.await()
+        return withTimeoutOrNull(timeout) { deferred.await() }
+            ?: throw ConvexClientException("call did not complete within ${timeout}ms")
     }
 
     private suspend fun sendLoop(open: SyncProtocol) {

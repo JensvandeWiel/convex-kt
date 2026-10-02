@@ -43,4 +43,9 @@ internal class FakeSyncProtocol : SyncProtocol {
     fun push(text: String) {
         incoming.trySend(text)
     }
+
+    /** Simulates the server closing the connection. */
+    fun closeFromServer() {
+        incoming.close()
+    }
 }

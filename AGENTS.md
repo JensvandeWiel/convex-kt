@@ -174,20 +174,24 @@ cross-thread synchronization is required.
 ## Module map and dependency direction
 
 ```
-convex-core      pure values, JSON codecs, protocol messages, sync state machine
-convex-client    WebSocket transport + client driving the state machine
-convex-auth      token lifecycle + JWT verification (RS256, ES256)
+convex-core      pure values, JSON codecs, protocol messages, sync state machine, function descriptors
+convex-client    Ktor WebSocket transport + client driving the state machine
+convex-auth      JWT parsing and RS256/ES256 verification
 convex-storage   file upload/download/URL generation (the only HTTP module)
 convex-compose   QueryState<T> controllers + @Composable bindings
 convex-codegen   build-time apiSpec -> ConvexFunction descriptor generator
 tools/parity     JVM CLI that validates parity.yaml in CI
+examples/chat    Compose Desktop example; depends on client + compose
 ```
 
 Dependencies point inward: `convex-core` depends on nothing in this repository.
 `convex-client`, `convex-auth`, and `convex-storage` depend on `convex-core`.
 `convex-compose` depends on `convex-core` and `convex-client`. `convex-codegen`
-and `tools/parity` are JVM-only build tools. Do not introduce a dependency that
-points the other way.
+and `tools/parity` are JVM-only build tools, and `examples/chat` is a leaf.
+Do not introduce a dependency that points the other way.
+
+See `docs/STATUS.md` for what is implemented and the known gaps, and
+`docs/state-machine-design.md` for the state machine's design record.
 
 ## Build and test
 

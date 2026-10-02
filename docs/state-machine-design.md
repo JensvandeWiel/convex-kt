@@ -1,8 +1,9 @@
 # Sync state machine — design and decisions
 
-**Status:** first slice implemented (local + remote query-set reduction). This
-document records the reasoning and the open decisions so the direction can be
-steered before the client/transport layer is built on top.
+**Status:** local and remote query-set reduction implemented; the client wires
+them together over the transport seam. Optimistic updates and automatic backoff
+reconnection remain (see `docs/STATUS.md`). This document records the reasoning
+and the decisions so the direction can be steered.
 
 ## Goal
 
@@ -87,9 +88,8 @@ subscribing twice to `messages:list {}` reuses one query id.
 - **Auth refresh.** Implemented: `AuthTokenFetcher` is called on connect and
   again from `reconnect` with `forceRefresh = true`, and the identity version is
   reset before re-authenticating.
-- **Automatic reconnection.** Still open: a lost connection requires an explicit
-  `reconnect()` call. A backoff loop with a `ReconnectPolicy` is the next step,
-  and it must drain the outgoing queue before resending the session.
+- **Automatic reconnection.** Implemented: a lost connection triggers a
+  backoff loop via `ReconnectPolicy`; a manual `reconnect()` remains available.
 
 ## Test strategy
 

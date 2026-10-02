@@ -31,6 +31,7 @@ import eu.wynq.convex.core.protocol.Timestamp
 import eu.wynq.convex.core.value.ConvexValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -189,6 +190,46 @@ class ConvexSyncClientTest {
         assertEquals(0u, modify.baseVersion.value)
         assertIs<QuerySetModification.Add>(modify.modifications.single())
         assertTrue(forceRefresh, "reconnect must force a token refresh")
+    }
+
+    @Test
+    fun automaticallyReconnectsAfterConnectionLoss() = runTest {
+        val protocols = mutableListOf<FakeSyncProtocol>()
+        val factory = SyncProtocolFactory { FakeSyncProtocol().also { protocols += it } }
+        val client = ConvexSyncClient(
+            factory,
+            backgroundScope,
+            reconnectPolicy = ReconnectPolicy(initialDelayMillis = 100),
+        )
+        client.connect()
+        runCurrent()
+        assertEquals(1, protocols.size)
+
+        protocols[0].closeFromServer()
+        runCurrent()
+        advanceTimeBy(150)
+        runCurrent()
+
+        assertEquals(2, protocols.size, "expected a replacement connection")
+        assertTrue(
+            protocols[1].sent.map(ClientMessageJson::decode).any { it is ClientMessage.Connect },
+            "the replacement connection must send Connect",
+        )
+    }
+
+    @Test
+    fun callTimesOutWithoutAResponse() = runTest {
+        val fake = FakeSyncProtocol()
+        val client = ConvexSyncClient(
+            SyncProtocolFactory { fake },
+            backgroundScope,
+            callTimeoutMillis = 1_000,
+        )
+        client.connect()
+        runCurrent()
+
+        val failure = runCatching { client.mutate("messages:send", emptyMap()) }.exceptionOrNull()
+        assertIs<ConvexClientException>(failure)
     }
 
     private fun kotlinx.coroutines.test.TestScope.client(fake: SyncProtocol): ConvexSyncClient =
