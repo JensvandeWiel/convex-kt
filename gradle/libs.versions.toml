@@ -8,12 +8,16 @@
 agp = "8.13.2"
 compose = "1.9.3"
 coroutines = "1.10.2"
+detekt = "1.23.8"
 kotlin = "2.2.21"
+kover = "0.9.11"
 ktor = "3.3.0"
 serialization = "1.9.0"
 snakeyaml = "2.4"
-# Note: Dokka is pinned in buildSrc/build.gradle.kts, not here. The Dokka plugin
-# is applied by the convention plugins, which cannot read this catalog.
+spotless = "8.9.0"
+# Note: Dokka and binary-compatibility-validator are pinned in
+# buildSrc/build.gradle.kts, not here, because the convention plugins apply them
+# and cannot read this catalog.
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -31,6 +35,9 @@ snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

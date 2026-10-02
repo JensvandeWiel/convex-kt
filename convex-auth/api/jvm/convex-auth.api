@@ -1,0 +1,4 @@
+public final class eu/wynq/convex/auth/ConvexAuthModule {
+	public static final field INSTANCE Leu/wynq/convex/auth/ConvexAuthModule;
+}
+

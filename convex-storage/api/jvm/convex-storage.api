@@ -1,0 +1,4 @@
+public final class eu/wynq/convex/storage/ConvexStorageModule {
+	public static final field INSTANCE Leu/wynq/convex/storage/ConvexStorageModule;
+}
+

@@ -1,0 +1,113 @@
+# Detekt configuration for convex-kt.
+#
+# This file is not just style: it is where the "Development guardrails" in
+# AGENTS.md become things the build can actually enforce. Rules marked
+# [guardrail] below are load-bearing for this project; do not relax them without
+# changing AGENTS.md first.
+#
+# See https://detekt.dev/docs/rules/ for the full rule set.
+
+build:
+  maxIssues: 0
+  weights:
+    complexity: 2
+    LongParameterList: 1
+    comments: 1
+
+config:
+  validation: true
+  warningsAsErrors: true
+
+processors:
+  active: true
+  # Do not drop findings: everything is reported and therefore counted.
+  exclude:
+    - 'DetektProgressListener'
+
+console-reports:
+  active: true
+  exclude:
+    - 'ProjectStatisticsReport'
+    - 'ComplexityReport'
+
+comments:
+  active: true
+  # [guardrail] "KDoc is mandatory." Public declarations need documentation.
+  UndocumentedPublicClass:
+    active: true
+    excludes: ['**/test/**', '**/commonTest/**', '**/*Test.kt']
+  UndocumentedPublicFunction:
+    active: true
+    excludes: ['**/test/**', '**/commonTest/**', '**/*Test.kt']
+  UndocumentedPublicProperty:
+    active: true
+    excludes: ['**/test/**', '**/commonTest/**', '**/*Test.kt']
+
+complexity:
+  active: true
+  LongMethod:
+    threshold: 80
+  LongParameterList:
+    functionThreshold: 8
+    constructorThreshold: 10
+  CyclomaticComplexMethod:
+    threshold: 20
+  TooManyFunctions:
+    thresholdInFiles: 30
+    thresholdInClasses: 30
+    thresholdInInterfaces: 20
+    thresholdInObjects: 30
+    ignoreDeprecated: true
+    ignorePrivate: true
+    ignoreOverridden: true
+
+style:
+  active: true
+  MagicNumber:
+    # Convex protocol constants are meaningful in place; named constants are
+    # still preferred for anything reused.
+    ignoreNumbers: ['-1', '0', '1', '2']
+  MaxLineLength:
+    maxLineLength: 120
+    excludeCommentStatements: true
+  ReturnCount:
+    max: 4
+  UnusedPrivateMember:
+    active: true
+  ForbiddenComment:
+    active: false
+
+naming:
+  active: true
+
+exceptions:
+  active: true
+
+potential-bugs:
+  active: true
+  # [guardrail] A `when` over a sealed type must not silently fall through to an
+  # `else`; missing branches must fail compilation. This rule flags unreachable
+  # code and contradictions that usually accompany a stray `else`.
+  ElseCaseInsteadOfExhaustiveWhen:
+    active: true
+  UnsafeCallOnNullableType:
+    active: true
+
+coroutines:
+  active: true
+  GlobalCoroutineUsage:
+    active: true
+  # [guardrail] "Use delay, never yield, for loops inside runTest."
+  # `yield` in a loop can spin the test dispatcher forever and hang CI.
+  InjectDispatcher:
+    active: true
+  RedundantSuspendModifier:
+    active: true
+  SleepInsteadOfDelay:
+    active: true
+  SuspendFunWithFlowReturnType:
+    active: true
+
+# Formatting is owned by Spotless (ktlint_official) so there is exactly one
+# formatter. Do not enable Detekt's `formatting` ruleset; it would duplicate and
+# eventually contradict Spotless.

@@ -16,4 +16,10 @@ dependencies {
     // KDoc is mandatory on public APIs; Dokka is applied by the conventions so
     // every public module produces docs without opting in by hand.
     implementation("org.jetbrains.dokka:dokka-gradle-plugin:2.2.0")
+    // Published-library API surface is checked by dumps rather than by hope.
+    implementation("org.jetbrains.kotlinx:binary-compatibility-validator:0.18.2")
+    // Quality pillars, applied by the `convex-quality` convention plugin.
+    implementation("com.diffplug.spotless:spotless-plugin-gradle:8.9.0")
+    implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.23.8")
+    implementation("org.jetbrains.kotlinx:kover-gradle-plugin:0.9.11")
 }

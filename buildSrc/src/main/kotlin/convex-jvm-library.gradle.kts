@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.dokka")
+    id("convex-quality")
 }
 
 extensions.configure<KotlinJvmProjectExtension> {

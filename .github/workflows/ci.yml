@@ -30,6 +30,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-java@v4
         with:
           distribution: corretto
@@ -42,12 +44,49 @@ jobs:
         shell: bash
         run: ./gradlew build --stacktrace --console=plain
 
+  quality:
+    name: Quality gates
+    needs: wrapper-validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      # Formatting, static analysis, and the published-API surface are checked
+      # as separate steps so a failure names the pillar that broke.
+      - name: Spotless (formatting)
+        run: ./gradlew spotlessCheck --console=plain
+      - name: Detekt (static analysis, incl. AGENTS.md guardrails)
+        run: ./gradlew detekt --console=plain
+      - name: API compatibility
+        run: ./gradlew apiCheck --console=plain
+      - name: Coverage floor
+        run: ./gradlew koverVerify --console=plain
+      - name: Upload analysis reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-analysis
+          path: |
+            **/build/reports/detekt/*.html
+            **/build/reports/detekt/*.sarif
+            **/build/reports/kover/**
+          if-no-files-found: ignore
+          retention-days: 7
+
   parity:
     name: Parity gate
     needs: wrapper-validation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-java@v4
         with:
           distribution: corretto
@@ -62,6 +101,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-node@v4
         with:
           node-version: "22"

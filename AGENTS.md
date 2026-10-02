@@ -24,6 +24,49 @@ protocol is reimplemented in Kotlin and proven against recorded fixtures.
   Ktor 3.3.0 (see `gradle/libs.versions.toml`; Dokka 2.2.0 is pinned in
   `buildSrc` because the convention plugins apply it)
 
+## Quality standard
+
+The project holds itself to the standard below. Every pillar is wired into the
+build and CI; none is aspirational.
+
+| Pillar | Enforced by | Gate |
+| --- | --- | --- |
+| Formatting | Spotless, `ktlint_official` | `spotlessCheck` |
+| Static analysis | Detekt, shared `config/detekt/detekt.yml` | `detekt` |
+| Coverage | Kover, floor currently 20% | `koverVerify` |
+| Public API | binary-compatibility-validator, dumps in `*/api/` | `apiCheck` |
+| Docs | Dokka on public modules | `dokkaGenerateHtml` |
+| Tests | Kotlin test + JUnit | `check` |
+
+Run everything at once:
+
+```bash
+./gradlew checkAll
+```
+
+There are **no Detekt baselines.** A finding is fixed, or the rule is changed
+deliberately with a comment. Kover's floor starts low because the protocol
+implementation is still being built; it is ratcheted upward as `convex-core`
+lands. `apiCheck` means an intentional public-surface change requires a
+committed `apiDump` diff.
+
+### Which rules are actually enforced
+
+`AGENTS.md` describes more discipline than any tool can check. To avoid implying
+guarantees the build cannot make, here is the honest mapping:
+
+| Guardrail | Enforced today? | By what |
+| --- | --- | --- |
+| `explicitApi` | Yes | Kotlin compiler |
+| KDoc on public declarations | Yes | Detekt `UndocumentedPublic*` |
+| No `else` over sealed types | Partly | Detekt `ElseCaseInsteadOfExhaustiveWhen`; the compiler enforces exhaustiveness, but recognizing a *stray* `else` is a review duty |
+| Key presence over key value | No | Review only — no rule can infer intent |
+| `delay`, never `yield`, in `runTest` | Partly | Detekt coroutines rules flag risky patterns; the `yield`-loop case is review |
+| Wire/codec correctness | Yes | Conformance fixtures + real-backend CI |
+| Test-suite parity | Yes | `parity.yaml` + `:tools:parity` |
+
+Anything marked "No" or "Partly" is a review responsibility, not a build failure.
+
 ## The three hard rules
 
 Non-negotiable. Where possible they are enforced by tooling.
@@ -123,11 +166,20 @@ Use the wrapper. Android requires `local.properties` (git-ignored) or
 `ANDROID_HOME`; the wrapper itself needs no other setup.
 
 ```bash
-# everything: compile, tests, lint
+# everything: compile, tests, lint, analysis, API, coverage
 ./gradlew build
 
-# just the checks
-./gradlew check
+# the full quality gate (all pillars + every module's tests)
+./gradlew checkAll
+
+# formatting, static analysis, API surface, coverage individually
+./gradlew spotlessCheck
+./gradlew detekt
+./gradlew apiCheck
+./gradlew koverVerify
+
+# fix formatting
+./gradlew spotlessApply
 
 # one module's JVM tests
 ./gradlew :convex-core:jvmTest
@@ -135,6 +187,10 @@ Use the wrapper. Android requires `local.properties` (git-ignored) or
 # the parity gate
 ./gradlew :tools:parity:run --args="--manifest parity.yaml"
 ```
+
+The upstream `convex-rs` source is available as a git submodule at
+`third_party/convex-rs`, pinned to a reviewed commit. Clone with
+`--recurse-submodules`, or run `git submodule update --init --recursive`.
 
 On Windows use `.\gradlew.bat` instead of `./gradlew`. Apple targets are
 declared everywhere but only build on macOS; on other hosts they are skipped

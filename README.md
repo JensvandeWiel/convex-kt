@@ -26,11 +26,25 @@ transport. No Rust FFI.
 
 ```bash
 ./gradlew build          # compile, tests, lint
-./gradlew check          # tests only
+./gradlew checkAll       # full quality gate (formatting, analysis, API, coverage)
 ```
 
-On Windows use `.\gradlew.bat`. Android needs `local.properties`
-(git-ignored) or `ANDROID_HOME`. Apple targets only build on macOS.
+On Windows use `.\gradlew.bat`. Clone with `--recurse-submodules` (the upstream
+`convex-rs` source lives at `third_party/convex-rs`). Android needs
+`local.properties` (git-ignored) or `ANDROID_HOME`. Apple targets only build on
+macOS.
+
+## Quality gates
+
+| Gate | Command | Standard |
+| --- | --- | --- |
+| Formatting | `./gradlew spotlessCheck` | Spotless + `ktlint_official` |
+| Static analysis | `./gradlew detekt` | Detekt, `config/detekt/detekt.yml`, no baselines |
+| Public API | `./gradlew apiCheck` | binary-compatibility-validator dumps |
+| Coverage | `./gradlew koverVerify` | Kover, floor ratcheted over time |
+
+See `CONTRIBUTING.md` for the full standard and `AGENTS.md` for which guardrails
+are mechanically enforced versus reviewed by a human.
 
 ## Parity gate
 

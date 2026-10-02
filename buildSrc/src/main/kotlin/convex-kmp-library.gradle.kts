@@ -5,14 +5,17 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 // Convention plugin for the public, multiplatform `convex-*` library modules.
 //
 // It declares the exact target matrix promised by the project plan — Android,
-// JVM desktop, and the three Apple targets — and enables `explicitApi()` so a
-// missing visibility modifier fails the build rather than silently widening the
-// published surface. See the "Development Guardrails" section of AGENTS.md.
+// JVM desktop, and the three Apple targets — enables `explicitApi()` so a
+// missing visibility modifier fails the build, and applies the shared quality
+// pillars (Detekt, Spotless, Dokka, Kover). See the "Development guardrails" and
+// "Quality standard" sections of AGENTS.md.
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.android.library")
     id("org.jetbrains.dokka")
+    id("org.jetbrains.kotlinx.binary-compatibility-validator")
+    id("convex-quality")
 }
 
 // `convex-core` -> `eu.wynq.convex.core`. Both the Android namespace and the

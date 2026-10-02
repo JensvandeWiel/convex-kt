@@ -1,0 +1,5 @@
+public final class eu/wynq/convex/compose/ConvexComposeModule {
+	public static final field $stable I
+	public static final field INSTANCE Leu/wynq/convex/compose/ConvexComposeModule;
+}
+

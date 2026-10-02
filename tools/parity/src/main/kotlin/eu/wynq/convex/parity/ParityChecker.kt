@@ -1,7 +1,8 @@
 package eu.wynq.convex.parity
 
-import java.io.File
 import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.error.YAMLException
+import java.io.File
 
 /**
  * Lifecycle state of a single upstream requirement tracked in `parity.yaml`.
@@ -23,6 +24,7 @@ public enum class ParityStatus(public val wireName: String) {
     NOT_APPLICABLE("not-applicable"),
     ;
 
+    /** Resolves manifest `status` strings to their enum constants. */
     public companion object {
         /**
          * Resolves a manifest `status` value.
@@ -76,7 +78,7 @@ public data class ParityReport(
      */
     public fun render(): String = buildString {
         appendLine("convex-kt parity check")
-        appendLine("  manifest: ${manifestPath}")
+        appendLine("  manifest: $manifestPath")
         appendLine("  requirements: ${requirements.size}")
         if (requirements.isNotEmpty()) {
             val counts = requirements.groupingBy { it.status.wireName }.eachCount()
@@ -113,35 +115,28 @@ public object ParityChecker {
      */
     public fun check(manifest: File): ParityReport {
         if (!manifest.isFile) {
-            return ParityReport(
-                manifestPath = manifest.path,
-                requirements = emptyList(),
-                errors = listOf("manifest not found: ${manifest.path}"),
-                warnings = emptyList(),
-            )
+            return failure(manifest, "manifest not found: ${manifest.path}")
         }
+        return checkParsed(manifest)
+    }
 
+    /** Validates an existing manifest file; the caller has checked it exists. */
+    private fun checkParsed(manifest: File): ParityReport {
         val root: Any? = try {
             // The explicit type argument avoids Kotlin inferring the generic
             // return as `Nothing?`, whose erasure is `java.lang.Void` and would
             // trigger a ClassCastException on the parsed map.
             Yaml().load<Any?>(manifest.readText())
-        } catch (failure: RuntimeException) {
-            return ParityReport(
-                manifestPath = manifest.path,
-                requirements = emptyList(),
-                errors = listOf("manifest is not valid YAML: ${failure.message}"),
-                warnings = emptyList(),
-            )
+        } catch (failure: YAMLException) {
+            return failure(manifest, "manifest is not valid YAML: ${failure.message}")
+        }
+
+        if (root !is Map<*, *>) {
+            return failure(manifest, "manifest root must be a mapping")
         }
 
         val errors = mutableListOf<String>()
         val warnings = mutableListOf<String>()
-
-        if (root !is Map<*, *>) {
-            errors += "manifest root must be a mapping"
-            return ParityReport(manifest.path, emptyList(), errors, warnings)
-        }
 
         validateSchemaVersion(root, errors)
 
@@ -168,6 +163,14 @@ public object ParityChecker {
 
         return ParityReport(manifest.path, requirements, errors, warnings)
     }
+
+    /** Builds a report carrying a single fatal [message]; keeps `check` linear. */
+    private fun failure(manifest: File, message: String): ParityReport = ParityReport(
+        manifestPath = manifest.path,
+        requirements = emptyList(),
+        errors = listOf(message),
+        warnings = emptyList(),
+    )
 
     private fun validateSchemaVersion(root: Map<*, *>, errors: MutableList<String>) {
         val version = root["schemaVersion"]
@@ -214,7 +217,8 @@ public object ParityChecker {
                     errors += "requirements[$index] ('$id'): planned requirements need an 'upstream' reference"
                 }
                 if (kotlin.isNotEmpty()) {
-                    warnings += "requirements[$index] ('$id'): 'planned' but already lists Kotlin tests; promote it to 'ported'"
+                    warnings += "requirements[$index] ('$id'): 'planned' but already lists " +
+                        "Kotlin tests; promote it to 'ported'"
                 }
             }
             ParityStatus.PORTED -> {

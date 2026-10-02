@@ -1,0 +1,4 @@
+public final class eu/wynq/convex/client/ConvexClientModule {
+	public static final field INSTANCE Leu/wynq/convex/client/ConvexClientModule;
+}
+
