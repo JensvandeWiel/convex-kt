@@ -104,7 +104,7 @@ public class ConvexHttpApi(
     ): ConvexResult {
         val body = buildJsonObject {
             put("path", JsonPrimitive(path))
-            put("args", Json.parseToJsonElement(ConvexJson.encode(ConvexValue.Object(args))))
+            put("args", ConvexJson.toJsonElement(ConvexValue.Object(args)))
             put("format", JsonPrimitive("json"))
         }
         val response = client.post("$base/api/$kind") {
@@ -123,12 +123,12 @@ public class ConvexHttpApi(
         val status = body["status"]?.jsonPrimitive?.content
         if (status == "success") {
             val value = body["value"] ?: return ConvexResult.Success(ConvexValue.Null)
-            return ConvexResult.Success(ConvexJson.decode(value.toString()))
+            return ConvexResult.Success(ConvexJson.fromJsonElement(value))
         }
         val message = body["errorMessage"]?.jsonPrimitive?.content ?: "unknown error"
         // Presence, not value: errorData marks a ConvexError payload.
         val error = if (body.containsKey("errorData")) {
-            ErrorPayload.ErrorData(message, ConvexJson.decode(body.getValue("errorData").toString()))
+            ErrorPayload.ErrorData(message, ConvexJson.fromJsonElement(body.getValue("errorData")))
         } else {
             ErrorPayload.Message(message)
         }

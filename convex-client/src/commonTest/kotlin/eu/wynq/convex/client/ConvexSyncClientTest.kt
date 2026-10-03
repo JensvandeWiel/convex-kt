@@ -40,7 +40,9 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Covers the client's outgoing queue and receive loop against an in-memory
@@ -210,7 +212,7 @@ class ConvexSyncClientTest {
         val client = ConvexSyncClient(
             factory,
             backgroundScope,
-            reconnectPolicy = ReconnectPolicy(initialDelayMillis = 100),
+            reconnectPolicy = ReconnectPolicy(initialDelay = 100.milliseconds),
         )
         client.connect()
         runCurrent()
@@ -319,6 +321,161 @@ class ConvexSyncClientTest {
 
         assertEquals(ConvexResult.Success(ConvexValue.String("server")), client.results.value[queryId])
         assertEquals(ConvexResult.Success(ConvexValue.Int64(1)), mutation.await())
+    }
+
+    @Test
+    fun closeFailsInflightCalls() = runTest {
+        val fake = FakeSyncProtocol()
+        val client = client(fake)
+        client.connect()
+        runCurrent()
+
+        // backgroundScope: runCatching *inside* the child, so the expected
+        // failure is a value — an uncaught child exception would fail runTest
+        // at teardown even when awaited elsewhere.
+        val result = backgroundScope.async {
+            runCatching { client.mutate("messages:send", emptyMap()) }
+        }
+        runCurrent()
+
+        client.close()
+        assertIs<ConvexClientException>(result.await().exceptionOrNull())
+    }
+
+    @Test
+    fun reconnectFailsInflightCalls() = runTest {
+        val fake = FakeSyncProtocol()
+        val client = client(fake)
+        client.connect()
+        runCurrent()
+
+        // backgroundScope: runCatching *inside* the child, so the expected
+        // failure is a value — an uncaught child exception would fail runTest
+        // at teardown even when awaited elsewhere.
+        val result = backgroundScope.async {
+            runCatching { client.mutate("messages:send", emptyMap()) }
+        }
+        runCurrent()
+
+        // The new session never answers the old session's request ids, so the
+        // call must fail instead of hanging on a response that cannot arrive.
+        client.reconnect()
+        assertIs<ConvexClientException>(result.await().exceptionOrNull())
+    }
+
+    @Test
+    fun versionMismatchDropsTheConnectionAndRedials() = runTest {
+        val protocols = mutableListOf<FakeSyncProtocol>()
+        val factory = SyncProtocolFactory { FakeSyncProtocol().also { protocols += it } }
+        val client = ConvexSyncClient(
+            factory,
+            backgroundScope,
+            reconnectPolicy = ReconnectPolicy(initialDelay = 100.milliseconds),
+        )
+        client.connect()
+        runCurrent()
+        val subscriber = client.subscribe("messages:list")
+        runCurrent()
+
+        // A valid transition advances the version; replaying it replays a
+        // start version the client has already left behind: frames were lost.
+        val transition = ServerMessageJson.encode(queryUpdatedTransition(subscriber.queryId))
+        protocols[0].push(transition)
+        runCurrent()
+        advanceUntilIdle()
+        protocols[0].push(transition)
+        runCurrent()
+        advanceTimeBy(150)
+        runCurrent()
+
+        assertEquals(2, protocols.size, "a version gap must force a fresh session")
+        assertTrue(
+            protocols[1].sent.map(ClientMessageJson::decode).any { it is ClientMessage.Connect },
+            "the replacement connection must send Connect",
+        )
+    }
+
+    @Test
+    fun malformedFrameDropsTheConnectionAndRedials() = runTest {
+        val protocols = mutableListOf<FakeSyncProtocol>()
+        val factory = SyncProtocolFactory { FakeSyncProtocol().also { protocols += it } }
+        val client = ConvexSyncClient(
+            factory,
+            backgroundScope,
+            reconnectPolicy = ReconnectPolicy(initialDelay = 100.milliseconds),
+        )
+        client.connect()
+        runCurrent()
+
+        protocols[0].push("not json{{{")
+        runCurrent()
+        advanceTimeBy(150)
+        runCurrent()
+
+        assertEquals(2, protocols.size, "a malformed frame must force a fresh session")
+    }
+
+    @Test
+    fun overlappingOptimisticUpdatesClearIndependently() = runTest {
+        val fake = FakeSyncProtocol()
+        val client = client(fake)
+        client.connect()
+        runCurrent()
+        val subscriber = client.subscribe("messages:list")
+        runCurrent()
+        val queryId = subscriber.queryId
+
+        val first = async {
+            client.mutate("messages:send", emptyMap()) { results ->
+                results + (queryId to ConvexResult.Success(ConvexValue.String("first")))
+            }
+        }
+        runCurrent()
+        val second = async {
+            client.mutate("messages:send", emptyMap()) { results ->
+                results + (queryId to ConvexResult.Success(ConvexValue.String("second")))
+            }
+        }
+        runCurrent()
+        assertEquals(
+            ConvexResult.Success(ConvexValue.String("second")),
+            client.results.value[queryId],
+        )
+
+        // Answering the first call must not clear the second call's
+        // prediction: predictions are per-call, not a single shared slot.
+        fake.push(
+            ServerMessageJson.encode(
+                ServerMessage.MutationResponse(
+                    requestId = RequestId(0u),
+                    result = ConvexResult.Success(ConvexValue.Int64(1)),
+                    ts = null,
+                    logLines = emptyList(),
+                ),
+            ),
+        )
+        runCurrent()
+        advanceUntilIdle()
+        assertEquals(
+            ConvexResult.Success(ConvexValue.String("second")),
+            client.results.value[queryId],
+        )
+
+        fake.push(
+            ServerMessageJson.encode(
+                ServerMessage.MutationResponse(
+                    requestId = RequestId(1u),
+                    result = ConvexResult.Success(ConvexValue.Int64(2)),
+                    ts = null,
+                    logLines = emptyList(),
+                ),
+            ),
+        )
+        runCurrent()
+        advanceUntilIdle()
+        first.await()
+        second.await()
+        assertNull(client.results.value[queryId])
     }
 
     private fun kotlinx.coroutines.test.TestScope.client(fake: SyncProtocol): ConvexSyncClient =

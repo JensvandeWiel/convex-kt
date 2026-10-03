@@ -29,6 +29,7 @@ import eu.wynq.convex.core.sync.RemoteQuerySet
 import eu.wynq.convex.core.sync.SubscriberId
 import eu.wynq.convex.core.sync.TransitionOutcome
 import eu.wynq.convex.core.value.ConvexValue
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -42,6 +43,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
@@ -52,9 +55,18 @@ import kotlinx.coroutines.withTimeoutOrNull
  * (what the server has told us). The state machine itself stays in
  * `convex-core`; this class is the coroutine plumbing around it.
  *
- * Concurrency: the client is intended to be confined to a single dispatcher
- * (the [scope]'s). Call its methods from that dispatcher, as a Compose
- * `LaunchedEffect` or a `MainScope` would.
+ * Concurrency: subscription state is confined to a single dispatcher (the
+ * [scope]'s). Call its methods from that dispatcher, as a Compose
+ * `LaunchedEffect` or a `MainScope` would. The connection lifecycle itself
+ * (`connect`, `reconnect`, `close`, and the automatic redial) is additionally
+ * serialized by a mutex, so a manual `reconnect()` racing the automatic one
+ * cannot interleave two `establish()` runs. Do not reenter the client from an
+ * [AuthTokenFetcher]: it runs while that mutex is held.
+ *
+ * Calls do not survive a connection: when the transport drops or is replaced,
+ * every in-flight `mutate`/`action` fails with [ConvexClientException] rather
+ * than hanging on a response the new session will never send. Retry after
+ * reconnecting.
  *
  * @property factory opens connections.
  * @property scope owns the send and receive coroutines.
@@ -87,7 +99,9 @@ public class ConvexSyncClient(
     private var senderJob: Job? = null
     private var receiverJob: Job? = null
     private var reconnectJob: Job? = null
-    private var optimistic: OptimisticUpdate? = null
+    private val predictions = mutableListOf<OptimisticUpdate>()
+    private val lifecycleMutex = Mutex()
+    private var closed = false
 
     /** The latest known result for every subscribed query. */
     public val results: StateFlow<Map<QueryId, ConvexResult>> = resultsState.asStateFlow()
@@ -100,17 +114,22 @@ public class ConvexSyncClient(
      *
      * Emitted when a token is rejected or expires; the client does not clear its
      * subscriptions, so the app can refresh credentials and keep rendering.
+     * The buffer holds [AUTH_ERROR_BUFFER] pending errors; a burst beyond that
+     * drops the newest arrivals until a collector catches up.
      */
     public val authErrors: SharedFlow<String> = authErrorsState.asSharedFlow()
 
     /**
      * Opens a connection and starts the send and receive loops.
      *
-     * @throws IllegalStateException when already connected.
+     * @throws IllegalStateException when already connected or closed.
      */
     public suspend fun connect() {
-        check(connection == null) { "already connected" }
-        establish(reconnecting = false)
+        lifecycleMutex.withLock {
+            check(!closed) { "client is closed" }
+            check(connection == null) { "already connected" }
+            establishLocked(reconnecting = false)
+        }
     }
 
     /**
@@ -119,17 +138,24 @@ public class ConvexSyncClient(
      * The server has forgotten the previous connection, so the identity version
      * resets, authentication is refetched (forcing a refresh), and every
      * subscription is re-added. Known results are kept until the server's
-     * transitions replace them.
+     * transitions replace them. In-flight calls fail; the new session never
+     * answers the old one's request ids.
+     *
+     * @throws IllegalStateException when closed.
      */
     public suspend fun reconnect() {
-        reconnectJob?.cancel()
-        reconnectJob = null
-        establish(reconnecting = true)
+        lifecycleMutex.withLock {
+            check(!closed) { "client is closed" }
+            reconnectJob?.cancel()
+            reconnectJob = null
+            establishLocked(reconnecting = true)
+        }
     }
 
-    private suspend fun establish(reconnecting: Boolean) {
+    private suspend fun establishLocked(reconnecting: Boolean) {
         connectionStateState.value = ConnectionState.Connecting
         if (reconnecting) {
+            failPending(ConvexClientException("connection replaced by reconnect"))
             senderJob?.cancel()
             receiverJob?.cancel()
             connection?.close()
@@ -181,24 +207,30 @@ public class ConvexSyncClient(
 
     /** Schedules a backoff reconnect after the receive loop ends. */
     private fun onConnectionClosed() {
+        if (closed) return
         connection = null
         connectionStateState.value = ConnectionState.Disconnected
         senderJob?.cancel()
         if (!reconnectPolicy.automatic) return
         if (reconnectJob?.isActive == true) return
         reconnectJob = scope.launch {
-            var delayMillis = reconnectPolicy.initialDelayMillis
-            while (isActive && connection == null) {
-                delay(delayMillis)
-                delayMillis = minOf(
-                    (delayMillis * reconnectPolicy.multiplier).toLong(),
-                    reconnectPolicy.maxDelayMillis,
-                )
-                try {
-                    establish(reconnecting = true)
-                    return@launch
-                } catch (expected: Exception) {
-                    // Keep retrying with backoff until a connection opens.
+            lifecycleMutex.withLock {
+                var backoff = reconnectPolicy.initialDelay
+                while (isActive && connection == null) {
+                    delay(backoff)
+                    backoff = minOf(
+                        backoff * reconnectPolicy.multiplier,
+                        reconnectPolicy.maxDelay,
+                    )
+                    try {
+                        establishLocked(reconnecting = true)
+                        return@withLock
+                    } catch (expected: CancellationException) {
+                        throw expected
+                    } catch (expected: Exception) {
+                        // Keep retrying with backoff until a connection opens.
+                        Unit
+                    }
                 }
             }
         }
@@ -244,7 +276,8 @@ public class ConvexSyncClient(
      * @param args the single argument object.
      * @param optimistic an optional prediction shown until the next transition.
      * @return the mutation's result.
-     * @throws ConvexClientException when [callTimeoutMillis] elapses first.
+     * @throws ConvexClientException when [callTimeoutMillis] elapses first, or
+     *   when the connection drops before the response arrives.
      */
     public suspend fun mutate(
         udfPath: String,
@@ -261,7 +294,8 @@ public class ConvexSyncClient(
      * @param args the single argument object.
      * @param optimistic an optional prediction shown until the next transition.
      * @return the action's result.
-     * @throws ConvexClientException when [callTimeoutMillis] elapses first.
+     * @throws ConvexClientException when [callTimeoutMillis] elapses first, or
+     *   when the connection drops before the response arrives.
      */
     public suspend fun action(
         udfPath: String,
@@ -271,17 +305,41 @@ public class ConvexSyncClient(
         ClientMessage.Action(requestId, udfPath, listOf(ConvexValue.Object(args)))
     }
 
-    /** Cancels the loops and closes the connection. */
+    /**
+     * Cancels the loops and closes the connection.
+     *
+     * In-flight calls fail with [ConvexClientException] instead of hanging:
+     * a closed client will never produce their responses.
+     */
     public suspend fun close() {
-        reconnectJob?.cancel()
-        senderJob?.cancel()
-        receiverJob?.cancel()
-        connection?.close()
-        connection = null
-        connectionStateState.value = ConnectionState.Disconnected
-        reconnectJob = null
-        senderJob = null
-        receiverJob = null
+        lifecycleMutex.withLock {
+            closed = true
+            reconnectJob?.cancel()
+            senderJob?.cancel()
+            receiverJob?.cancel()
+            connection?.close()
+            connection = null
+            connectionStateState.value = ConnectionState.Disconnected
+            reconnectJob = null
+            senderJob = null
+            receiverJob = null
+            failPending(ConvexClientException("client closed"))
+        }
+    }
+
+    /**
+     * Fails every in-flight call.
+     *
+     * Responses belong to the connection that was replaced, so the new session
+     * will never deliver them; failing loudly beats hanging on a timeout (or
+     * forever, when no timeout is set).
+     */
+    private fun failPending(cause: ConvexClientException) {
+        if (pending.isEmpty()) return
+        for (deferred in pending.values) {
+            deferred.completeExceptionally(cause)
+        }
+        pending.clear()
     }
 
     private suspend fun call(
@@ -289,7 +347,7 @@ public class ConvexSyncClient(
         build: (RequestId) -> ClientMessage,
     ): ConvexResult {
         if (optimistic != null) {
-            this.optimistic = optimistic
+            predictions.add(optimistic)
             publish()
         }
         val requestId = RequestId(nextRequestId)
@@ -302,19 +360,25 @@ public class ConvexSyncClient(
         } finally {
             pending.remove(requestId)
             // If no transition arrived during the call, the response itself is
-            // the acknowledgement, so drop the prediction now. When a transition
-            // did arrive it already cleared the prediction, so this is a no-op.
+            // the acknowledgement, so drop this call's prediction now. A
+            // transition clears every prediction at once, so removing one that
+            // is already gone is a no-op — and, crucially, one call never
+            // clears another call's prediction.
             if (optimistic != null) {
-                this.optimistic = null
+                predictions.remove(optimistic)
                 publish()
             }
         }
     }
 
-    /** Republishes results, applying any optimistic prediction. */
+    /**
+     * Republishes results, layering every in-flight prediction over the
+     * server's truth in call order.
+     */
     private fun publish() {
-        val prediction = optimistic
-        resultsState.value = prediction?.apply(remoteState.results()) ?: remoteState.results()
+        resultsState.value = predictions.fold(remoteState.results()) { current, prediction ->
+            prediction.apply(current)
+        }
     }
 
     private suspend fun awaitResult(deferred: CompletableDeferred<ConvexResult>): ConvexResult {
@@ -330,22 +394,50 @@ public class ConvexSyncClient(
     }
 
     private suspend fun receiveLoop(open: SyncProtocol) {
-        var running = true
-        while (running) {
-            val text = open.receive()
-            running = text != null && handle(text)
+        try {
+            var running = true
+            while (running) {
+                val text = open.receive()
+                running = text != null && handle(open, text)
+            }
+        } catch (expected: CancellationException) {
+            throw expected
+        } catch (expected: Exception) {
+            // A malformed frame or a dead transport ends the session; the
+            // receiver's epilogue hands off to the reconnect policy, which
+            // fails the orphaned calls on redial. Best-effort close here so a
+            // half-open transport is not leaked when redial is disabled.
+            closeQuietly(open)
+            failPending(ConvexClientException("connection lost: ${expected.message}"))
+        }
+    }
+
+    /**
+     * Closes a broken transport without masking the failure being handled.
+     *
+     * Cancellation still propagates: a cancelled teardown must not swallow
+     * the [CancellationException] that requested it.
+     */
+    private suspend fun closeQuietly(open: SyncProtocol) {
+        try {
+            open.close()
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (ignored: Exception) {
+            // The transport is already broken; nothing left to release.
+            Unit
         }
     }
 
     /** Applies one received frame; returns `false` when the session is over. */
-    private fun handle(text: String): Boolean {
+    private suspend fun handle(open: SyncProtocol, text: String): Boolean {
         when (val message = ServerMessageJson.decode(text)) {
-            is ServerMessage.Transition -> applyTransition(message)
+            is ServerMessage.Transition -> applyTransition(open, message)
             is ServerMessage.MutationResponse -> pending.remove(message.requestId)?.complete(message.result)
             is ServerMessage.ActionResponse -> pending.remove(message.requestId)?.complete(message.result)
             is ServerMessage.AuthError -> authErrorsState.tryEmit(message.error)
             is ServerMessage.FatalError -> return false
-            is ServerMessage.TransitionChunk -> handleChunk(message)
+            is ServerMessage.TransitionChunk -> handleChunk(open, message)
             ServerMessage.Ping -> Unit
         }
         return true
@@ -356,7 +448,7 @@ public class ConvexSyncClient(
      * arrived. A chunked transition is otherwise lost, which is why this is not
      * a no-op.
      */
-    private fun handleChunk(chunk: ServerMessage.TransitionChunk) {
+    private suspend fun handleChunk(open: SyncProtocol, chunk: ServerMessage.TransitionChunk) {
         val totalParts = chunk.totalParts.toInt()
         if (totalParts <= 0) return
         val buffer = transitionChunks.getOrPut(chunk.transitionId) { ChunkBuffer(totalParts) }
@@ -365,18 +457,24 @@ public class ConvexSyncClient(
         transitionChunks.remove(chunk.transitionId)
         val reassembled = ServerMessageJson.decode(buffer.join())
         if (reassembled is ServerMessage.Transition) {
-            applyTransition(reassembled)
+            applyTransition(open, reassembled)
         }
     }
 
-    private fun applyTransition(transition: ServerMessage.Transition) {
+    private suspend fun applyTransition(open: SyncProtocol, transition: ServerMessage.Transition) {
         when (remoteState.transition(transition)) {
             is TransitionOutcome.Applied -> {
                 // The server has caught up; drop any prediction it supersedes.
-                optimistic = null
+                predictions.clear()
                 publish()
             }
-            is TransitionOutcome.VersionMismatch -> Unit
+            is TransitionOutcome.VersionMismatch -> {
+                // Frames were lost, so the local view is unrepairable: drop
+                // the connection and let the reconnect policy establish a
+                // fresh session. Staying connected would serve stale data
+                // with no signal that it is stale.
+                closeQuietly(open)
+            }
         }
     }
 

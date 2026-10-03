@@ -28,7 +28,6 @@ import eu.wynq.convex.core.protocol.ServerMessageJson
 import eu.wynq.convex.core.value.ConvexValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
@@ -237,8 +236,13 @@ class TypedCallsTest {
         client.connect()
         runCurrent()
 
-        backgroundScope.launch {
-            client.action(GeneratedApi.Messages.echo, GeneratedApi.Messages.EchoRequest(body = "hi"))
+        // backgroundScope: runCatching *inside* the child, so the expected
+        // failure is a value — an uncaught child exception would fail runTest
+        // at teardown even when awaited elsewhere.
+        val result = backgroundScope.async {
+            runCatching {
+                client.action(GeneratedApi.Messages.echo, GeneratedApi.Messages.EchoRequest(body = "hi"))
+            }
         }
         runCurrent()
         assertTrue(
@@ -253,6 +257,10 @@ class TypedCallsTest {
         assertTrue(
             protocols[1].sent.map(ClientMessageJson::decode).none { it is ClientMessage.Action },
             "an action must never be retried: a resend could double-execute its side effects",
+        )
+        assertIs<ConvexClientException>(
+            result.await().exceptionOrNull(),
+            "the orphaned call must fail instead of hanging on a dead session",
         )
     }
 

@@ -153,6 +153,12 @@ private fun <Result> decodeValue(
     value: ConvexValue,
 ): Result {
     if (serializer == null) {
+        // A missing serializer means the generator could not model `returns`,
+        // so `Result` must be `ConvexValue`. This cannot be checked: `Result`
+        // is erased, and threading `reified` through the public typed-call API
+        // would trade a descriptor-construction mistake (which codegen cannot
+        // produce, since it pairs the two) for inline-forever public
+        // signatures. The contract is documented, not enforced.
         @Suppress("UNCHECKED_CAST")
         return value as Result
     }
