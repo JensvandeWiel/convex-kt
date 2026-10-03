@@ -20,6 +20,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.double
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * Covers [export], the plain-JSON "database types" projection.
@@ -131,4 +132,48 @@ class ValueExportTest {
             ),
         )
     }
+
+    @Test
+    fun exportRoundtripsWithTypeHint() {
+        // Upstream proves this with proptest over arbitrary values; Kotlin has
+        // no property runner, so the same property is asserted over a corpus
+        // spanning every value kind, boundaries, and nesting.
+        for (value in roundTripCorpus) {
+            val context = ExportContext.of(value)
+            assertEquals(value, importExported(value.export(), context), "round trip failed for $value")
+        }
+    }
+
+    @Test
+    fun nanExportRoundTripsThroughTheTypeHint() {
+        // A data-class equality check is unreliable for NaN, so assert the bit
+        // pattern survived instead of comparing the wrapper values.
+        val value = ConvexValue.Float64(Double.NaN)
+        val restored = importExported(value.export(), ExportContext.of(value))
+        assertTrue((restored as ConvexValue.Float64).value.isNaN())
+    }
+
+    private val roundTripCorpus = listOf(
+        ConvexValue.Null,
+        ConvexValue.Int64(0),
+        ConvexValue.Int64(-314),
+        ConvexValue.Int64(Long.MIN_VALUE),
+        ConvexValue.Int64(Long.MAX_VALUE),
+        ConvexValue.Float64(12.34),
+        ConvexValue.Float64(0.0),
+        ConvexValue.Float64(-0.0),
+        ConvexValue.Float64(Double.POSITIVE_INFINITY),
+        ConvexValue.Float64(Double.NEGATIVE_INFINITY),
+        ConvexValue.Boolean(true),
+        ConvexValue.Boolean(false),
+        ConvexValue.String("hello"),
+        ConvexValue.Bytes(byteArrayOf(1, 2, 3)),
+        ConvexValue.Array(listOf(ConvexValue.Int64(1), ConvexValue.String("x"), ConvexValue.Null)),
+        ConvexValue.Object(
+            linkedMapOf(
+                "a" to ConvexValue.Int64(1),
+                "nested" to ConvexValue.Array(listOf(ConvexValue.Boolean(true))),
+            ),
+        ),
+    )
 }

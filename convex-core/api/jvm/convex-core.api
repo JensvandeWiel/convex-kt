@@ -1091,6 +1091,84 @@ public final class eu/wynq/convex/core/value/ConvexValueSerializer : kotlinx/ser
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 
+public abstract interface class eu/wynq/convex/core/value/ExportContext {
+	public static final field Companion Leu/wynq/convex/core/value/ExportContext$Companion;
+}
+
+public final class eu/wynq/convex/core/value/ExportContext$Array : eu/wynq/convex/core/value/ExportContext {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Leu/wynq/convex/core/value/ExportContext$Array;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/value/ExportContext$Array;Ljava/util/List;ILjava/lang/Object;)Leu/wynq/convex/core/value/ExportContext$Array;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getElements ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ExportContext$Boolean : eu/wynq/convex/core/value/ExportContext {
+	public static final field INSTANCE Leu/wynq/convex/core/value/ExportContext$Boolean;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ExportContext$Bytes : eu/wynq/convex/core/value/ExportContext {
+	public static final field INSTANCE Leu/wynq/convex/core/value/ExportContext$Bytes;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ExportContext$Companion {
+	public final fun of (Leu/wynq/convex/core/value/ConvexValue;)Leu/wynq/convex/core/value/ExportContext;
+}
+
+public final class eu/wynq/convex/core/value/ExportContext$Float64 : eu/wynq/convex/core/value/ExportContext {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Double;)V
+	public synthetic fun <init> (Ljava/lang/Double;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Double;
+	public final fun copy (Ljava/lang/Double;)Leu/wynq/convex/core/value/ExportContext$Float64;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/value/ExportContext$Float64;Ljava/lang/Double;ILjava/lang/Object;)Leu/wynq/convex/core/value/ExportContext$Float64;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getNanValue ()Ljava/lang/Double;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ExportContext$Int64 : eu/wynq/convex/core/value/ExportContext {
+	public static final field INSTANCE Leu/wynq/convex/core/value/ExportContext$Int64;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ExportContext$Null : eu/wynq/convex/core/value/ExportContext {
+	public static final field INSTANCE Leu/wynq/convex/core/value/ExportContext$Null;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ExportContext$Object : eu/wynq/convex/core/value/ExportContext {
+	public fun <init> (Ljava/util/Map;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Leu/wynq/convex/core/value/ExportContext$Object;
+	public static synthetic fun copy$default (Leu/wynq/convex/core/value/ExportContext$Object;Ljava/util/Map;ILjava/lang/Object;)Leu/wynq/convex/core/value/ExportContext$Object;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFields ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ExportContext$String : eu/wynq/convex/core/value/ExportContext {
+	public static final field INSTANCE Leu/wynq/convex/core/value/ExportContext$String;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class eu/wynq/convex/core/value/Identifier : java/lang/Comparable {
 	public static final field Companion Leu/wynq/convex/core/value/Identifier$Companion;
 	public static final synthetic fun box-impl (Ljava/lang/String;)Leu/wynq/convex/core/value/Identifier;
@@ -1126,5 +1204,6 @@ public final class eu/wynq/convex/core/value/IdentifiersKt {
 
 public final class eu/wynq/convex/core/value/ValueExportKt {
 	public static final fun export (Leu/wynq/convex/core/value/ConvexValue;)Lkotlinx/serialization/json/JsonElement;
+	public static final fun importExported (Lkotlinx/serialization/json/JsonElement;Leu/wynq/convex/core/value/ExportContext;)Leu/wynq/convex/core/value/ConvexValue;
 }
 

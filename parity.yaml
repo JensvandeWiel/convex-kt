@@ -278,10 +278,12 @@ requirements:
       - "convex-core.ValueExportTest.stringsExportAsStrings"
 
   - id: src-value-export-roundtrip-export-roundtrips-with-type-hint
-    description: "Upstream test 'export_roundtrips_with_type_hint' in 'src/value/export/roundtrip.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: A value round-trips through export and import when given the matching type context.
+    status: ported
     upstream:
       - "src/value/export/roundtrip.rs::export_roundtrips_with_type_hint"
+    kotlin:
+      - "convex-core.ValueExportTest.exportRoundtripsWithTypeHint"
 
   - id: src-value-json-mod-test-value-roundtrips-trophies
     description: "Upstream test 'test_value_roundtrips_trophies' in 'src/value/json/mod.rs' has no Kotlin counterpart yet."
