@@ -1,5 +1,10 @@
 # convex-kt
 
+> [!WARNING]
+> This is primarily a vibe-coded project. Treat the test suite, the conformance
+> fixtures, and the guidelines in `AGENTS.md` as the contract — they are
+> deliberately thorough and are what keep the code honest.
+
 An idiomatic Kotlin Multiplatform client for [Convex](https://convex.dev),
 covering **Android**, **JVM/desktop**, and **iOS**. It speaks Convex's sync
 WebSocket protocol directly — no Rust FFI — and offers Compose bindings on top of
