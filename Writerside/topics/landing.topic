@@ -21,6 +21,7 @@
             <title>Start here</title>
             <card href="calls-and-codegen.md" summary="Untyped, typed, and HTTP calls, plus descriptor generation."/>
             <card href="example-chat.md" summary="Run the Compose Desktop sample end to end."/>
+            <card href="https://jensvandewiel.github.io/convex-kt/api/" summary="KDoc for every public declaration, generated with Dokka.">API reference (Dokka)</card>
         </primary>
 
         <secondary>

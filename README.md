@@ -206,6 +206,11 @@ Two complementary surfaces, deliberately split:
   `build/dokka/html`. Dokka carries API definitions only, never prose
   guides.
 
+A GitHub release publishes both surfaces to GitHub Pages
+(`.github/workflows/docs.yml`): the guide at
+<https://jensvandewiel.github.io/convex-kt/> and the API reference under
+`/api/`.
+
 ## Contributing
 
 The contributor workflow — architecture, coding conventions, the quality gates,

@@ -1,0 +1,76 @@
+name: Docs
+
+# Published on every GitHub release (and manually for dry runs). Builds the
+# Writerside guide with the tag pinned in wrs-supernova, the Dokka API site,
+# and deploys both to GitHub Pages: the guide at the root, Dokka under /api/.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # The Kotlin plugins still configure the Android target on Linux even
+      # though only common/JVM sources matter for the API site.
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-36'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build the Dokka API reference
+        run: ./gradlew dokkaGenerateHtml
+
+      - name: Build the Writerside guides
+        run: |
+          WRS=$(grep -v '^#' wrs-supernova | head -1)
+          docker run --rm \
+            -v "$PWD:/opt/sources" \
+            "$WRS" \
+            /bin/bash -c "export DISPLAY=:99 && Xvfb :99 & /opt/builder/bin/idea.sh helpbuilderinspect --source-dir /opt/sources --product Writerside/convex-kt --runner other --output-dir /opt/sources/build/writerside"
+
+      - name: Assemble the Pages site
+        run: |
+          mkdir -p site
+          unzip -q build/writerside/webHelp*-all.zip -d site
+          mkdir -p site/api
+          cp -R build/dokka/html/. site/api/
+          touch site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
