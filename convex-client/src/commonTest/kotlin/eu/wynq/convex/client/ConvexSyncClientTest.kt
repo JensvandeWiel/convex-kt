@@ -19,6 +19,7 @@ import eu.wynq.convex.core.protocol.AuthenticationToken
 import eu.wynq.convex.core.protocol.ClientMessage
 import eu.wynq.convex.core.protocol.ClientMessageJson
 import eu.wynq.convex.core.protocol.ConvexResult
+import eu.wynq.convex.core.protocol.ErrorPayload
 import eu.wynq.convex.core.protocol.IdentityVersion
 import eu.wynq.convex.core.protocol.QueryId
 import eu.wynq.convex.core.protocol.QuerySetModification
@@ -476,6 +477,128 @@ class ConvexSyncClientTest {
         first.await()
         second.await()
         assertNull(client.results.value[queryId])
+    }
+
+    @Test
+    fun singleSubscriptionSendsAddThenRemove() = runTest {
+        val fake = FakeSyncProtocol()
+        val client = client(fake)
+        client.connect()
+        runCurrent()
+        val subscriber = client.subscribe("getValue1")
+        runCurrent()
+        val queryId = subscriber.queryId
+
+        val decoded = fake.sent.map(ClientMessageJson::decode)
+        assertIs<ClientMessage.Connect>(decoded[0])
+        val add = assertIs<QuerySetModification.Add>(
+            assertIs<ClientMessage.ModifyQuerySet>(decoded[1]).modifications.single(),
+        )
+        assertEquals(queryId, add.query.queryId)
+
+        fake.push(ServerMessageJson.encode(queryUpdatedTransition(queryId, ConvexValue.Int64(10))))
+        runCurrent()
+        advanceUntilIdle()
+        assertEquals(ConvexResult.Success(ConvexValue.Int64(10)), client.results.value[queryId])
+
+        fake.sent.clear()
+        client.unsubscribe(subscriber)
+        runCurrent()
+        val removeMessage = assertIs<ClientMessage.ModifyQuerySet>(ClientMessageJson.decode(fake.sent.single()))
+        assertEquals(1u, removeMessage.baseVersion.value)
+        assertEquals(2u, removeMessage.newVersion.value)
+        assertIs<QuerySetModification.Remove>(removeMessage.modifications.single())
+    }
+
+    @Test
+    fun mutationErrorResolvesOnResponse() = runTest {
+        val fake = FakeSyncProtocol()
+        val client = client(fake)
+        client.connect()
+        runCurrent()
+
+        // backgroundScope: runCatching *inside* the child, so an unexpected
+        // failure is a value rather than a teardown failure.
+        val result = backgroundScope.async {
+            runCatching { client.mutate("incrementCounter", emptyMap()) }
+        }
+        runCurrent()
+        val requestId = fake.sent.map(ClientMessageJson::decode)
+            .filterIsInstance<ClientMessage.Mutation>()
+            .single()
+            .requestId
+        fake.push(
+            ServerMessageJson.encode(
+                ServerMessage.MutationResponse(
+                    requestId = requestId,
+                    result = ConvexResult.Failure(ErrorPayload.Message("JEEPERS")),
+                    ts = null,
+                    logLines = emptyList(),
+                ),
+            ),
+        )
+        runCurrent()
+        assertEquals(
+            ConvexResult.Failure(ErrorPayload.Message("JEEPERS")),
+            result.await().getOrThrow(),
+        )
+    }
+
+    @Test
+    fun actionResolvesOnResponse() = runTest {
+        val fake = FakeSyncProtocol()
+        val client = client(fake)
+        client.connect()
+        runCurrent()
+
+        val result = backgroundScope.async {
+            runCatching { client.action("runAction:hello", emptyMap()) }
+        }
+        runCurrent()
+        val action = fake.sent.map(ClientMessageJson::decode)
+            .filterIsInstance<ClientMessage.Action>()
+            .single()
+        assertEquals("runAction:hello", action.udfPath)
+        fake.push(
+            ServerMessageJson.encode(
+                ServerMessage.ActionResponse(
+                    requestId = action.requestId,
+                    result = ConvexResult.Success(ConvexValue.Null),
+                    logLines = emptyList(),
+                ),
+            ),
+        )
+        runCurrent()
+        assertEquals(ConvexResult.Success(ConvexValue.Null), result.await().getOrThrow())
+    }
+
+    @Test
+    fun reconnectRefetchesToken() = runTest {
+        // Upstream `test_reconnect_path_requests_refreshed_token`.
+        val fake = FakeSyncProtocol()
+        val client = ConvexSyncClient(
+            SyncProtocolFactory { fake },
+            backgroundScope,
+            authFetcher = AuthTokenFetcher { forced ->
+                if (forced) {
+                    AuthenticationToken.User("refetched-token")
+                } else {
+                    AuthenticationToken.User("original-token")
+                }
+            },
+        )
+        client.connect()
+        runCurrent()
+        fake.sent.clear()
+
+        client.reconnect()
+        runCurrent()
+
+        val authenticate = fake.sent.map(ClientMessageJson::decode)
+            .filterIsInstance<ClientMessage.Authenticate>()
+            .first()
+        assertEquals(AuthenticationToken.User("refetched-token"), authenticate.token)
+        assertEquals(0u, authenticate.baseVersion.value)
     }
 
     private fun kotlinx.coroutines.test.TestScope.client(fake: SyncProtocol): ConvexSyncClient =

@@ -15,12 +15,14 @@
  */
 package eu.wynq.convex.core.protocol
 
+import eu.wynq.convex.core.identity.UserIdentityAttributes
 import eu.wynq.convex.core.internal.LittleEndianBase64
 import eu.wynq.convex.core.value.ConvexJson
 import eu.wynq.convex.core.value.ConvexJsonException
 import eu.wynq.convex.core.value.ConvexValue
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
@@ -162,7 +164,11 @@ public object ClientMessageJson {
             is AuthenticationToken.Admin -> {
                 fields["tokenType"] = JsonPrimitive("Admin")
                 fields["value"] = JsonPrimitive(token.value)
-                token.actingAs?.let { fields["actingAs"] = ConvexJson.toJsonElement(it) }
+                // Not `actingAs`: convex-js sends `impersonating` (see its
+                // browser/sync/local_state.js), and convex-rs's serde field is
+                // `acting_as` with `alias = "impersonating"`. Emit the spelling
+                // the reference JavaScript client emits.
+                token.actingAs?.let { fields["impersonating"] = it.toJson() }
             }
             is AuthenticationToken.User -> {
                 fields["tokenType"] = JsonPrimitive("User")
@@ -230,13 +236,26 @@ public object ClientMessageJson {
         val token = when (val type = message.string("tokenType")) {
             "Admin" -> AuthenticationToken.Admin(
                 value = message.string("value"),
-                actingAs = message["actingAs"]?.let(ConvexJson::fromJsonElement),
+                actingAs = message.identityAttributes(),
             )
             "User" -> AuthenticationToken.User(message.string("value"))
             "None" -> AuthenticationToken.None
             else -> throw ConvexJsonException("unknown token type '$type'")
         }
         return ClientMessage.Authenticate(IdentityVersion(message.uint("baseVersion")), token)
+    }
+
+    /**
+     * Reads the admin impersonation payload, accepting both documented spellings.
+     *
+     * convex-js writes `impersonating`; convex-rs serializes `acting_as`, whose
+     * serde alias also accepts `impersonating`. A present `null` means no
+     * impersonation, exactly like an absent key.
+     */
+    private fun JsonObject.identityAttributes(): UserIdentityAttributes? {
+        val element = this["impersonating"] ?: this["acting_as"] ?: return null
+        if (element is JsonNull) return null
+        return UserIdentityAttributes.fromJson(element)
     }
 
     private fun decodeEvent(message: JsonObject): ClientMessage.Event = ClientMessage.Event(

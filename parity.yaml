@@ -66,112 +66,134 @@ requirements:
       - "convex-core.UdfPathTest.testUdfPathRoundtrips"
 
   - id: src-base-client-mod-test-cached-query-result-persists-while-subscribers-exist
-    description: "Upstream test 'test_cached_query_result_persists_while_subscribers_exist' in 'src/base_client/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: A query result is cached while at least one subscriber remains.
+    status: ported
     upstream:
       - "src/base_client/mod.rs::test_cached_query_result_persists_while_subscribers_exist"
+    kotlin:
+      - "convex-core.LocalSyncStateTest.cachedResultPersistsWhileASubscriberRemains"
 
   - id: src-base-client-mod-test-final-unsubscribe-removes-cached-query-result
-    description: "Upstream test 'test_final_unsubscribe_removes_cached_query_result' in 'src/base_client/mod.rs' has no Kotlin counterpart yet."
+    description: "Planned: the final unsubscribe must evict the locally cached query result. convex-kt keeps server truth until a QueryRemoved transition and emits the Remove message on unsubscribe."
     status: planned
     upstream:
       - "src/base_client/mod.rs::test_final_unsubscribe_removes_cached_query_result"
 
   - id: src-base-client-mod-test-reconnect-does-not-send-duplicate-version-messages
-    description: "Upstream test 'test_reconnect_does_not_send_duplicate_version_messages' in 'src/base_client/mod.rs' has no Kotlin counterpart yet."
+    description: "Planned: a reconnect must not queue duplicate ModifyQuerySet version transitions. convex-kt drains its outgoing queue on redial, which avoids the duplicate without base-client-level deduplication."
     status: planned
     upstream:
       - "src/base_client/mod.rs::test_reconnect_does_not_send_duplicate_version_messages"
 
   - id: src-base-client-mod-test-reconnect-path-requests-refreshed-token
-    description: "Upstream test 'test_reconnect_path_requests_refreshed_token' in 'src/base_client/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: A reconnect forces the auth fetcher to refetch and sends the refreshed token.
+    status: ported
     upstream:
       - "src/base_client/mod.rs::test_reconnect_path_requests_refreshed_token"
+    kotlin:
+      - "convex-client.ConvexSyncClientTest.reconnectRefetchesToken"
 
   - id: src-base-client-query-result-test-query-results
-    description: "Upstream test 'test_query_results' in 'src/base_client/query_result.rs' has no Kotlin counterpart yet."
+    description: "Planned: the internal QueryResults structure (results keyed by subscriber, with set semantics) has no convex-kt counterpart; subscriber bookkeeping lives in LocalSyncState."
     status: planned
     upstream:
       - "src/base_client/query_result.rs::test_query_results"
 
   - id: src-client-mod-test-action
-    description: "Upstream test 'test_action' in 'src/client/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: An action resolves from its ActionResponse.
+    status: ported
     upstream:
       - "src/client/mod.rs::test_action"
+    kotlin:
+      - "convex-client.ConvexSyncClientTest.actionResolvesOnResponse"
 
   - id: src-client-mod-test-auth
-    description: "Upstream test 'test_auth' in 'src/client/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: Each set-auth path sends one Authenticate and advances the identity version, including admin impersonation.
+    status: ported
     upstream:
       - "src/client/mod.rs::test_auth"
+    kotlin:
+      - "convex-core.LocalSyncStateTest.authenticateSequenceCoversUserNoneAdminAndImpersonation"
 
   - id: src-client-mod-test-auth-callback
-    description: "Upstream test 'test_auth_callback' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    description: "Planned: setting or clearing an auth callback at runtime and sending Authenticate. convex-kt takes its fetcher at construction and has no runtime setter."
     status: planned
     upstream:
       - "src/client/mod.rs::test_auth_callback"
 
   - id: src-client-mod-test-auth-callback-returning-none
-    description: "Upstream test 'test_auth_callback_returning_none' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    description: "Planned: a fetcher returning None must send Authenticate(None). convex-kt deliberately skips a None token."
     status: planned
     upstream:
       - "src/client/mod.rs::test_auth_callback_returning_none"
 
   - id: src-client-mod-test-client-consistent-view-watch
-    description: "Upstream test 'test_client_consistent_view_watch' in 'src/client/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: One transition updates every query atomically, and a query with no update has no result.
+    status: ported
     upstream:
       - "src/client/mod.rs::test_client_consistent_view_watch"
+    kotlin:
+      - "convex-core.LocalSyncStateTest.transitionPresentsAConsistentViewAcrossSubscribers"
 
   - id: src-client-mod-test-client-separate-queries
-    description: "Upstream test 'test_client_separate_queries' in 'src/client/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: Same path with different args, and different paths, are independent queries with sequential versions.
+    status: ported
     upstream:
       - "src/client/mod.rs::test_client_separate_queries"
+    kotlin:
+      - "convex-core.LocalSyncStateTest.separateQueriesGetDistinctIds"
 
   - id: src-client-mod-test-client-single-subscription
-    description: "Upstream test 'test_client_single_subscription' in 'src/client/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: A single subscription sends Connect then Add, updates from a transition, and removes on unsubscribe.
+    status: ported
     upstream:
       - "src/client/mod.rs::test_client_single_subscription"
+    kotlin:
+      - "convex-client.ConvexSyncClientTest.singleSubscriptionSendsAddThenRemove"
 
   - id: src-client-mod-test-client-subscribe-unsubscribe-subscribe
-    description: "Upstream test 'test_client_subscribe_unsubscribe_subscribe' in 'src/client/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: A subscriber index is never reused after an unsubscribe, so handles cannot collide.
+    status: ported
     upstream:
       - "src/client/mod.rs::test_client_subscribe_unsubscribe_subscribe"
+    kotlin:
+      - "convex-core.LocalSyncStateTest.subscribeUnsubscribeSubscribeDoesNotReuseASubscriberIndex"
 
   - id: src-client-mod-test-client-two-identical-queries
-    description: "Upstream test 'test_client_two_identical_queries' in 'src/client/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: Identical subscriptions share one query id, and a later subscriber reads the cached result.
+    status: ported
     upstream:
       - "src/client/mod.rs::test_client_two_identical_queries"
+    kotlin:
+      - "convex-core.LocalSyncStateTest.identicalQueriesShareIdAndReplayTheLatestResult"
 
   - id: src-client-mod-test-drop-client
-    description: "Upstream test 'test_drop_client' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    description: "Planned: dropping the client must terminate each subscription's stream. convex-kt exposes a shared results StateFlow rather than per-subscription streams."
     status: planned
     upstream:
       - "src/client/mod.rs::test_drop_client"
 
   - id: src-client-mod-test-mutation
-    description: "Upstream test 'test_mutation' in 'src/client/mod.rs' has no Kotlin counterpart yet."
+    description: "Planned: a mutation must resolve only after the transition that applies its timestamp, so the watched state reflects it. convex-kt resolves on the MutationResponse (see ConvexSyncClientTest.mutationResolvesOnResponse)."
     status: planned
     upstream:
       - "src/client/mod.rs::test_mutation"
 
   - id: src-client-mod-test-mutation-error
-    description: "Upstream test 'test_mutation_error' in 'src/client/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: A mutation error resolves from its MutationResponse without waiting for a transition.
+    status: ported
     upstream:
       - "src/client/mod.rs::test_mutation_error"
+    kotlin:
+      - "convex-client.ConvexSyncClientTest.mutationErrorResolvesOnResponse"
 
   - id: src-client-mod-test-set-auth-uses-callback-path
-    description: "Upstream test 'test_set_auth_uses_callback_path' in 'src/client/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: A static token and its clear send ordinary Authenticate messages with advancing identity versions.
+    status: ported
     upstream:
       - "src/client/mod.rs::test_set_auth_uses_callback_path"
+    kotlin:
+      - "convex-core.LocalSyncStateTest.staticTokenThenClearAdvancesIdentityVersion"
 
   - id: src-value-export-mod-arrays-are-exported-as-arrays
     description: "Exporting an array recurses element-wise, encoding each integer as a string."

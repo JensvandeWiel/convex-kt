@@ -15,6 +15,7 @@
  */
 package eu.wynq.convex.core.protocol
 
+import eu.wynq.convex.core.identity.UserIdentityAttributes
 import eu.wynq.convex.core.value.ConvexValue
 
 /**
@@ -72,7 +73,7 @@ public sealed interface AuthenticationToken {
      */
     public data class Admin(
         public val value: String,
-        public val actingAs: ConvexValue? = null,
+        public val actingAs: UserIdentityAttributes? = null,
     ) : AuthenticationToken
 
     /**

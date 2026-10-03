@@ -15,6 +15,8 @@
  */
 package eu.wynq.convex.core.protocol
 
+import eu.wynq.convex.core.identity.UserIdentifier
+import eu.wynq.convex.core.identity.UserIdentityAttributes
 import eu.wynq.convex.core.value.ConvexJsonException
 import eu.wynq.convex.core.value.ConvexValue
 import kotlin.test.Test
@@ -130,7 +132,7 @@ class ClientMessageJsonTest {
     fun authenticateRoundTripsAllTokenKinds() {
         val tokens = listOf(
             AuthenticationToken.Admin("key"),
-            AuthenticationToken.Admin("key", ConvexValue.String("user1")),
+            AuthenticationToken.Admin("key", UserIdentityAttributes(UserIdentifier("user1"))),
             AuthenticationToken.User("jwt"),
             AuthenticationToken.None,
         )
@@ -138,6 +140,35 @@ class ClientMessageJsonTest {
             val message = ClientMessage.Authenticate(IdentityVersion(1u), token)
             assertEquals(message, ClientMessageJson.decode(ClientMessageJson.encode(message)))
         }
+    }
+
+    @Test
+    fun adminImpersonationUsesImpersonatingKey() {
+        // The admin payload is not `actingAs`: convex-js writes `impersonating`,
+        // which the backend accepts via the serde alias on `acting_as`.
+        val actingAs = UserIdentityAttributes(UserIdentifier("issuer|subject"), name = "Barbara Liskov")
+        val message = ClientMessage.Authenticate(
+            IdentityVersion(0u),
+            AuthenticationToken.Admin("key", actingAs),
+        )
+        val encoded = ClientMessageJson.encode(message)
+        assertTrue(encoded.contains("\"impersonating\""), "got: $encoded")
+        assertEquals(message, ClientMessageJson.decode(encoded))
+    }
+
+    @Test
+    fun adminImpersonationAcceptsActingAsSpelling() {
+        // convex-rs serializes the field as `acting_as`; accept it too.
+        val text = """
+            {"type":"Authenticate","baseVersion":0,"tokenType":"Admin","value":"key",
+             "acting_as":{"tokenIdentifier":"issuer|subject","name":"Barbara Liskov"}}
+        """.trimIndent()
+        val expected = AuthenticationToken.Admin(
+            "key",
+            UserIdentityAttributes(UserIdentifier("issuer|subject"), name = "Barbara Liskov"),
+        )
+        val decoded = assertIs<ClientMessage.Authenticate>(ClientMessageJson.decode(text))
+        assertEquals(expected, decoded.token)
     }
 
     @Test
