@@ -55,6 +55,8 @@ extensions.configure<LibraryExtension> {
 
     defaultConfig {
         minSdk = 26
+        // Instrumented tests in convex-auth run on a device/emulator.
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {

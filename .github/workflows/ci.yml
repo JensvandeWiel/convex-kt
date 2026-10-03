@@ -152,5 +152,38 @@ jobs:
       - name: Testcontainers integration tests
         run: ./gradlew :integration-tests:integrationTest --stacktrace --console=plain
 
+  android-test:
+    name: Android instrumentation tests
+    needs: wrapper-validation
+    runs-on: ubuntu-latest
+    # Booting an emulator is slow; cap it so a hang fails rather than occupies
+    # a runner indefinitely.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      # The x86_64 emulator needs KVM on GitHub-hosted runners.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      # Runs the Android actuals on a device: the JWT vectors exercise
+      # java.security as Android ships it, which host-JVM unit tests cannot.
+      - name: Run instrumentation tests on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: ./gradlew :convex-auth:connectedDebugAndroidTest --stacktrace --console=plain
+
   # Additional conformance scenarios are added alongside the protocol features
   # they cover; each gets its own fixture directory and recorder.
