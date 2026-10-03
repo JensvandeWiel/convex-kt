@@ -32,6 +32,18 @@ private val KOTLIN_KEYWORDS = setOf(
 )
 
 /**
+ * Turns a wire name (`messages.js:send`, `put_address`, ...) into a Kotlin
+ * PascalCase identifier, with [fallback] for an empty name and a `T` prefix for
+ * a leading digit (a Kotlin identifier cannot start with one).
+ */
+private fun pascalCase(raw: String, fallback: String): String {
+    val parts = raw.split(':', '.', '_', '-', '/').filter { it.isNotBlank() }
+    val joined = parts.joinToString("") { it.replaceFirstChar(Char::uppercaseChar) }
+    val safe = joined.ifEmpty { fallback }
+    return if (safe.first().isDigit()) "T$safe" else safe
+}
+
+/**
  * Maps a [ConvexValidator] onto a Kotlin type, emitting the data classes that
  * type needs.
  *
@@ -139,12 +151,7 @@ internal class TypeMapper {
         return "ConvexValue"
     }
 
-    private fun className(hint: String): String {
-        val cleaned = hint.split(':', '.', '_', '-', '/').filter { it.isNotBlank() }
-        val joined = cleaned.joinToString("") { part -> part.replaceFirstChar(Char::uppercaseChar) }
-        val safe = joined.ifEmpty { "Generated" }
-        return if (safe.first().isDigit()) "T$safe" else safe
-    }
+    private fun className(hint: String): String = pascalCase(hint, fallback = "Generated")
 
     private fun propertyName(name: String): String {
         val candidate = name.replaceFirstChar(Char::lowercaseChar)
@@ -283,11 +290,7 @@ public object KotlinSourceGenerator {
             "// actions; a no-argument function has no argument type. A validator that\n" +
             "// could not be modelled falls back to `ConvexValue`.\n"
 
-    private fun moduleClassName(module: String): String {
-        val parts = module.split(':', '.', '_', '-', '/').filter { it.isNotBlank() }
-        val joined = parts.joinToString("") { it.replaceFirstChar(Char::uppercaseChar) }
-        return joined.ifEmpty { "Default" }
-    }
+    private fun moduleClassName(module: String): String = pascalCase(module, fallback = "Default")
 
     private fun propertyName(name: String): String {
         val parts = name.split(':', '.', '_', '-', '/').filter { it.isNotBlank() }
@@ -298,11 +301,7 @@ public object KotlinSourceGenerator {
         return if (candidate in KOTLIN_KEYWORDS) "`$candidate`" else candidate
     }
 
-    private fun className(name: String): String {
-        val parts = name.split(':', '.', '_', '-', '/').filter { it.isNotBlank() }
-        val joined = parts.joinToString("") { it.replaceFirstChar(Char::uppercaseChar) }
-        return joined.ifEmpty { "Generated" }
-    }
+    private fun className(name: String): String = pascalCase(name, fallback = "Generated")
 }
 
 /** Renders a validator back into a Kotlin `ConvexValidator` expression. */

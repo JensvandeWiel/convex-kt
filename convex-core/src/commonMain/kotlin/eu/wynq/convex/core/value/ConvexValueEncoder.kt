@@ -53,12 +53,6 @@ import kotlinx.serialization.json.longOrNull
  * string, boolean, array, or object is rejected rather than guessed at.
  */
 public object ConvexValueEncoder {
-    // The tags ConvexValueSerializer uses for a nested ConvexValue field. They
-    // mirror ConvexJson's wire keys, so the two codecs interoperate.
-    private const val INTEGER_KEY = "\$integer"
-    private const val FLOAT_KEY = "\$float"
-    private const val BYTES_KEY = "\$bytes"
-
     /**
      * Encodes a JSON element produced by kotlinx serialization into a
      * [ConvexValue], preserving the `Int64`/`Float64` distinction.
@@ -93,9 +87,9 @@ public object ConvexValueEncoder {
         val only = element.entries.single()
         val content = (only.value as? JsonPrimitive)?.takeIf { it.isString }?.content ?: return null
         return when (only.key) {
-            INTEGER_KEY -> ConvexValue.Int64(LittleEndianBase64.decodeLong(content))
-            FLOAT_KEY -> ConvexValue.Float64(LittleEndianBase64.decodeDouble(content))
-            BYTES_KEY -> ConvexValue.Bytes(LittleEndianBase64.decodeBytes(content))
+            ConvexTaggedValue.INTEGER_KEY -> ConvexValue.Int64(LittleEndianBase64.decodeLong(content))
+            ConvexTaggedValue.FLOAT_KEY -> ConvexValue.Float64(LittleEndianBase64.decodeDouble(content))
+            ConvexTaggedValue.BYTES_KEY -> ConvexValue.Bytes(LittleEndianBase64.decodeBytes(content))
             else -> null
         }
     }

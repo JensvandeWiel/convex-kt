@@ -44,18 +44,13 @@ import kotlinx.serialization.json.doubleOrNull
  *   `$set` and `$map` keys are rejected
  */
 public object ConvexJson {
-    private const val INTEGER_KEY = "\$integer"
-    private const val FLOAT_KEY = "\$float"
-    private const val BYTES_KEY = "\$bytes"
     private const val SET_KEY = "\$set"
     private const val MAP_KEY = "\$map"
 
-    // IEEE-754 zero, named because the negative-zero distinction is exactly the
-    // reason floats need a tagged encoding. MagicNumber cannot express that.
+    // IEEE-754 zero; the negative-zero distinction is why a float needs a tag.
+    // MagicNumber cannot express that.
     @Suppress("MagicNumber")
     private const val ZERO = 0.0
-
-    private val negativeZeroBits: Long = (-ZERO).toRawBits()
 
     /**
      * Encodes [value] to its compact JSON representation.
@@ -99,24 +94,17 @@ public object ConvexJson {
 
     private fun toElement(value: ConvexValue): JsonElement = when (value) {
         ConvexValue.Null -> JsonNull
-        is ConvexValue.Int64 -> tagged(INTEGER_KEY, LittleEndianBase64.encodeLong(value.value))
-        is ConvexValue.Float64 -> floatElement(value.value)
+        is ConvexValue.Int64 ->
+            ConvexTaggedValue.tagged(ConvexTaggedValue.INTEGER_KEY, LittleEndianBase64.encodeLong(value.value))
+        is ConvexValue.Float64 -> ConvexTaggedValue.floatElement(value.value)
         is ConvexValue.Boolean -> JsonPrimitive(value.value)
         is ConvexValue.String -> JsonPrimitive(value.value)
-        is ConvexValue.Bytes -> tagged(BYTES_KEY, LittleEndianBase64.encodeBytes(value.value))
+        is ConvexValue.Bytes ->
+            ConvexTaggedValue.tagged(ConvexTaggedValue.BYTES_KEY, LittleEndianBase64.encodeBytes(value.value))
         is ConvexValue.Array -> JsonArray(value.value.map(::toElement))
         is ConvexValue.Object -> JsonObject(
             value.value.entries.sortedBy { it.key }.associate { it.key to toElement(it.value) },
         )
-    }
-
-    private fun floatElement(value: Double): JsonElement {
-        val special = isNegativeZero(value) || !value.isFinite()
-        return if (special) {
-            tagged(FLOAT_KEY, LittleEndianBase64.encodeDouble(value))
-        } else {
-            JsonPrimitive(value)
-        }
     }
 
     private fun fromElement(element: JsonElement): ConvexValue = when (element) {
@@ -137,9 +125,11 @@ public object ConvexJson {
         if (element.size == 1) {
             val key = element.keys.first()
             when (key) {
-                BYTES_KEY -> return ConvexValue.Bytes(LittleEndianBase64.decodeBytes(element.requireString(key)))
-                INTEGER_KEY -> return ConvexValue.Int64(LittleEndianBase64.decodeLong(element.requireString(key)))
-                FLOAT_KEY -> return decodeTaggedFloat(element.requireString(key))
+                ConvexTaggedValue.BYTES_KEY ->
+                    return ConvexValue.Bytes(LittleEndianBase64.decodeBytes(element.requireString(key)))
+                ConvexTaggedValue.INTEGER_KEY ->
+                    return ConvexValue.Int64(LittleEndianBase64.decodeLong(element.requireString(key)))
+                ConvexTaggedValue.FLOAT_KEY -> return decodeTaggedFloat(element.requireString(key))
                 SET_KEY -> throw ConvexJsonException("$SET_KEY is no longer supported as a Convex type")
                 MAP_KEY -> throw ConvexJsonException("$MAP_KEY is no longer supported as a Convex type")
             }
@@ -153,14 +143,11 @@ public object ConvexJson {
         val value = LittleEndianBase64.decodeDouble(text)
         // A tagged float must be something a plain number could not express.
         val wouldFitAsNumber = value.isFinite() && value != ZERO
-        if (!isNegativeZero(value) && wouldFitAsNumber) {
+        if (!ConvexTaggedValue.isNegativeZero(value) && wouldFitAsNumber) {
             throw ConvexJsonException("Float64 $value should be encoded as a number")
         }
         return ConvexValue.Float64(value)
     }
-
-    private fun isNegativeZero(value: Double): Boolean =
-        value == ZERO && value.toRawBits() == negativeZeroBits
 
     private fun JsonObject.requireString(key: String): String {
         val primitive = this[key] as? JsonPrimitive
@@ -169,7 +156,4 @@ public object ConvexJson {
         }
         return primitive.content
     }
-
-    private fun tagged(key: String, value: String): JsonObject =
-        JsonObject(mapOf(key to JsonPrimitive(value)))
 }

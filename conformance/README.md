@@ -17,7 +17,8 @@ conformance/
 ├── fixtures/
 │   ├── connect-handshake/          # raw Connect -> Ping exchange
 │   ├── query-and-mutation/         # subscribe + mutate, real Transition/MutationResponse
-│   └── storage/                    # upload/download response shapes
+│   ├── storage/                    # upload/download response shapes
+│   └── typed-api/                  # the real backend apiSpec, used by convex-codegen
 └── out/                            # scratch output (git-ignored)
 ```
 
@@ -31,6 +32,8 @@ conformance/
   re-records every scenario and fails on drift
   (`git diff --exit-code -- conformance/fixtures`).
 - Fixtures are decoded by `convex-core`'s `ProtocolFixtureTest`, which runs as
-  part of `./gradlew check`.
+  part of `./gradlew check`. The `typed-api` fixture is the exception: it is the
+  backend's `apiSpec` (not WebSocket frames) and is consumed by `convex-codegen`
+  and the typed-call tests.
 
 See the `capture-conformance` skill for the full workflow.

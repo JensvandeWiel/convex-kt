@@ -65,7 +65,7 @@ public object ConvexValueDecoder {
     private fun toElement(value: ConvexValue): JsonElement = when (value) {
         ConvexValue.Null -> JsonNull
         is ConvexValue.Int64 -> JsonPrimitive(value.value)
-        is ConvexValue.Float64 -> floatElement(value.value)
+        is ConvexValue.Float64 -> ConvexTaggedValue.floatElement(value.value)
         is ConvexValue.Boolean -> JsonPrimitive(value.value)
         is ConvexValue.String -> JsonPrimitive(value.value)
         is ConvexValue.Bytes -> JsonPrimitive(LittleEndianBase64.encodeBytes(value.value))
@@ -74,22 +74,4 @@ public object ConvexValueDecoder {
             value.value.entries.associate { it.key to toElement(it.value) },
         )
     }
-
-    /**
-     * Emits a tagged float when the value cannot be a JSON number.
-     *
-     * JSON has no literal for infinity or NaN, and `-0.0` would lose its sign as
-     * a plain number. Those three become `{"$float": "<base64>"}`, matching
-     * [ConvexJson] and [ConvexValueSerializer], so a `ConvexValue`-typed result
-     * holding one still round-trips.
-     */
-    private fun floatElement(value: Double): JsonElement =
-        if (!value.isFinite() || isNegativeZero(value)) {
-            JsonObject(mapOf("\$float" to JsonPrimitive(LittleEndianBase64.encodeDouble(value))))
-        } else {
-            JsonPrimitive(value)
-        }
-
-    private fun isNegativeZero(value: Double): Boolean =
-        value == 0.0 && (1.0 / value) == Double.NEGATIVE_INFINITY
 }

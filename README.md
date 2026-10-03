@@ -1,103 +1,180 @@
 # convex-kt
 
-A clean, idiomatic Kotlin Multiplatform client for [Convex](https://convex.dev),
-targeting **Android**, **Windows desktop (JVM)**, and **iOS**.
+An idiomatic Kotlin Multiplatform client for [Convex](https://convex.dev),
+covering **Android**, **JVM/desktop**, and **iOS**. It speaks Convex's sync
+WebSocket protocol directly — no Rust FFI — and offers Compose bindings on top of
+coroutines and `Flow`.
 
-Built with Compose Multiplatform, Coroutines (`Flow`), and a direct WebSocket
-transport. No Rust FFI.
+## Features
 
-> **Status: implementation complete, hardening in progress.** All modules are
-> implemented and tested: the value codec and sync state machine, the client and
-> Ktor transport, auth, storage, Compose bindings, and codegen. The build, CI,
-> parity gate, and agent tooling are in place. See `AGENTS.md` for the working
-> agreement and `docs/` for design records.
+- **Live queries** delivered as `Flow`/Compose state, with optimistic updates.
+- **Mutations and actions** with typed, generated call sites.
+- **JWT auth**, including token refresh and re-authentication on reconnect.
+- **File storage** upload and download.
+- **Code generation** from the backend's `apiSpec` into discoverable descriptors.
+
+## Requirements
+
+- Kotlin Multiplatform with coroutines; the Android/JVM targets need JDK 17.
+- Apple targets (`iosX64`, `iosArm64`, `iosSimulatorArm64`) build on macOS.
 
 ## Modules
 
-| Module | Responsibility |
+| Module | What it gives you |
 | --- | --- |
-| `convex-core` | Pure values, JSON codecs (64-bit precision preserved), protocol messages, sync state machine, function descriptors |
-| `convex-client` | Ktor WebSocket transport + client driving the state machine |
+| `convex-client` | The client: connect, subscribe, mutate, action |
+| `convex-core` | Values, protocol messages, and the sync state machine (pulled in transitively) |
+| `convex-compose` | `rememberQuery` and `QueryState<T>` for Compose |
 | `convex-auth` | JWT parsing and RS256/ES256 verification |
-| `convex-storage` | File upload, download, and URL generation (the only HTTP module) |
-| `convex-compose` | `QueryState<T>` controllers and `@Composable` bindings |
-| `convex-codegen` | Build-time `apiSpec` → typed `ConvexFunction` generator |
-| `tools/parity` | CI validator for `parity.yaml` |
-| `examples/chat` | Compose Desktop chat example against a live backend |
+| `convex-storage` | Upload and download files |
+| `convex-codegen` | Build-time generator for typed call sites |
 
-## Build
+Dependencies point inward: `convex-client`, `convex-auth`, and `convex-storage`
+depend on `convex-core`; `convex-compose` depends on `convex-client` and
+`convex-core`. A client-only app needs just `convex-client`.
 
-```bash
-./gradlew build          # compile, tests, lint
-./gradlew checkAll       # full quality gate (formatting, analysis, API, coverage)
+## Add the dependency
+
+The group is `eu.wynq.convex` and the version is `0.1.0-SNAPSHOT`. No binary
+release is published yet, so consume the modules from this repository (for
+example as a Gradle composite build) until a release is cut:
+
+```kotlin
+implementation("eu.wynq.convex:convex-client:0.1.0-SNAPSHOT")
 ```
 
-On Windows use `.\gradlew.bat`. Clone with `--recurse-submodules` (the upstream
-`convex-rs` source lives at `third_party/convex-rs`). Android needs
-`local.properties` (git-ignored) or `ANDROID_HOME`. Apple targets only build on
-macOS.
+## Quick start
 
-## Quality and parity
+```kotlin
+val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+val client = ConvexSyncClient(
+    factory = KtorSyncProtocolFactory(syncUrl("https://your-deployment.convex.cloud")),
+    scope = scope,
+)
 
-Formatting, static analysis, the public-API surface, coverage, and the
-upstream-test parity gate are all wired into the build:
+// `subscribe` may be called before connecting; the client establishes the
+// query set once the connection opens and restores it on reconnect.
+client.connect()
+val subscriber = client.subscribe("messages:list")
 
-```bash
-./gradlew build          # compile, tests, formatting, analysis, API, coverage
-./gradlew checkAll       # the same gates across every module
-./gradlew :tools:parity:run --args="--upstream third_party/convex-rs"
+// Results are exposed as a StateFlow keyed by query id.
+client.results.collect { results -> /* render results[subscriber.queryId] */ }
+
+// A mutation can be optimistic: the prediction is shown until the next
+// transition from the server replaces it.
+val length: ConvexResult = client.mutate(
+    "messages:send",
+    mapOf("body" to ConvexValue.String("hi")),
+)
 ```
 
-The rules that govern these gates live in `AGENTS.md` (including which ones the
-build enforces versus a human review, and how to relax a rule that rejects a
-correct pattern). The contributor workflow is in `CONTRIBUTING.md`.
+## Typed calls
+
+`convex-codegen` turns the backend's `apiSpec` into descriptors, so a call site
+carries the function's kind, argument type, and result type:
+
+```kotlin
+import com.example.api.Api
+
+client.subscribe(Api.Messages.list)                                  // no-arg: argument omitted
+client.subscribe(Api.Messages.search, SearchInput(limit = 20))       // query input
+val length: Long = client.mutate(Api.Messages.send, SendMessageRequest("hi"))
+val echo: String? = client.action(Api.Messages.echo, EchoRequest("hi")) // actions may return nothing
+```
+
+- Queries take an `<Function>Input`; mutations and actions take a
+  `<Function>Request`. A no-argument function emits no argument type, and the
+  no-argument overload is the only one that accepts it.
+- Mutations return a non-null result; actions return a nullable one, because an
+  action may return nothing.
+- An action is **never retried** on reconnect: it may have side effects.
+- Results are generated from the function's `returns` validator. When the
+  backend does not declare `returns`, the result is a `ConvexValue` — the value
+  is still delivered, only its static type is generic.
+
+Generate the descriptors with the CLI:
+
+```bash
+./gradlew :convex-codegen:run --args="--spec api-spec.json --package com.example.api --object Api --out Api.kt"
+```
+
+`CONTRIBUTING.md` documents how to fetch `api-spec.json` from a running backend.
+
+## Compose
+
+```kotlin
+@Composable
+fun Messages(client: ConvexSyncClient) {
+    when (val state = rememberQuery(client, Api.Messages.list)) {
+        QueryState.Loading -> CircularProgressIndicator()
+        is QueryState.Failure -> Text("Error: ${state.error.message}")
+        is QueryState.Success -> LazyColumn {
+            items(state.value) { message -> Text(message.body) }
+        }
+    }
+}
+```
+
+`rememberQuery` subscribes for the life of the composition and disposes the
+subscription when it leaves.
+
+## Authentication
+
+Pass an `AuthTokenFetcher` to the client; it is called on connect and again on
+reconnect with `forceRefresh = true`, so an app can refresh an expired token:
+
+```kotlin
+val client = ConvexSyncClient(
+    factory = factory,
+    scope = scope,
+    authFetcher = AuthTokenFetcher { forceRefresh ->
+        AuthenticationToken.User(loadToken(forceRefresh))
+    },
+)
+```
+
+`convex-auth` verifies RS256/ES256 signatures on JVM and Android. On iOS,
+signature verification is not performed locally; tokens are forwarded to the
+backend, which verifies them.
+
+## Storage
+
+```kotlin
+val storage = ConvexStorageClient(httpClient)
+
+// 1. Get a pre-signed URL from an app mutation (`storage.generateUploadUrl`).
+// 2. Upload, and receive the new storage id.
+val storageId = storage.upload(uploadUrl, bytes, contentType = "image/png")
+
+// 3. Exchange the id for a signed URL through an app query (`storage.getUrl`).
+// 4. Download.
+val bytes = storage.download(fileUrl)
+```
+
+## Platform notes
+
+- **JWT verification** is local on JVM/Android and delegated to the backend on
+  iOS.
+- **Pagination** is not wrapped by a helper; each query's `journal` is carried
+  across reconnects, and an app assembles Convex pagination from a cursor
+  argument.
+- **Code generation** is a CLI step; the generated file is meant to be committed
+  and diffed.
 
 ## Example
 
-`examples/chat` is a Compose Desktop app that subscribes to `messages:list`
-and sends `messages:send`:
+`examples/chat` is a Compose Desktop app that subscribes to `messages:list` and
+sends `messages:send`:
 
 ```bash
 CONVEX_URL=http://127.0.0.1:3210 ./gradlew :examples:chat:run
 ```
 
-## Integration tests
+## Contributing
 
-`:integration-tests` boots the pinned backend with Testcontainers, deploys the
-conformance project, and tests the real feature set (no mocked server):
-
-```bash
-./gradlew :integration-tests:integrationTest   # needs Docker and Node
-```
-
-## Parity gate
-
-Every upstream `convex-rs` test is tracked in `parity.yaml`. This is enforced at
-test time: `ParityCoverageTest` scans the `third_party/convex-rs` submodule
-during `./gradlew check` and fails if any upstream test is unaccounted for. The
-same logic is available as a CLI:
-
-```bash
-./gradlew :tools:parity:run --args="--upstream third_party/convex-rs"
-```
-
-To absorb a new upstream revision, append the generated entries:
-
-```bash
-./gradlew :tools:parity:run --args="--emit-missing third_party/convex-rs"
-```
-
-## Documentation
-
-- `AGENTS.md` — the authoritative working agreement: hard rules, guardrails,
-  the Rust → Kotlin mapping, and the quality standard.
-- `CONTRIBUTING.md` — setup and the contributor workflow.
-- `docs/STATUS.md` — what is implemented and the known gaps.
-- `docs/state-machine-design.md` — the sync state machine's design record.
-- `docs/ACTIVE_DECISION.md` — open design decisions awaiting a call (currently:
-  typed calls generated by `convex-codegen`).
-- `.opencode/skills/` — workflows: `port-from-rust`, `capture-conformance`,
-  `check-parity`, `new-function`.
+The contributor workflow — architecture, coding conventions, the quality gates,
+and how to record conformance fixtures — lives in `CONTRIBUTING.md`.
+`AGENTS.md` is the authoritative working agreement.
 
 ## License
 

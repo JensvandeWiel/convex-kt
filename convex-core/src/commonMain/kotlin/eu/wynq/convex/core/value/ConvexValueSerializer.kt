@@ -73,27 +73,16 @@ public object ConvexValueSerializer : KSerializer<ConvexValue> {
 
     private fun toElement(value: ConvexValue): JsonElement = when (value) {
         ConvexValue.Null -> JsonNull
-        is ConvexValue.Int64 -> tagged("\$integer", LittleEndianBase64.encodeLong(value.value))
-        is ConvexValue.Float64 -> floatElement(value.value)
+        is ConvexValue.Int64 ->
+            ConvexTaggedValue.tagged(ConvexTaggedValue.INTEGER_KEY, LittleEndianBase64.encodeLong(value.value))
+        is ConvexValue.Float64 -> ConvexTaggedValue.floatElement(value.value)
         is ConvexValue.Boolean -> JsonPrimitive(value.value)
         is ConvexValue.String -> JsonPrimitive(value.value)
-        is ConvexValue.Bytes -> tagged("\$bytes", LittleEndianBase64.encodeBytes(value.value))
+        is ConvexValue.Bytes ->
+            ConvexTaggedValue.tagged(ConvexTaggedValue.BYTES_KEY, LittleEndianBase64.encodeBytes(value.value))
         is ConvexValue.Array -> JsonArray(value.value.map(::toElement))
         is ConvexValue.Object -> JsonObject(value.value.mapValues { toElement(it.value) })
     }
-
-    private fun floatElement(value: Double): JsonElement =
-        if (!value.isFinite() || isNegativeZero(value)) {
-            tagged("\$float", LittleEndianBase64.encodeDouble(value))
-        } else {
-            JsonPrimitive(value)
-        }
-
-    private fun tagged(key: String, value: String): JsonObject =
-        JsonObject(mapOf(key to JsonPrimitive(value)))
-
-    private fun isNegativeZero(value: Double): Boolean =
-        value == 0.0 && (1.0 / value) == Double.NEGATIVE_INFINITY
 
     private fun fromElement(element: JsonElement): ConvexValue = when (element) {
         is JsonNull -> ConvexValue.Null
@@ -106,13 +95,13 @@ public object ConvexValueSerializer : KSerializer<ConvexValue> {
         if (element.size == 1) {
             val only = element.entries.single()
             when (only.key) {
-                "\$integer" -> (only.value as? JsonPrimitive)?.content?.let {
+                ConvexTaggedValue.INTEGER_KEY -> (only.value as? JsonPrimitive)?.content?.let {
                     return ConvexValue.Int64(LittleEndianBase64.decodeLong(it))
                 }
-                "\$float" -> (only.value as? JsonPrimitive)?.content?.let {
+                ConvexTaggedValue.FLOAT_KEY -> (only.value as? JsonPrimitive)?.content?.let {
                     return ConvexValue.Float64(LittleEndianBase64.decodeDouble(it))
                 }
-                "\$bytes" -> (only.value as? JsonPrimitive)?.content?.let {
+                ConvexTaggedValue.BYTES_KEY -> (only.value as? JsonPrimitive)?.content?.let {
                     return ConvexValue.Bytes(LittleEndianBase64.decodeBytes(it))
                 }
             }
