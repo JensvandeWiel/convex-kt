@@ -34,3 +34,8 @@ conformance/harness/project/convex/_generated/
 *.hprof
 hs_err_pid*.log
 replay_pid*.log
+
+# Writerside: the guide sources are committed, local builds and IDE exports are not
+Writerside/output/
+pdfSource*.html
+pdfSource*.pdf

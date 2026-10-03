@@ -1,0 +1,6 @@
+# Writerside builder (Supernova engine) pin for the Writerside/ help module.
+#
+# The builder ships only as this amd64 Docker image. Re-verify after a bump by
+# running the command under README.md > Documentation and requiring the
+# inspection report to show 0 errors and 0 warnings.
+jetbrains/writerside-builder:2026.09.0357

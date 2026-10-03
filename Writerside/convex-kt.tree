@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE instance SYSTEM "https://resources.jetbrains.com/writerside/1.0/instance.dtd">
-<instance id="convex-kt" name="convex-kt User Guide" start-page="overview">
-    <toc-element topic="overview"/>
-    <toc-element topic="getting-started"/>
-    <toc-element topic="sync-client"/>
-    <toc-element topic="calls-and-codegen"/>
-    <toc-element topic="auth"/>
-    <toc-element topic="storage"/>
-    <toc-element topic="compose"/>
-    <toc-element topic="values-and-codec"/>
-    <toc-element topic="example-chat"/>
-</instance>
+<!DOCTYPE instance-profile SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
+<instance-profile id="convex-kt" name="convex-kt" start-page="overview.md">
+    <toc-element topic="overview.md"/>
+    <toc-element topic="getting-started.md"/>
+    <toc-element topic="sync-client.md"/>
+    <toc-element topic="calls-and-codegen.md"/>
+    <toc-element topic="auth.md"/>
+    <toc-element topic="storage.md"/>
+    <toc-element topic="compose.md"/>
+    <toc-element topic="values-and-codec.md"/>
+    <toc-element topic="example-chat.md"/>
+</instance-profile>

@@ -183,8 +183,24 @@ Two complementary surfaces, deliberately split:
 
 - **User guides** — task-oriented docs for every feature live in the
   `Writerside/` help module (open it with the JetBrains Writerside plugin;
-  build with the `writerside-builder` Docker image). Start at the
-  `overview` topic.
+  start at `overview`). Build the HTML with the tag pinned in
+  `wrs-supernova`:
+
+  ```bash
+  WRS=$(grep -v '^#' wrs-supernova | head -1)
+  tmp=$(mktemp -d) && cp -R Writerside "$tmp/"
+  docker run --rm --platform linux/amd64 \
+    -e ALT_CEF_SERVER_PATH=/opt/builder/jbr/lib/cef_server \
+    -e JCEF_DISABLE_GPU=true \
+    -e JAVA_TOOL_OPTIONS="-DALT_CEF_SERVER_PATH=/opt/builder/jbr/lib/cef_server -DJCEF_DISABLE_GPU=true" \
+    -v "$tmp:/opt/sources" "$WRS" \
+    /bin/bash -c "export DISPLAY=:99 && Xvfb :99 & /opt/builder/bin/idea.sh helpbuilderinspect --source-dir /opt/sources --product Writerside/convex-kt --runner other --output-dir /opt/sources/output"
+  # artifacts: $tmp/output/webHelpCONVEX-KT2-all.zip
+  ```
+
+  The `ALT_CEF_SERVER_PATH`/`JCEF_DISABLE_GPU` overrides are needed when the
+  amd64 image runs under Docker's emulation (Apple Silicon), where the JVM
+  cannot resolve its own process command; they are harmless on amd64 hosts.
 - **API reference** — KDoc on every public declaration, generated with
   Dokka into one combined site: `./gradlew dokkaGenerateHtml`, output in
   `build/dokka/html`. Dokka carries API definitions only, never prose
