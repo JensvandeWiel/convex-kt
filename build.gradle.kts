@@ -31,7 +31,7 @@ dependencies {
 
 allprojects {
     group = "eu.wynq.convex"
-    version = "0.1.0-SNAPSHOT"
+    version = "0.1.0"
 }
 
 // `check` on each module is the local "is this module acceptable" entry point,

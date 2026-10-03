@@ -40,12 +40,12 @@ depend on `convex-core`; `convex-compose` depends on `convex-client` and
 
 ## Add the dependency
 
-The group is `eu.wynq.convex` and the version is `0.1.0-SNAPSHOT`. No binary
-release is published yet, so consume the modules from this repository (for
-example as a Gradle composite build) until a release is cut:
+The group is `eu.wynq.convex` and the current version is `0.1.0`. No Maven
+artifacts are published yet, so consume the modules from this repository (for
+example as a Gradle composite build):
 
 ```kotlin
-implementation("eu.wynq.convex:convex-client:0.1.0-SNAPSHOT")
+implementation("eu.wynq.convex:convex-client:0.1.0")
 ```
 
 ## Quick start
