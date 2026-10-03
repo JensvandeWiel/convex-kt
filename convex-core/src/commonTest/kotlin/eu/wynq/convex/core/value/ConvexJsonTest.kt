@@ -17,6 +17,7 @@ package eu.wynq.convex.core.value
 
 import eu.wynq.convex.core.internal.LittleEndianBase64
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -78,6 +79,18 @@ class ConvexJsonTest {
         val value = ConvexValue.Bytes(byteArrayOf(1, 2, 3))
         assertEquals("""{"${'$'}bytes":"AQID"}""", ConvexJson.encode(value))
         assertEquals(value, ConvexJson.decode("""{"${'$'}bytes":"AQID"}"""))
+    }
+
+    @Test
+    fun bytesAreCopiedOnConstructionAndRead() {
+        val backing = byteArrayOf(1, 2, 3)
+        val value = ConvexValue.Bytes(backing)
+        backing[0] = 9
+        assertContentEquals(byteArrayOf(1, 2, 3), value.value)
+        value.value[0] = 9
+        assertContentEquals(byteArrayOf(1, 2, 3), value.value)
+        assertEquals(ConvexValue.Bytes(byteArrayOf(1, 2, 3)), value)
+        assertEquals(value.hashCode(), ConvexValue.Bytes(byteArrayOf(1, 2, 3)).hashCode())
     }
 
     @Test

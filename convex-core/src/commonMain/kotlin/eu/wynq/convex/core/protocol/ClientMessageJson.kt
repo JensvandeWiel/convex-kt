@@ -184,7 +184,7 @@ public object ClientMessageJson {
     private fun decodeConnect(message: JsonObject): ClientMessage.Connect = ClientMessage.Connect(
         sessionId = SessionId.parse(message.string("sessionId")),
         connectionCount = message.uint("connectionCount"),
-        lastCloseReason = message.optionalString("lastCloseReason") ?: "unknown",
+        lastCloseReason = message.string("lastCloseReason"),
         maxObservedTimestamp = message.optionalString("maxObservedTimestamp")
             ?.let { Timestamp(LittleEndianBase64.decodeULong(it)) },
         clientTs = message.optionalLong("clientTs"),

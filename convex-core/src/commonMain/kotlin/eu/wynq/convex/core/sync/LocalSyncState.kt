@@ -183,7 +183,6 @@ public class LocalSyncState {
                 ),
             )
         }
-        querySetVersion = QuerySetVersion(0u)
         val newVersion = QuerySetVersion(1u)
         querySetVersion = newVersion
         return ClientMessage.ModifyQuerySet(QuerySetVersion(0u), newVersion, modifications)

@@ -788,6 +788,8 @@ public final class eu/wynq/convex/core/value/ConvexJson {
 	public static final field INSTANCE Leu/wynq/convex/core/value/ConvexJson;
 	public final fun decode (Ljava/lang/String;)Leu/wynq/convex/core/value/ConvexValue;
 	public final fun encode (Leu/wynq/convex/core/value/ConvexValue;)Ljava/lang/String;
+	public final fun fromJsonElement (Lkotlinx/serialization/json/JsonElement;)Leu/wynq/convex/core/value/ConvexValue;
+	public final fun toJsonElement (Leu/wynq/convex/core/value/ConvexValue;)Lkotlinx/serialization/json/JsonElement;
 }
 
 public final class eu/wynq/convex/core/value/ConvexJsonException : eu/wynq/convex/core/ConvexException {

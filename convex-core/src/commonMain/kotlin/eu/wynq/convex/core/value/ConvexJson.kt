@@ -81,16 +81,28 @@ public object ConvexJson {
     }
 
     /**
-     * Converts a value to a JSON element for embedding in a protocol message.
-     * Internal because the public surface is [encode]/[decode].
+     * Converts a value to a JSON element for embedding in a larger document.
+     *
+     * This is the allocation-free counterpart to [encode]: use it when the
+     * value is one field among many instead of round-tripping through text.
+     *
+     * @param value the value to convert.
+     * @return the equivalent JSON element.
      */
-    internal fun toJsonElement(value: ConvexValue): JsonElement = toElement(value)
+    public fun toJsonElement(value: ConvexValue): JsonElement = toElement(value)
 
     /**
-     * Converts a JSON element from a protocol message into a value. Internal for
-     * the same reason as [toJsonElement].
+     * Converts a JSON element from a larger document into a value.
+     *
+     * This is the counterpart to [decode] for callers that already hold a
+     * parsed element instead of text.
+     *
+     * @param element the element to convert.
+     * @return the decoded value.
+     * @throws ConvexJsonException when the element does not match the Convex
+     *   wire format.
      */
-    internal fun fromJsonElement(element: JsonElement): ConvexValue = fromElement(element)
+    public fun fromJsonElement(element: JsonElement): ConvexValue = fromElement(element)
 
     private fun toElement(value: ConvexValue): JsonElement = when (value) {
         ConvexValue.Null -> JsonNull

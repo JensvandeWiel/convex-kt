@@ -118,6 +118,9 @@ public object ConvexValueSerializer : KSerializer<ConvexValue> {
     private fun fromNumber(element: JsonPrimitive): ConvexValue {
         element.longOrNull?.let { return ConvexValue.Int64(it) }
         element.doubleOrNull?.let { return ConvexValue.Float64(it) }
-        return ConvexValue.Null
+        // Unreachable for parsed JSON, which only produces longs and doubles,
+        // but inventing `Null` here would silently corrupt data against the
+        // strict-decoding contract, so fail loudly instead.
+        throw ConvexJsonException("unsupported JSON number: ${element.content}")
     }
 }

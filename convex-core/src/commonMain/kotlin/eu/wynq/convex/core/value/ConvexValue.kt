@@ -69,17 +69,23 @@ public sealed interface ConvexValue {
      *
      * Equality is by content, not by array identity, which matters because
      * [ByteArray] alone would compare by reference and silently break
-     * round-trip assertions.
+     * round-trip assertions. The bytes are copied on construction and on every
+     * read, so neither the caller nor a map key can observe a mutation.
      *
-     * @property value the raw bytes; callers must not mutate the array.
+     * @param value the raw bytes; copied, never retained.
      */
-    public class Bytes(public val value: ByteArray) : ConvexValue {
+    public class Bytes(value: ByteArray) : ConvexValue {
+        private val snapshot: ByteArray = value.copyOf()
+
+        /** A copy of the raw bytes; mutating the result is harmless. */
+        public val value: ByteArray get() = snapshot.copyOf()
+
         override fun equals(other: Any?): kotlin.Boolean =
-            this === other || (other is Bytes && value.contentEquals(other.value))
+            this === other || (other is Bytes && snapshot.contentEquals(other.snapshot))
 
-        override fun hashCode(): Int = value.contentHashCode()
+        override fun hashCode(): Int = snapshot.contentHashCode()
 
-        override fun toString(): kotlin.String = "Bytes(${value.size} bytes)"
+        override fun toString(): kotlin.String = "Bytes(${snapshot.size} bytes)"
     }
 
     /**

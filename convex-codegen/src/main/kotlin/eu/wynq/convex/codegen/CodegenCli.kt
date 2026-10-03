@@ -15,6 +15,7 @@
  */
 package eu.wynq.convex.codegen
 
+import eu.wynq.convex.core.ConvexException
 import java.io.File
 import java.io.IOException
 import kotlin.system.exitProcess
@@ -66,9 +67,14 @@ public object CodegenCli {
         } catch (failure: IOException) {
             System.err.println("failed to read spec ${options.spec}: ${failure.message}")
             exitProcess(EXIT_FAILURE)
+        } catch (failure: ConvexException) {
+            // An unknown function kind: a spec problem, reported like a
+            // parse error rather than a stack trace.
+            System.err.println("failed to parse spec ${options.spec}: ${failure.message}")
+            exitProcess(EXIT_FAILURE)
         } catch (failure: IllegalArgumentException) {
-            // Covers JSON parse errors (SerializationException is an
-            // IllegalArgumentException) and an unknown function kind.
+            // JSON parse errors (SerializationException is an
+            // IllegalArgumentException).
             System.err.println("failed to parse spec ${options.spec}: ${failure.message}")
             exitProcess(EXIT_FAILURE)
         }

@@ -77,10 +77,13 @@ class ClientMessageJsonTest {
     }
 
     @Test
-    fun connectDefaultsLastCloseReasonWhenAbsent() {
+    fun connectRejectsConnectFrameWithoutLastCloseReason() {
+        // The encoder always sends `lastCloseReason`, so an absent key is a
+        // wire mismatch, not a defaultable omission.
         val text = """{"type":"Connect","sessionId":"$sessionId","connectionCount":1}"""
-        val decoded = ClientMessageJson.decode(text) as ClientMessage.Connect
-        assertEquals("unknown", decoded.lastCloseReason)
+        assertFailsWith<ConvexJsonException> {
+            ClientMessageJson.decode(text)
+        }
     }
 
     @Test

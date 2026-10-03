@@ -15,6 +15,8 @@
  */
 package eu.wynq.convex.core.functions
 
+import eu.wynq.convex.core.ConvexException
+
 /**
  * The kind of a Convex function.
  *
@@ -38,11 +40,12 @@ public enum class ConvexFunctionKind(public val wireName: String) {
          *
          * @param name the wire name.
          * @return the kind.
-         * @throws IllegalArgumentException when unknown.
+         * @throws ConvexException when unknown; every failure in this library
+         *   roots at [ConvexException] so callers catch one type.
          */
         public fun fromWire(name: String): ConvexFunctionKind =
             entries.firstOrNull { it.wireName.equals(name, ignoreCase = true) }
-                ?: throw IllegalArgumentException("unknown function kind '$name'")
+                ?: throw ConvexException("unknown function kind '$name'")
     }
 }
 
