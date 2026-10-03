@@ -26,7 +26,12 @@ import java.security.spec.ECPoint
 import java.security.spec.ECPublicKeySpec
 import java.security.spec.RSAPublicKeySpec
 
-/** The JVM/Android signature primitive, backed by `java.security`. */
+/**
+ * The JVM signature primitive, backed by `java.security`.
+ *
+ * Only the framework calls live here; the DER encoding every backend needs is
+ * shared from common code.
+ */
 internal actual fun verifySignature(
     algorithm: JwtAlgorithm,
     key: JsonWebKey,
@@ -55,8 +60,6 @@ private fun verifyRsa(key: JsonWebKey, data: ByteArray, signature: ByteArray): B
     return verifier.verify(signature)
 }
 
-private fun decodeBase64Url(segment: String?): ByteArray? = segment?.let(::decodeBase64UrlOrNull)
-
 private fun verifyEcdsa(key: JsonWebKey, data: ByteArray, signature: ByteArray): Boolean {
     val x = decodeBase64Url(key.x) ?: return false
     val y = decodeBase64Url(key.y) ?: return false
@@ -69,28 +72,5 @@ private fun verifyEcdsa(key: JsonWebKey, data: ByteArray, signature: ByteArray):
     val verifier = Signature.getInstance("SHA256withECDSA")
     verifier.initVerify(publicKey)
     verifier.update(data)
-    return verifier.verify(joseToDer(signature))
-}
-
-private const val ES256_COORDINATE_BYTES = 32
-private const val ES256_SIGNATURE_BYTES = 64
-private const val DER_SEQUENCE_TAG: Byte = 0x30
-private const val DER_INTEGER_TAG: Byte = 0x02
-
-/**
- * Converts a JOSE raw `r || s` ECDSA signature into the DER form that
- * `java.security` expects.
- */
-private fun joseToDer(signature: ByteArray): ByteArray {
-    require(signature.size == ES256_SIGNATURE_BYTES) { "ES256 signature must be 64 bytes" }
-    val r = derInteger(BigInteger(1, signature.copyOfRange(0, ES256_COORDINATE_BYTES)))
-    val s = derInteger(BigInteger(1, signature.copyOfRange(ES256_COORDINATE_BYTES, ES256_SIGNATURE_BYTES)))
-    val content = r + s
-    return byteArrayOf(DER_SEQUENCE_TAG, content.size.toByte()) + content
-}
-
-/** DER-encodes one INTEGER; `BigInteger.toByteArray` already includes the sign byte. */
-private fun derInteger(value: BigInteger): ByteArray {
-    val bytes = value.toByteArray()
-    return byteArrayOf(DER_INTEGER_TAG, bytes.size.toByte()) + bytes
+    return verifier.verify(joseToDer(signature) ?: return false)
 }

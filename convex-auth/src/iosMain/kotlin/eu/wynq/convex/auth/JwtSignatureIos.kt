@@ -188,22 +188,6 @@ private fun cfDataOf(bytes: ByteArray): CFDataRef? =
         CFDataCreate(null, pinned.addressOf(0).reinterpret(), bytes.size.toLong())
     }
 
-private fun joseToDer(signature: ByteArray): ByteArray? {
-    if (signature.size != ES256_SIGNATURE_BYTES) return null
-    val r = derInteger(signature, 0)
-    val s = derInteger(signature, ES256_COORDINATE_BYTES)
-    val content = r + s
-    return byteArrayOf(DER_SEQUENCE_TAG, content.size.toByte()) + content
-}
-
-private fun derInteger(signature: ByteArray, offset: Int): ByteArray {
-    val end = offset + ES256_COORDINATE_BYTES
-    var start = offset
-    while (start < end && signature[start] == ZERO_BYTE) start++
-    val body = positiveIntegerBody(signature.copyOfRange(start, end))
-    return byteArrayOf(DER_INTEGER_TAG, body.size.toByte()) + body
-}
-
 private fun rsaPublicKeyDer(key: JsonWebKey): ByteArray? {
     val modulus = decodeBase64Url(key.modulus) ?: return null
     val exponent = decodeBase64Url(key.exponent) ?: return null
@@ -218,51 +202,4 @@ private fun ecUncompressedPoint(key: JsonWebKey): ByteArray? {
     return byteArrayOf(EC_UNCOMPRESSED_TAG) + x + y
 }
 
-private fun derInteger(value: ByteArray): ByteArray {
-    var start = 0
-    while (start < value.size - 1 && value[start] == ZERO_BYTE) start++
-    val body = positiveIntegerBody(value.copyOfRange(start, value.size))
-    return byteArrayOf(DER_INTEGER_TAG) + derLength(body.size) + body
-}
-
-/**
- * Prepends the ASN.1 sign byte when the high bit is set.
- *
- * DER INTEGERs are signed, so a positive value whose most-significant bit is `1`
- * needs a leading zero, otherwise a decoder would read it as negative. An empty
- * value is encoded as a single zero byte.
- */
-private fun positiveIntegerBody(magnitude: ByteArray): ByteArray {
-    val needsSignByte = magnitude.isEmpty() || (magnitude[0].toInt() and HIGH_BIT_MASK) != 0
-    return if (needsSignByte) byteArrayOf(0) + magnitude else magnitude
-}
-
-private fun derSequence(body: ByteArray): ByteArray =
-    byteArrayOf(DER_SEQUENCE_TAG) + derLength(body.size) + body
-
-private fun derLength(length: Int): ByteArray = when {
-    length < DER_SHORT_FORM_MAX -> byteArrayOf(length.toByte())
-    length < DER_LONG_FORM_MAX -> byteArrayOf(DER_LENGTH_1_TAG, length.toByte())
-    else -> byteArrayOf(DER_LENGTH_2_TAG, (length ushr BITS_PER_BYTE).toByte(), length.toByte())
-}
-
-private fun decodeBase64Url(segment: String?): ByteArray? = segment?.let(::decodeBase64UrlOrNull)
-
-private const val ES256_COORDINATE_BYTES = 32
-private const val ES256_SIGNATURE_BYTES = 64
 private const val EC_UNCOMPRESSED_TAG: Byte = 0x04
-private const val DER_SEQUENCE_TAG: Byte = 0x30
-private const val DER_INTEGER_TAG: Byte = 0x02
-
-/** DER lengths below 0x80 use one short-form byte; higher ones use a tag byte. */
-private const val DER_SHORT_FORM_MAX = 0x80
-private const val DER_LONG_FORM_MAX = 0x100
-private const val DER_LENGTH_1_TAG: Byte = 0x81.toByte()
-private const val DER_LENGTH_2_TAG: Byte = 0x82.toByte()
-
-/** The ASN.1 sign bit: set means the integer would read as negative. */
-private const val HIGH_BIT_MASK = 0x80
-private const val ZERO_BYTE: Byte = 0
-
-/** A byte holds 8 bits; the long-form DER length splits a 16-bit value per byte. */
-private const val BITS_PER_BYTE = 8
