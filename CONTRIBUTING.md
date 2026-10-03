@@ -157,6 +157,10 @@ To cut a release:
 2. Publish a GitHub release tagged `v<version>`. The tag must match the project
    version; the publish workflow fails otherwise.
 
+The `github-pages` environment must allow the `main` branch and `v*` tags to
+deploy. A release triggers Docs on the tag ref, and the deploy job is rejected
+before it starts if the tag is not permitted.
+
 Maven Central publication needs, once:
 
 - a verified `eu.wynq` namespace in the Central Portal;
