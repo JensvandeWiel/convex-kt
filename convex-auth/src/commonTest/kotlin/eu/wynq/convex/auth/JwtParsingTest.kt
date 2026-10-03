@@ -75,6 +75,21 @@ class JwtParsingTest {
     }
 
     @Test
+    fun parsesUnpaddedBase64UrlSegments() {
+        // JOSE omits base64url padding (RFC 7515 §2); a real token's segments are
+        // almost never a multiple of four characters. `token()` above uses
+        // Base64.UrlSafe.encode, which pads, so an implementation that requires
+        // canonical padding would pass every other test here and still reject
+        // every token the backend issues.
+        val unpadded = token(
+            header = """{"alg":"ES256","kid":"k1"}""",
+            payload = """{"sub":"user_1"}""",
+        ).trimEnd('=')
+        val jwt = Jwt.parse(unpadded)
+        assertEquals("user_1", jwt.claims.subject)
+    }
+
+    @Test
     fun parsesJsonWebKey() {
         val key = JsonWebKey.parse(
             kotlinx.serialization.json.Json.parseToJsonElement(

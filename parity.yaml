@@ -21,6 +21,7 @@
 schemaVersion: 1
 
 requirements:
+
   - id: value/u64-roundtrip
     description: >
       64-bit unsigned integers survive serialization without precision loss.
@@ -61,6 +62,7 @@ requirements:
     status: planned
     upstream:
       - "sync_types/src/udf_path.rs::test_udf_path_roundtrips"
+
   - id: src-base-client-mod-test-cached-query-result-persists-while-subscribers-exist
     description: "Upstream test 'test_cached_query_result_persists_while_subscribers_exist' in 'src/base_client/mod.rs' has no Kotlin counterpart yet."
     status: planned
@@ -170,82 +172,108 @@ requirements:
       - "src/client/mod.rs::test_set_auth_uses_callback_path"
 
   - id: src-value-export-mod-arrays-are-exported-as-arrays
-    description: "Upstream test 'arrays_are_exported_as_arrays' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "Exporting an array recurses element-wise, encoding each integer as a string."
+    status: ported
     upstream:
       - "src/value/export/mod.rs::arrays_are_exported_as_arrays"
+    kotlin:
+      - "convex-core.ValueExportTest.arraysExportAsArrays"
 
   - id: src-value-export-mod-booleans-are-exported-as-booleans
-    description: "Upstream test 'booleans_are_exported_as_booleans' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "Exporting a boolean yields a JSON boolean."
+    status: ported
     upstream:
       - "src/value/export/mod.rs::booleans_are_exported_as_booleans"
+    kotlin:
+      - "convex-core.ValueExportTest.booleansExportAsBooleans"
 
   - id: src-value-export-mod-bytes-are-exported-as-base64
-    description: "Upstream test 'bytes_are_exported_as_base64' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "Exporting bytes yields standard padded base64 text."
+    status: ported
     upstream:
       - "src/value/export/mod.rs::bytes_are_exported_as_base64"
+    kotlin:
+      - "convex-core.ValueExportTest.bytesExportToBase64"
 
   - id: src-value-export-mod-export-rustdoc-example
-    description: "Upstream test 'export_rustdoc_example' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "The upstream rustdoc example: bytes export to base64 and differ from the tagged wire form."
+    status: ported
     upstream:
       - "src/value/export/mod.rs::export_rustdoc_example"
+    kotlin:
+      - "convex-core.ValueExportTest.bytesExportToBase64"
 
   - id: src-value-export-mod-finite-floats-are-exported-as-numbers
-    description: "Upstream test 'finite_floats_are_exported_as_numbers' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "Exporting a finite float yields a JSON number."
+    status: ported
     upstream:
       - "src/value/export/mod.rs::finite_floats_are_exported_as_numbers"
+    kotlin:
+      - "convex-core.ValueExportTest.finiteFloatsExportAsNumbers"
 
   - id: src-value-export-mod-infinite-floats-are-exported-as-strings
-    description: "Upstream test 'infinite_floats_are_exported_as_strings' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "Exporting positive and negative Infinity yields string sentinels, because JSON has no infinities."
+    status: ported
     upstream:
       - "src/value/export/mod.rs::infinite_floats_are_exported_as_strings"
+    kotlin:
+      - "convex-core.ValueExportTest.infiniteFloatsExportAsStrings"
 
   - id: src-value-export-mod-ints-are-exported-as-strings
-    description: "Upstream test 'ints_are_exported_as_strings' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "Exporting an integer yields a decimal string, including the 64-bit extremes."
+    status: ported
     upstream:
       - "src/value/export/mod.rs::ints_are_exported_as_strings"
+    kotlin:
+      - "convex-core.ValueExportTest.intsExportAsStrings"
 
   - id: src-value-export-mod-nan-is-exported-as-string
-    description: "Upstream test 'nan_is_exported_as_string' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "Exporting NaN yields a string sentinel because JSON has no NaN."
+    status: ported
     upstream:
       - "src/value/export/mod.rs::nan_is_exported_as_string"
+    kotlin:
+      - "convex-core.ValueExportTest.nanExportsAsAString"
 
   - id: src-value-export-mod-neg-zero-is-exported-as-number
-    description: "Upstream test 'neg_zero_is_exported_as_number' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "Exporting negative zero remains a number with the sign bit set."
+    status: ported
     upstream:
       - "src/value/export/mod.rs::neg_zero_is_exported_as_number"
+    kotlin:
+      - "convex-core.ValueExportTest.negativeZeroExportsAsANumber"
 
   - id: src-value-export-mod-nulls-are-exported-as-null
-    description: "Upstream test 'nulls_are_exported_as_null' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "Exporting null yields JSON null."
+    status: ported
     upstream:
       - "src/value/export/mod.rs::nulls_are_exported_as_null"
+    kotlin:
+      - "convex-core.ValueExportTest.nullExportsAsNull"
 
   - id: src-value-export-mod-objects-are-exported-as-objects
-    description: "Upstream test 'objects_are_exported_as_objects' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "Exporting an object recurses, mapping each value."
+    status: ported
     upstream:
       - "src/value/export/mod.rs::objects_are_exported_as_objects"
+    kotlin:
+      - "convex-core.ValueExportTest.objectsExportAsObjects"
 
   - id: src-value-export-mod-pos-zero-is-exported-as-number
-    description: "Upstream test 'pos_zero_is_exported_as_number' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "Exporting positive zero remains a number with a positive sign."
+    status: ported
     upstream:
       - "src/value/export/mod.rs::pos_zero_is_exported_as_number"
+    kotlin:
+      - "convex-core.ValueExportTest.positiveZeroExportsAsANegativeSignFreeNumber"
 
   - id: src-value-export-mod-strings-are-exported-as-strings
-    description: "Upstream test 'strings_are_exported_as_strings' in 'src/value/export/mod.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "Exporting a string yields a JSON string."
+    status: ported
     upstream:
       - "src/value/export/mod.rs::strings_are_exported_as_strings"
+    kotlin:
+      - "convex-core.ValueExportTest.stringsExportAsStrings"
 
   - id: src-value-export-roundtrip-export-roundtrips-with-type-hint
     description: "Upstream test 'export_roundtrips_with_type_hint' in 'src/value/export/roundtrip.rs' has no Kotlin counterpart yet."
@@ -262,64 +290,84 @@ requirements:
       - "convex-core.ConvexJsonTest.valueRoundTripsTrophies"
 
   - id: sync-types-src-identifier-test-control-char-as-identifier-start
-    description: "Upstream test 'test_control_char_as_identifier_start' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "A leading control character is rejected, naming it Rust-style."
+    status: ported
     upstream:
       - "sync_types/src/identifier.rs::test_control_char_as_identifier_start"
+    kotlin:
+      - "convex-core.IdentifierValidationTest.controlCharAsIdentifierStart"
 
   - id: sync-types-src-identifier-test-control-char-in-field-name
-    description: "Upstream test 'test_control_char_in_field_name' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "A control character in a field name is rejected, naming it Rust-style."
+    status: ported
     upstream:
       - "sync_types/src/identifier.rs::test_control_char_in_field_name"
+    kotlin:
+      - "convex-core.IdentifierValidationTest.controlCharInFieldName"
 
   - id: sync-types-src-identifier-test-control-char-in-identifier-body
-    description: "Upstream test 'test_control_char_in_identifier_body' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "A control character in an identifier body is rejected, naming it Rust-style."
+    status: ported
     upstream:
       - "sync_types/src/identifier.rs::test_control_char_in_identifier_body"
+    kotlin:
+      - "convex-core.IdentifierValidationTest.controlCharInIdentifierBody"
 
   - id: sync-types-src-identifier-test-emoji-in-field-name
-    description: "Upstream test 'test_emoji_in_field_name' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "An emoji in a field name is rejected, naming the full character."
+    status: ported
     upstream:
       - "sync_types/src/identifier.rs::test_emoji_in_field_name"
+    kotlin:
+      - "convex-core.IdentifierValidationTest.emojiInFieldName"
 
   - id: sync-types-src-identifier-test-field-name-fast-path
-    description: "Upstream test 'test_field_name_fast_path' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "The fast field-name check agrees with the detailed check on every corpus input."
+    status: ported
     upstream:
       - "sync_types/src/identifier.rs::test_field_name_fast_path"
+    kotlin:
+      - "convex-core.IdentifierValidationTest.fieldNameFastPathMatchesSlowPath"
 
   - id: sync-types-src-identifier-test-identifier-fast-path
-    description: "Upstream test 'test_identifier_fast_path' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "The fast identifier check agrees with the detailed check on every corpus input."
+    status: ported
     upstream:
       - "sync_types/src/identifier.rs::test_identifier_fast_path"
+    kotlin:
+      - "convex-core.IdentifierValidationTest.identifierFastPathMatchesSlowPath"
 
   - id: sync-types-src-identifier-test-min-identifier
-    description: "Upstream test 'test_min_identifier' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "Every generated identifier sorts at or after MIN_IDENTIFIER."
+    status: ported
     upstream:
       - "sync_types/src/identifier.rs::test_min_identifier"
+    kotlin:
+      - "convex-core.IdentifierValidationTest.minIdentifierOrdersBeforeGeneratedIdentifiers"
 
   - id: sync-types-src-identifier-test-newline-in-identifier
-    description: "Upstream test 'test_newline_in_identifier' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "A newline in an identifier is rejected as an escaped newline."
+    status: ported
     upstream:
       - "sync_types/src/identifier.rs::test_newline_in_identifier"
+    kotlin:
+      - "convex-core.IdentifierValidationTest.newlineInIdentifier"
 
   - id: sync-types-src-identifier-test-regular-char-as-identifier-start
-    description: "Upstream test 'test_regular_char_as_identifier_start' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "A leading digit is rejected, naming the character."
+    status: ported
     upstream:
       - "sync_types/src/identifier.rs::test_regular_char_as_identifier_start"
+    kotlin:
+      - "convex-core.IdentifierValidationTest.regularCharAsIdentifierStart"
 
   - id: sync-types-src-identifier-test-regular-char-in-identifier-body
-    description: "Upstream test 'test_regular_char_in_identifier_body' in 'sync_types/src/identifier.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: "A punctuation character in an identifier body is rejected, naming it."
+    status: ported
     upstream:
       - "sync_types/src/identifier.rs::test_regular_char_in_identifier_body"
+    kotlin:
+      - "convex-core.IdentifierValidationTest.regularCharInIdentifierBody"
 
   - id: sync-types-src-module-path-test-module-path
     description: "Upstream test 'test_module_path' in 'sync_types/src/module_path.rs' has no Kotlin counterpart yet."

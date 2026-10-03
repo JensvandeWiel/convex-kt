@@ -25,8 +25,6 @@ import java.security.spec.ECParameterSpec
 import java.security.spec.ECPoint
 import java.security.spec.ECPublicKeySpec
 import java.security.spec.RSAPublicKeySpec
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
  * Android's `java.security` provides the same primitives as the JVM, so this is
@@ -49,15 +47,7 @@ internal actual fun verifySignature(
     false
 }
 
-@OptIn(ExperimentalEncodingApi::class)
-private fun decodeBase64Url(segment: String?): ByteArray? =
-    segment?.let {
-        try {
-            Base64.UrlSafe.decode(it)
-        } catch (expected: IllegalArgumentException) {
-            null
-        }
-    }
+private fun decodeBase64Url(segment: String?): ByteArray? = segment?.let(::decodeBase64UrlOrNull)
 
 private fun verifyRsa(key: JsonWebKey, data: ByteArray, signature: ByteArray): Boolean {
     val modulus = decodeBase64Url(key.modulus) ?: return false

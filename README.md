@@ -133,9 +133,12 @@ val client = ConvexSyncClient(
 )
 ```
 
-`convex-auth` verifies RS256/ES256 signatures on JVM and Android. On iOS,
-signature verification is not performed locally; tokens are forwarded to the
-backend, which verifies them.
+`convex-auth` verifies RS256/ES256 signatures locally on all targets: JVM and
+Android through `java.security`, and Apple targets through Security.framework.
+The same fixed RS256/ES256 vectors are asserted on every target, so the three
+backends are held to one behavior. A token is still forwarded to the backend,
+which remains the final authority; local verification only lets an app reject a
+bad token early.
 
 ## Storage
 
@@ -153,13 +156,17 @@ val bytes = storage.download(fileUrl)
 
 ## Platform notes
 
-- **JWT verification** is local on JVM/Android and delegated to the backend on
-  iOS.
+- **JWT verification** is local on every target: `java.security` on JVM/Android
+  and Security.framework on Apple. The backend still verifies independently.
 - **Pagination** is not wrapped by a helper; each query's `journal` is carried
   across reconnects, and an app assembles Convex pagination from a cursor
   argument.
 - **Code generation** is a CLI step; the generated file is meant to be committed
   and diffed.
+- **Value export.** `ConvexValue.export()` projects a value into the plain-JSON
+  "database types" format (integers and bytes become strings, non-finite floats
+  become sentinels). This is lossy and separate from the tagged wire codec in
+  `ConvexJson`; round-tripping an exported value needs the original validator.
 
 ## Example
 

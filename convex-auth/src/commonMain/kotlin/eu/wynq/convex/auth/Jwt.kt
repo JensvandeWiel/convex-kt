@@ -23,8 +23,6 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
  * Signature algorithms accepted for a Convex authentication token.
@@ -201,13 +199,9 @@ public class Jwt internal constructor(
             )
         }
 
-        @OptIn(ExperimentalEncodingApi::class)
         private fun decodeBase64Url(text: String): ByteArray =
-            try {
-                Base64.UrlSafe.decode(text)
-            } catch (failure: IllegalArgumentException) {
-                throw ConvexJwtException("invalid base64url segment: ${failure.message}", failure)
-            }
+            decodeBase64UrlOrNull(text)
+                ?: throw ConvexJwtException("invalid base64url segment")
 
         private fun decodeObject(segment: String, label: String): JsonObject {
             val text = decodeBase64Url(segment).decodeToString()

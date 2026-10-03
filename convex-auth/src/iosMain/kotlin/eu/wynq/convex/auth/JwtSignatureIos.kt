@@ -15,13 +15,254 @@
  */
 package eu.wynq.convex.auth
 
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.allocArrayOf
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.usePinned
+import platform.CoreFoundation.CFDataCreate
+import platform.CoreFoundation.CFDataRef
+import platform.CoreFoundation.CFDictionaryCreate
+import platform.CoreFoundation.CFRelease
+import platform.CoreFoundation.CFStringRef
+import platform.Security.SecKeyCreateWithData
+import platform.Security.SecKeyRef
+import platform.Security.SecKeyVerifySignature
+import platform.Security.kSecAttrKeyClass
+import platform.Security.kSecAttrKeyClassPublic
+import platform.Security.kSecAttrKeyType
+import platform.Security.kSecAttrKeyTypeECSECPrimeRandom
+import platform.Security.kSecAttrKeyTypeRSA
+import platform.Security.kSecKeyAlgorithmECDSASignatureMessageX962SHA256
+import platform.Security.kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA256
+
+/**
+ * Apple's implementation of the signature primitive, backed by the
+ * Security.framework (`SecKeyVerifySignature`).
+ *
+ * The framework's `RSASignatureMessagePKCS1v15SHA256` algorithm hashes the
+ * message itself, and `ECDSASignatureMessageX962SHA256` expects the JOSE
+ * signature's DER encoding — both match what `JwtVerifier` feeds in, so no
+ * digest is computed here. JVM and Android share the same behavior through
+ * `java.security`; this actual exists because neither `java.security` nor a
+ * JVM is present on Apple targets.
+ *
+ * This is deliberately dependency-free: Security.framework is part of the
+ * platform, whereas a third-party crypto library would be another version to
+ * pin and audit against the JVM implementation.
+ */
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun verifySignature(
     algorithm: JwtAlgorithm,
     key: JsonWebKey,
     data: ByteArray,
     signature: ByteArray,
-): Boolean =
-    throw NotImplementedError(
-        "JWT signature verification is not implemented on Apple targets yet; " +
-            "the token is forwarded to the backend, which verifies it.",
-    )
+): Boolean {
+    val publicKey = createPublicKey(algorithm, key) ?: return false
+    try {
+        return verifyWithKey(publicKey, algorithm, data, signature)
+    } finally {
+        CFRelease(publicKey)
+    }
+}
+
+/**
+ * Verifies [data] against [signature] with an existing `SecKey`.
+ *
+ * Split from [verifySignature] so each function stays within the single-digit
+ * return budget: the caller owns the key lifetime, this owns the two `CFData`
+ * lifetimes.
+ */
+@OptIn(ExperimentalForeignApi::class)
+private fun verifyWithKey(
+    publicKey: SecKeyRef,
+    algorithm: JwtAlgorithm,
+    data: ByteArray,
+    signature: ByteArray,
+): Boolean {
+    val message = cfDataOf(data) ?: return false
+    try {
+        val frameworkSignature = toFrameworkSignature(algorithm, signature) ?: return false
+        val encoded = cfDataOf(frameworkSignature) ?: return false
+        try {
+            return SecKeyVerifySignature(
+                key = publicKey,
+                algorithm = frameworkAlgorithmFor(algorithm),
+                signedData = message,
+                signature = encoded,
+                error = null,
+            )
+        } finally {
+            CFRelease(encoded)
+        }
+    } finally {
+        CFRelease(message)
+    }
+}
+
+/** Maps a JWT algorithm to the Security.framework algorithm that matches it. */
+@OptIn(ExperimentalForeignApi::class)
+private fun frameworkAlgorithmFor(algorithm: JwtAlgorithm): CFStringRef? = when (algorithm) {
+    JwtAlgorithm.RS256 -> kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA256
+    JwtAlgorithm.ES256 -> kSecKeyAlgorithmECDSASignatureMessageX962SHA256
+}
+
+/**
+ * Builds a `SecKey` from the JWK.
+ *
+ * RSA keys use the PKCS#1 `RSAPublicKey` DER because Security.framework has no
+ * API that takes a modulus and exponent directly. EC keys use the X9.63
+ * uncompressed point (`0x04 || x || y`) that `SecKeyCreateWithData` expects for
+ * a named curve.
+ */
+@OptIn(ExperimentalForeignApi::class)
+private fun createPublicKey(algorithm: JwtAlgorithm, key: JsonWebKey): SecKeyRef? = when (algorithm) {
+    JwtAlgorithm.RS256 -> {
+        val der = rsaPublicKeyDer(key) ?: return null
+        createSecKey(der, kSecAttrKeyTypeRSA)
+    }
+
+    JwtAlgorithm.ES256 -> {
+        val point = ecUncompressedPoint(key) ?: return null
+        createSecKey(point, kSecAttrKeyTypeECSECPrimeRandom)
+    }
+}
+
+/**
+ * Creates a public `SecKey` from [data] and a key type, marking it public.
+ *
+ * The attributes dictionary is built with `CFDictionaryCreate` rather than by
+ * bridging a Kotlin `Map`, because the values are CoreFoundation string
+ * constants and must reach Security.framework as `CFStringRef`s. Bridging a map
+ * of those raw pointers produces an `NSDictionary` whose values are not always
+ * recognized, which silently yields a key that cannot verify anything.
+ *
+ * @param data the PKCS#1 RSA DER or the X9.63 EC point.
+ * @param keyType `kSecAttrKeyTypeRSA` or `kSecAttrKeyTypeECSECPrimeRandom`.
+ */
+@OptIn(ExperimentalForeignApi::class)
+private fun createSecKey(data: ByteArray, keyType: CFStringRef?): SecKeyRef? {
+    val encoded = cfDataOf(data) ?: return null
+    try {
+        return memScoped {
+            val keys = allocArrayOf(kSecAttrKeyType, kSecAttrKeyClass)
+            val values = allocArrayOf(keyType, kSecAttrKeyClassPublic)
+            val dictionary = CFDictionaryCreate(
+                allocator = null,
+                keys = keys.reinterpret(),
+                values = values.reinterpret(),
+                numValues = 2,
+                keyCallBacks = null,
+                valueCallBacks = null,
+            ) ?: return@memScoped null
+            try {
+                SecKeyCreateWithData(encoded, dictionary, null)
+            } finally {
+                CFRelease(dictionary)
+            }
+        }
+    } finally {
+        CFRelease(encoded)
+    }
+}
+
+/**
+ * Converts the JOSE signature into what Security.framework expects.
+ *
+ * RSA signatures are already in the wire form. ES256 uses raw `r || s`, while
+ * the framework wants DER `SEQUENCE { INTEGER r, INTEGER s }`, so it is
+ * converted here — mirroring the JVM path, which does the same in reverse.
+ *
+ * @return the signature bytes, or `null` when they are not a valid ES256
+ *   signature.
+ */
+private fun toFrameworkSignature(algorithm: JwtAlgorithm, signature: ByteArray): ByteArray? = when (algorithm) {
+    JwtAlgorithm.RS256 -> signature
+    JwtAlgorithm.ES256 -> joseToDer(signature)
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun cfDataOf(bytes: ByteArray): CFDataRef? =
+    bytes.usePinned { pinned ->
+        CFDataCreate(null, pinned.addressOf(0).reinterpret(), bytes.size.toLong())
+    }
+
+private fun joseToDer(signature: ByteArray): ByteArray? {
+    if (signature.size != ES256_SIGNATURE_BYTES) return null
+    val r = derInteger(signature, 0)
+    val s = derInteger(signature, ES256_COORDINATE_BYTES)
+    val content = r + s
+    return byteArrayOf(DER_SEQUENCE_TAG, content.size.toByte()) + content
+}
+
+private fun derInteger(signature: ByteArray, offset: Int): ByteArray {
+    val end = offset + ES256_COORDINATE_BYTES
+    var start = offset
+    while (start < end && signature[start] == ZERO_BYTE) start++
+    val body = positiveIntegerBody(signature.copyOfRange(start, end))
+    return byteArrayOf(DER_INTEGER_TAG, body.size.toByte()) + body
+}
+
+private fun rsaPublicKeyDer(key: JsonWebKey): ByteArray? {
+    val modulus = decodeBase64Url(key.modulus) ?: return null
+    val exponent = decodeBase64Url(key.exponent) ?: return null
+    val body = derInteger(modulus) + derInteger(exponent)
+    return derSequence(body)
+}
+
+private fun ecUncompressedPoint(key: JsonWebKey): ByteArray? {
+    val x = decodeBase64Url(key.x) ?: return null
+    val y = decodeBase64Url(key.y) ?: return null
+    if (x.size != ES256_COORDINATE_BYTES || y.size != ES256_COORDINATE_BYTES) return null
+    return byteArrayOf(EC_UNCOMPRESSED_TAG) + x + y
+}
+
+private fun derInteger(value: ByteArray): ByteArray {
+    var start = 0
+    while (start < value.size - 1 && value[start] == ZERO_BYTE) start++
+    val body = positiveIntegerBody(value.copyOfRange(start, value.size))
+    return byteArrayOf(DER_INTEGER_TAG) + derLength(body.size) + body
+}
+
+/**
+ * Prepends the ASN.1 sign byte when the high bit is set.
+ *
+ * DER INTEGERs are signed, so a positive value whose most-significant bit is `1`
+ * needs a leading zero, otherwise a decoder would read it as negative. An empty
+ * value is encoded as a single zero byte.
+ */
+private fun positiveIntegerBody(magnitude: ByteArray): ByteArray {
+    val needsSignByte = magnitude.isEmpty() || (magnitude[0].toInt() and HIGH_BIT_MASK) != 0
+    return if (needsSignByte) byteArrayOf(0) + magnitude else magnitude
+}
+
+private fun derSequence(body: ByteArray): ByteArray =
+    byteArrayOf(DER_SEQUENCE_TAG) + derLength(body.size) + body
+
+private fun derLength(length: Int): ByteArray = when {
+    length < DER_SHORT_FORM_MAX -> byteArrayOf(length.toByte())
+    length < DER_LONG_FORM_MAX -> byteArrayOf(DER_LENGTH_1_TAG, length.toByte())
+    else -> byteArrayOf(DER_LENGTH_2_TAG, (length ushr BITS_PER_BYTE).toByte(), length.toByte())
+}
+
+private fun decodeBase64Url(segment: String?): ByteArray? = segment?.let(::decodeBase64UrlOrNull)
+
+private const val ES256_COORDINATE_BYTES = 32
+private const val ES256_SIGNATURE_BYTES = 64
+private const val EC_UNCOMPRESSED_TAG: Byte = 0x04
+private const val DER_SEQUENCE_TAG: Byte = 0x30
+private const val DER_INTEGER_TAG: Byte = 0x02
+
+/** DER lengths below 0x80 use one short-form byte; higher ones use a tag byte. */
+private const val DER_SHORT_FORM_MAX = 0x80
+private const val DER_LONG_FORM_MAX = 0x100
+private const val DER_LENGTH_1_TAG: Byte = 0x81.toByte()
+private const val DER_LENGTH_2_TAG: Byte = 0x82.toByte()
+
+/** The ASN.1 sign bit: set means the integer would read as negative. */
+private const val HIGH_BIT_MASK = 0x80
+private const val ZERO_BYTE: Byte = 0
+
+/** A byte holds 8 bits; the long-form DER length splits a 16-bit value per byte. */
+private const val BITS_PER_BYTE = 8
