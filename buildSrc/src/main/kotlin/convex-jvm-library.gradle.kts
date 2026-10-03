@@ -15,14 +15,14 @@ plugins {
 extensions.configure<KotlinJvmProjectExtension> {
     explicitApi()
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 
 // The Kotlin JVM plugin also applies the Java plugin, whose compilation defaults
-// to the running JDK (21). Align it with the Kotlin target so Gradle's
+// to the running JDK. Align it with the Kotlin target so Gradle's
 // inconsistent-JVM-target check stays quiet without pulling in a toolchain.
 extensions.configure<JavaPluginExtension> {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }

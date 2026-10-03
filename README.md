@@ -15,7 +15,7 @@ coroutines and `Flow`.
 
 ## Requirements
 
-- Kotlin Multiplatform with coroutines; the Android/JVM targets need JDK 17.
+- Kotlin Multiplatform with coroutines; the Android/JVM targets need JDK 21.
 - Apple targets (`iosX64`, `iosArm64`, `iosSimulatorArm64`) build on macOS.
 
 ## Modules

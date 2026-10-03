@@ -55,6 +55,10 @@ comments:
 
 complexity:
   active: true
+  # Protocol codecs and the sync state machine branch over many variants in one
+  # function; splitting them would scatter a single wire decision across
+  # helpers. The thresholds below are deliberately above Detekt's defaults
+  # (60/6/7/15/11-family) for that reason; anything larger is still caught.
   LongMethod:
     threshold: 80
   LongParameterList:
@@ -79,8 +83,14 @@ style:
     ignoreNumbers: ['-1', '0', '1', '2']
   MaxLineLength:
     maxLineLength: 120
+    # KDoc carries links and wire examples that cannot be wrapped without
+    # breaking them; code lines are still limited.
     excludeCommentStatements: true
   ReturnCount:
+    # Codec and validation code returns early on each variant (absent key,
+    # wrong type, bad value). Detekt's default of 2 would force nesting that
+    # hides the decision order; 4 keeps functions flat while still flagging
+    # real arrow code.
     max: 4
   UnusedPrivateMember:
     active: true

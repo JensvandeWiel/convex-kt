@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 convex-kt contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package eu.wynq.convex.example.chat
 
 import androidx.compose.foundation.layout.Arrangement
@@ -27,16 +42,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import eu.wynq.convex.client.ConvexSyncClient
 import eu.wynq.convex.client.ConnectionState
+import eu.wynq.convex.client.ConvexSyncClient
 import eu.wynq.convex.client.KtorSyncProtocolFactory
 import eu.wynq.convex.client.syncUrl
 import eu.wynq.convex.compose.ConvexDecoder
 import eu.wynq.convex.compose.QueryController
 import eu.wynq.convex.compose.QueryState
+import eu.wynq.convex.core.ConvexException
 import eu.wynq.convex.core.protocol.ConvexResult
 import eu.wynq.convex.core.value.ConvexValue
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 /**
  * Entry point. Point it at a backend with the `CONVEX_URL` environment variable;
@@ -52,6 +70,10 @@ public fun main(): Unit = application {
     }
 }
 
+// Compose screens use PascalCase by convention; both lint engines flag that
+// with their generic function rules, so the single composable is exempted
+// instead of renamed into a style no Compose reader expects.
+@Suppress("ktlint:standard:function-naming", "FunctionNaming")
 @Composable
 private fun ChatApp() {
     val scope = rememberCoroutineScope()
@@ -71,7 +93,13 @@ private fun ChatApp() {
     LaunchedEffect(client) {
         try {
             client.connect()
-        } catch (failure: Exception) {
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (failure: ConvexException) {
+            connectionError = failure.message ?: "could not connect"
+        } catch (failure: IllegalStateException) {
+            connectionError = failure.message ?: "could not connect"
+        } catch (failure: IOException) {
             connectionError = failure.message ?: "could not connect"
         }
     }
@@ -135,9 +163,19 @@ private fun predictAppend(
 ): Map<eu.wynq.convex.core.protocol.QueryId, ConvexResult> {
     val appended = ConvexValue.Object(mapOf("body" to ConvexValue.String(body)))
     val current = (results[queryId] as? ConvexResult.Success)?.value
+    // Exhaustive on purpose: anything that is not already a list restarts the
+    // prediction from a single message instead of crashing the example.
     val predicted = when (current) {
         is ConvexValue.Array -> current.value + appended
-        else -> listOf(appended)
+        ConvexValue.Null,
+        is ConvexValue.Int64,
+        is ConvexValue.Float64,
+        is ConvexValue.Boolean,
+        is ConvexValue.String,
+        is ConvexValue.Bytes,
+        is ConvexValue.Object,
+        null,
+        -> listOf(appended)
     }
     return results + (queryId to ConvexResult.Success(ConvexValue.Array(predicted)))
 }
@@ -149,6 +187,13 @@ private val MessageListDecoder: ConvexDecoder<List<String>> = ConvexDecoder { va
             val body = (element as? ConvexValue.Object)?.value?.get("body")
             (body as? ConvexValue.String)?.value
         }
-        else -> emptyList()
+        ConvexValue.Null,
+        is ConvexValue.Int64,
+        is ConvexValue.Float64,
+        is ConvexValue.Boolean,
+        is ConvexValue.String,
+        is ConvexValue.Bytes,
+        is ConvexValue.Object,
+        -> emptyList()
     }
 }

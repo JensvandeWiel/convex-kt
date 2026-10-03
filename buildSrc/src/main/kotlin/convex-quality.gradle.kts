@@ -33,7 +33,8 @@ extensions.configure<DetektExtension> {
 }
 
 tasks.withType<Detekt>().configureEach {
-    jvmTarget = "17"
+    // Detekt analyzes the same bytecode the libraries ship.
+    jvmTarget = "21"
     // Generated sources are emitted by convex-codegen and committed so the build
     // compiles them; they are not hand-written and must not be judged as if they
     // were. The generator owns their shape, and the codegen tests check the
@@ -101,11 +102,15 @@ extensions.configure<SpotlessExtension> {
             |
             """.trimMargin(),
         )
+        // `function-signature` and `class-signature` are disabled, not
+        // overlooked: enabling them reflows signatures repo-wide (verified:
+        // a trial reflow touched dozens of files, joining deliberately
+        // wrapped declarations), fighting the 120-column wrapping style the
+        // codebase already follows. `property-naming` stays enabled.
         ktlint("1.5.0").editorConfigOverride(
             mapOf(
                 "ktlint_standard_function-signature" to "disabled",
                 "ktlint_standard_class-signature" to "disabled",
-                "ktlint_standard_property-naming" to "disabled",
             ),
         )
         trimTrailingWhitespace()
@@ -123,10 +128,11 @@ extensions.configure<KoverProjectExtension> {
         filters {
             excludes {
                 // Generated stubs and compile-time markers are not behaviour and
-                // must not inflate coverage.
+                // must not inflate coverage. `*_Factory*`/`*Module` are narrow
+                // codegen/DI patterns; nothing in the repo currently matches
+                // `*_Impl*`, so it is gone rather than broad.
                 classes(
                     "*_Factory*",
-                    "*_Impl*",
                     "*Module",
                 )
             }

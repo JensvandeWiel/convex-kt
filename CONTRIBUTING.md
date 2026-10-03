@@ -17,7 +17,7 @@ If you cloned without submodules: `git submodule update --init --recursive`.
 
 Requirements:
 
-- JDK 17+ (the build targets 17).
+- JDK 21+ (the build targets 21).
 - Android SDK 36, with `local.properties` (`sdk.dir=...`, git-ignored) or
   `ANDROID_HOME`.
 - Docker and Node 20+ for conformance recordings and integration tests.
