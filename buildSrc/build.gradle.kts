@@ -22,4 +22,8 @@ dependencies {
     implementation("com.diffplug.spotless:spotless-plugin-gradle:8.9.0")
     implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.23.8")
     implementation("org.jetbrains.kotlinx:kover-gradle-plugin:0.9.11")
+    // Maven Central publication, applied by the `convex-kmp-library`
+    // convention: KMP-aware publications, sources/javadoc (Dokka) jars,
+    // signing, and the Central Portal upload/release tasks.
+    implementation("com.vanniktech:gradle-maven-publish-plugin:0.37.0")
 }

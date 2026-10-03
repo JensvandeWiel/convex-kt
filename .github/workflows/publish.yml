@@ -1,0 +1,49 @@
+name: Publish
+
+# Publishes the five library modules to Maven Central when a GitHub release is
+# published. Also runnable manually for the first upload or a retry; the
+# release tag must match the project version.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish to Maven Central
+    runs-on: ubuntu-latest
+    # Building Dokka javadoc jars, the Android AAR, and the iOS klibs is slow;
+    # cap it so a hang fails rather than occupies a runner indefinitely.
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      # The Android target is part of the publication, so the SDK must exist.
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-36'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Check the release tag matches the project version
+        if: github.event_name == 'release'
+        run: |
+          VERSION=$(grep -m1 -oE 'version = "[^"]+"' build.gradle.kts | cut -d'"' -f2)
+          if [ "v$VERSION" != "${{ github.event.release.tag_name }}" ]; then
+            echo "release tag ${{ github.event.release.tag_name }} does not match project version $VERSION"
+            exit 1
+          fi
+      # Requires a verified Central Portal namespace (eu.wynq) and repository
+      # secrets: MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_PASSWORD (portal user
+      # token) and SIGNING_KEY / SIGNING_PASSWORD (ASCII-armored GPG key).
+      - name: Publish and release
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+        run: ./gradlew publishToMavenCentral --stacktrace --console=plain

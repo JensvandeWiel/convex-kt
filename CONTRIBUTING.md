@@ -141,6 +141,36 @@ conformance fixture plus a real-backend integration assertion.
 
 On Windows use `.\gradlew.bat`. A change is ready when `checkAll` is green.
 
+## Releasing
+
+Two workflows run when a GitHub release is published:
+
+- **Docs** builds the Writerside guide and the Dokka site and deploys both to
+  GitHub Pages.
+- **Publish** uploads the five library modules to Maven Central and releases
+  the deployment automatically.
+
+To cut a release:
+
+1. Set the project `version` in `build.gradle.kts` (and the README snippet)
+   and commit it.
+2. Publish a GitHub release tagged `v<version>`. The tag must match the project
+   version; the publish workflow fails otherwise.
+
+Maven Central publication needs, once:
+
+- a verified `eu.wynq` namespace in the Central Portal;
+- a Central Portal user token stored as the `MAVEN_CENTRAL_USERNAME` and
+  `MAVEN_CENTRAL_PASSWORD` repository secrets;
+- a published GPG key, with the ASCII-armored private key and its passphrase in
+  `SIGNING_KEY` and `SIGNING_PASSWORD`.
+
+The first upload can be triggered without a new release:
+
+```bash
+gh workflow run publish.yml
+```
+
 ## Pull requests
 
 Use the checklist in `AGENTS.md`. Include what changed and why, the upstream

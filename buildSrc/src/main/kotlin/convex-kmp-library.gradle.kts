@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.LibraryExtension
+import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
@@ -15,6 +16,7 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.dokka")
     id("org.jetbrains.kotlinx.binary-compatibility-validator")
+    id("com.vanniktech.maven.publish")
     id("convex-quality")
 }
 
@@ -62,5 +64,48 @@ extensions.configure<LibraryExtension> {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
+    }
+}
+
+// Maven Central publication for the public libraries. The plugin detects the
+// Kotlin Multiplatform and Android plugins and creates a publication per
+// target, plus sources jars and Dokka-backed javadoc jars.
+//
+// Signing is enabled only when a key is configured, so local
+// `publishToMavenLocal` runs need no GPG credentials; CI supplies the key
+// through the ORG_GRADLE_PROJECT_* secrets in .github/workflows/publish.yml.
+val signingKeyPresent: Boolean =
+    findProperty("signingInMemoryKey") != null ||
+        System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKey") != null
+
+extensions.configure<MavenPublishBaseExtension> {
+    publishToMavenCentral(automaticRelease = true)
+    if (signingKeyPresent) {
+        signAllPublications()
+    }
+    pom {
+        name.set(project.name)
+        description.set("A Kotlin Multiplatform client for Convex")
+        inceptionYear.set("2026")
+        url.set("https://github.com/JensvandeWiel/convex-kt/")
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+        developers {
+            developer {
+                id.set("JensvandeWiel")
+                name.set("Jens van de Wiel")
+                url.set("https://github.com/JensvandeWiel/")
+            }
+        }
+        scm {
+            url.set("https://github.com/JensvandeWiel/convex-kt/")
+            connection.set("scm:git:https://github.com/JensvandeWiel/convex-kt.git")
+            developerConnection.set("scm:git:ssh://git@github.com/JensvandeWiel/convex-kt.git")
+        }
     }
 }
