@@ -7,6 +7,28 @@
 // no resolvable version. Plugins that the conventions do not apply (Compose,
 // serialization) are requested per module through the version catalog.
 
+// The unified API site (`./gradlew dokkaGenerateHtml`, output in
+// `build/dokka/html`). Applied the legacy way on purpose: a `plugins {}`
+// version lookup would trip over the buildSrc classpath copy, while
+// `apply(plugin = ...)` resolves the already-pinned Dokka 2.2.0 from it.
+// Child modules contribute through the `convex-*` conventions, which already
+// apply the same plugin by id.
+apply(plugin = "org.jetbrains.dokka")
+
+// Dokka 2.x aggregates subproject publications declared here. Only the five
+// published library modules are listed: the build tools (codegen, parity,
+// integration tests) keep their standalone pages out of the user-facing site.
+// General guides cannot live on the generated landing page (Dokka renders
+// module-attached docs only), so prose lives in the `Writerside/` help module
+// while Dokka stays API-only. See README.md for how the two surfaces split.
+dependencies {
+    add("dokka", project(":convex-core"))
+    add("dokka", project(":convex-client"))
+    add("dokka", project(":convex-auth"))
+    add("dokka", project(":convex-storage"))
+    add("dokka", project(":convex-compose"))
+}
+
 allprojects {
     group = "eu.wynq.convex"
     version = "0.1.0-SNAPSHOT"

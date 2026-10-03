@@ -177,6 +177,19 @@ sends `messages:send`:
 CONVEX_URL=http://127.0.0.1:3210 ./gradlew :examples:chat:run
 ```
 
+## Documentation
+
+Two complementary surfaces, deliberately split:
+
+- **User guides** — task-oriented docs for every feature live in the
+  `Writerside/` help module (open it with the JetBrains Writerside plugin;
+  build with the `writerside-builder` Docker image). Start at the
+  `overview` topic.
+- **API reference** — KDoc on every public declaration, generated with
+  Dokka into one combined site: `./gradlew dokkaGenerateHtml`, output in
+  `build/dokka/html`. Dokka carries API definitions only, never prose
+  guides.
+
 ## Contributing
 
 The contributor workflow — architecture, coding conventions, the quality gates,

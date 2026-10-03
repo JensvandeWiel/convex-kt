@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance SYSTEM "https://resources.jetbrains.com/writerside/1.0/instance.dtd">
+<instance id="convex-kt" name="convex-kt User Guide" start-page="overview">
+    <toc-element topic="overview"/>
+    <toc-element topic="getting-started"/>
+    <toc-element topic="sync-client"/>
+    <toc-element topic="calls-and-codegen"/>
+    <toc-element topic="auth"/>
+    <toc-element topic="storage"/>
+    <toc-element topic="compose"/>
+    <toc-element topic="values-and-codec"/>
+    <toc-element topic="example-chat"/>
+</instance>
