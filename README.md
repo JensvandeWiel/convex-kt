@@ -183,7 +183,7 @@ Two complementary surfaces, deliberately split:
 
 - **User guides** — task-oriented docs for every feature live in the
   `Writerside/` help module (open it with the JetBrains Writerside plugin;
-  start at `overview`). Build the HTML with the tag pinned in
+  its landing page is the entry point). Build the HTML with the tag pinned in
   `wrs-supernova`:
 
   ```bash
