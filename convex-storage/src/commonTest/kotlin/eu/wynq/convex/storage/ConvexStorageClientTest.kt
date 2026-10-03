@@ -78,4 +78,24 @@ class ConvexStorageClientTest {
         }
         assertEquals(400, failure.statusCode)
     }
+
+    @Test
+    fun reportsMalformedUploadBodies() = runTest {
+        val engine = MockEngine { respond("this is not json{{{") }
+        val client = ConvexStorageClient(HttpClient(engine))
+        // A 200 with garbage must surface as a storage failure, not leak the
+        // parser's exception type to the caller.
+        assertFailsWith<ConvexStorageException> {
+            client.upload("https://upload.example/abc", byteArrayOf(1))
+        }
+    }
+
+    @Test
+    fun reportsNonObjectUploadBodies() = runTest {
+        val engine = MockEngine { respond("""[1, 2]""") }
+        val client = ConvexStorageClient(HttpClient(engine))
+        assertFailsWith<ConvexStorageException> {
+            client.upload("https://upload.example/abc", byteArrayOf(1))
+        }
+    }
 }

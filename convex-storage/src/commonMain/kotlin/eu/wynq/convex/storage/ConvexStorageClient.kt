@@ -27,6 +27,7 @@ import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -107,7 +108,27 @@ public class ConvexStorageClient(
         if (!status.isSuccess()) {
             throw ConvexStorageException("storage request failed: $status $text", status.value)
         }
-        return Json.parseToJsonElement(text).jsonObject
+        return parseJsonObject(text, status.value)
+    }
+
+    /**
+     * Parses a success body, mapping every parser failure to storage errors.
+     *
+     * Two shapes fail differently — unparseable text versus a valid document
+     * that is not an object — so each keeps its cause instead of collapsing
+     * into one message that hides which step broke.
+     */
+    private fun parseJsonObject(text: String, statusCode: Int): JsonObject {
+        val element = try {
+            Json.parseToJsonElement(text)
+        } catch (failure: SerializationException) {
+            throw ConvexStorageException("response is not valid JSON: $text", statusCode, failure)
+        }
+        try {
+            return element.jsonObject
+        } catch (failure: IllegalArgumentException) {
+            throw ConvexStorageException("response is not a JSON object: $text", statusCode, failure)
+        }
     }
 
     private fun JsonObject.string(key: String): String =
