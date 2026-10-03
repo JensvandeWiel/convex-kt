@@ -10,4 +10,5 @@
     <toc-element topic="compose.md"/>
     <toc-element topic="values-and-codec.md"/>
     <toc-element topic="example-chat.md"/>
+    <toc-element topic="release-notes.md"/>
 </instance-profile>

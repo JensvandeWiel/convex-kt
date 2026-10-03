@@ -19,17 +19,18 @@
 
         <primary>
             <title>Start here</title>
-            <card href="calls-and-codegen.md" summary="Untyped, typed, and HTTP calls, plus descriptor generation."/>
+            <card href="calls-and-codegen.md" summary="Untyped, typed, and HTTP calls."/>
             <card href="example-chat.md" summary="Run the Compose Desktop sample end to end."/>
-            <card href="https://jensvandewiel.github.io/convex-kt/api/" summary="KDoc for every public declaration, generated with Dokka.">API reference (Dokka)</card>
+            <card href="https://jensvandewiel.github.io/convex-kt/api/" summary="Every public class, function, and property.">API reference</card>
+            <card href="release-notes.md" summary="What changed in each release."/>
         </primary>
 
         <secondary>
             <title>Feature guides</title>
-            <card href="auth.md" summary="Verify JWTs locally and authenticate the sync client."/>
+            <card href="auth.md" summary="Verify tokens locally and authenticate the sync client."/>
             <card href="storage.md" summary="Upload and download files through server-minted URLs."/>
-            <card href="compose.md" summary="QueryState, rememberQuery, and QueryController."/>
-            <card href="values-and-codec.md" summary="ConvexValue, the wire format, export, and identifiers."/>
+            <card href="compose.md" summary="Live queries bound to Compose state."/>
+            <card href="values-and-codec.md" summary="Values, their JSON form, and identifiers."/>
         </secondary>
 
         <misc>
@@ -37,7 +38,7 @@
                 <group>
                     <title>Convex resources</title>
                     <a href="https://docs.convex.dev" summary="Official Convex developer documentation.">Convex documentation</a>
-                    <a href="https://github.com/get-convex/convex-rs" summary="The upstream Rust client this implementation is verified against.">convex-rs — the upstream Rust client</a>
+                    <a href="https://github.com/JensvandeWiel/convex-kt/issues" summary="Report a bug or request a feature.">Report an issue</a>
                 </group>
             </links>
         </misc>

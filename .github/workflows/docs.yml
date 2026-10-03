@@ -37,8 +37,17 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Build the Dokka API reference
         run: ./gradlew dokkaGenerateHtml
+
+      - name: Generate the version history
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/docs/release-history.mjs "$GITHUB_REPOSITORY" > Writerside/topics/release-notes.md
 
       - name: Build the Writerside guides
         run: |
