@@ -22,7 +22,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import eu.wynq.convex.client.ConvexSyncClient
 import eu.wynq.convex.core.functions.ConvexFunction
+import eu.wynq.convex.core.functions.ConvexQuery
+import eu.wynq.convex.core.functions.encodeArguments
 import eu.wynq.convex.core.value.ConvexValue
+import eu.wynq.convex.core.value.ConvexValueDecoder
 
 /**
  * Subscribes to a query for the lifetime of the composition.
@@ -72,3 +75,59 @@ public fun <T> rememberQuery(
     args: Map<String, ConvexValue> = emptyMap(),
     decoder: ConvexDecoder<T>,
 ): QueryState<T> = rememberQuery(client, function.path, args, decoder)
+
+/**
+ * Subscribes to a typed query from generated code, decoding its result with the
+ * descriptor's own serializer.
+ *
+ * The decoded type comes from the descriptor ([Result]), so no decoder argument
+ * is needed: `convex-codegen` already generated one from the `returns`
+ * validator. When the descriptor has no result serializer — the `returns`
+ * validator was absent or unmodelled — this is only usable with `Result =
+ * ConvexValue`, and the overload below takes an explicit decoder instead.
+ *
+ * @param Result the decoded result type.
+ * @param client the sync client.
+ * @param query a typed query descriptor.
+ * @return the query's current state.
+ */
+@Composable
+public fun <Result> rememberQuery(
+    client: ConvexSyncClient,
+    query: ConvexQuery<Unit, Result>,
+): QueryState<Result> = rememberQuery(client, query, Unit)
+
+/**
+ * Subscribes to a typed query with an argument.
+ *
+ * @param Args the argument type.
+ * @param Result the decoded result type.
+ * @param client the sync client.
+ * @param query a typed query descriptor.
+ * @param args the argument, encoded via the descriptor's serializer.
+ * @return the query's current state.
+ */
+@Composable
+public fun <Args, Result> rememberQuery(
+    client: ConvexSyncClient,
+    query: ConvexQuery<Args, Result>,
+    args: Args,
+): QueryState<Result> {
+    val encoded = query.encodeArguments(args)
+    return rememberQuery(client, query.path, encoded, query.decoder())
+}
+
+/**
+ * Builds a decoder from the descriptor's result serializer.
+ *
+ * A `null` serializer means the generator could not model `returns`, so the raw
+ * [ConvexValue] is returned unchanged; the caller is expected to use `Result =
+ * ConvexValue` in that case.
+ */
+private fun <Result> ConvexQuery<*, Result>.decoder(): ConvexDecoder<Result> =
+    resultSerializer
+        ?.let { serializer -> ConvexDecoder { value -> ConvexValueDecoder.decode(serializer, value) } }
+        ?: ConvexDecoder { value ->
+            @Suppress("UNCHECKED_CAST")
+            (value as Result)
+        }

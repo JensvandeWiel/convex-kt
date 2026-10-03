@@ -96,3 +96,12 @@ public abstract interface class eu/wynq/convex/client/SyncProtocolFactory {
 	public abstract fun connect (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class eu/wynq/convex/client/TypedCallsKt {
+	public static final fun action (Leu/wynq/convex/client/ConvexSyncClient;Leu/wynq/convex/core/functions/ConvexAction;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun action (Leu/wynq/convex/client/ConvexSyncClient;Leu/wynq/convex/core/functions/ConvexAction;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun mutate (Leu/wynq/convex/client/ConvexSyncClient;Leu/wynq/convex/core/functions/ConvexMutation;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun mutate (Leu/wynq/convex/client/ConvexSyncClient;Leu/wynq/convex/core/functions/ConvexMutation;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun subscribe (Leu/wynq/convex/client/ConvexSyncClient;Leu/wynq/convex/core/functions/ConvexQuery;)Leu/wynq/convex/core/sync/SubscriberId;
+	public static final fun subscribe (Leu/wynq/convex/client/ConvexSyncClient;Leu/wynq/convex/core/functions/ConvexQuery;Ljava/lang/Object;)Leu/wynq/convex/core/sync/SubscriberId;
+}
+

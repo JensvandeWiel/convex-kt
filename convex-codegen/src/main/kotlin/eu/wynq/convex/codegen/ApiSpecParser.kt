@@ -89,15 +89,7 @@ public object ApiSpecParser {
      */
     public fun parseValidator(element: JsonElement): ConvexValidator {
         val obj = element as? JsonObject ?: return ConvexValidator.Any
-        return when (obj.string("type") ?: TYPE_ANY) {
-            TYPE_ANY -> ConvexValidator.Any
-            "null" -> ConvexValidator.Null
-            "boolean" -> ConvexValidator.Boolean
-            "float64" -> ConvexValidator.Float64
-            "int64" -> ConvexValidator.Int64
-            "bytes" -> ConvexValidator.Bytes
-            "string" -> ConvexValidator.String(obj.string("description"))
-            "id" -> ConvexValidator.Id(obj.string("tableName") ?: obj.string("table").orEmpty())
+        return when (val type = obj.string("type") ?: TYPE_ANY) {
             "array" -> ConvexValidator.Array(obj["value"]?.let(::parseValidator) ?: ConvexValidator.Any)
             "object" -> ConvexValidator.Object(
                 (obj["value"] as? JsonObject)?.mapValues { parseField(it.value) }.orEmpty(),
@@ -108,8 +100,31 @@ public object ApiSpecParser {
             "literal" -> ConvexValidator.Literal(
                 obj["value"]?.let { listOf(it.toString()) }.orEmpty(),
             )
-            else -> ConvexValidator.Any
+            else -> scalarValidator(type, obj)
         }
+    }
+
+    /**
+     * Parses the scalar (non-composite) validator types.
+     *
+     * Split out of [parseValidator] so the composite branches and the scalar
+     * vocabulary each stay well under the complexity limit.
+     *
+     * @param type the validator's `type` string.
+     * @param obj the validator JSON, for the types that carry extra fields.
+     * @return the parsed scalar, or [ConvexValidator.Any] for an unknown type.
+     */
+    private fun scalarValidator(type: String, obj: JsonObject): ConvexValidator = when (type) {
+        TYPE_ANY -> ConvexValidator.Any
+        "null" -> ConvexValidator.Null
+        "boolean" -> ConvexValidator.Boolean
+        // Convex's `v.number()` (a float64) serializes as `"number"`.
+        "float64", "number" -> ConvexValidator.Float64
+        "int64" -> ConvexValidator.Int64
+        "bytes" -> ConvexValidator.Bytes
+        "string" -> ConvexValidator.String(obj.string("description"))
+        "id" -> ConvexValidator.Id(obj.string("tableName") ?: obj.string("table").orEmpty())
+        else -> ConvexValidator.Any
     }
 
     private fun parseField(element: JsonElement): ConvexValidatorField {

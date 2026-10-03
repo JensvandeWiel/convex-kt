@@ -15,6 +15,8 @@
  */
 package eu.wynq.convex.core.value
 
+import kotlinx.serialization.Serializable
+
 /**
  * A value that can be passed to, or returned from, a Convex function.
  *
@@ -26,6 +28,7 @@ package eu.wynq.convex.core.value
  * The names mirror the upstream `convex-rs` `Value` enum on purpose, so a port
  * can be diffed against its source without a translation table.
  */
+@Serializable(with = ConvexValueSerializer::class)
 public sealed interface ConvexValue {
     /** The absence of a value. Encoded as JSON `null`. */
     public data object Null : ConvexValue

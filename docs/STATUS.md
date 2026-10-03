@@ -8,15 +8,16 @@ this file records the seams that remain.
 
 | Area | What exists |
 | --- | --- |
-| `convex-core` values | `ConvexValue` sealed hierarchy and the `ConvexJson` codec: 64-bit integers and non-finite floats as tagged little-endian base64, `$set`/`$map` rejected, key-presence handling |
+| `convex-core` values | `ConvexValue` sealed hierarchy and the `ConvexJson` codec: 64-bit integers and non-finite floats as tagged little-endian base64, `$set`/`$map` rejected, key-presence handling; `ConvexValueEncoder`/`Decoder`/`Serializer` for typed argument and result round-trips that preserve `Int64` vs `Float64` |
 | `convex-core` protocol | `ClientMessage`/`ServerMessage` sealed hierarchies with encoders/decoders, scalar types, `StateVersion`, `StateModification`, `ConvexResult` |
 | `convex-core` sync | `LocalSyncState` (subscription intent → messages, id reuse, versioning, resend) and `RemoteQuerySet` (contiguous transitions, results) |
-| `convex-core` functions | `ConvexFunction` descriptors and a closed `ConvexValidator` model |
-| `convex-client` | `SyncProtocol` seam, `ConvexSyncClient` (outgoing queue, receive loop, subscribe/mutate/action, `StateFlow` results), Ktor transport, `syncUrl`, auth fetch, manual reconnect |
+| `convex-core` functions | `ConvexFunction` descriptors, a closed `ConvexValidator` model, and the typed `ConvexQuery`/`ConvexMutation`/`ConvexAction` descriptors with argument encoding |
+| `convex-core` errors | `ConvexError` and `ConvexResult.orThrow()`, the typed-call failure contract |
+| `convex-client` | `SyncProtocol` seam, `ConvexSyncClient` (outgoing queue, receive loop, subscribe/mutate/action, `StateFlow` results), typed `subscribe`/`mutate`/`action` overloads, Ktor transport, `syncUrl`, auth fetch, manual reconnect |
 | `convex-auth` | JWT parsing and claim extraction; RS256/ES256 verification on JVM/Android |
 | `convex-storage` | `generateUploadUrl`, `upload`, `uploadFile`, `download`, `fileUrl` over HTTP |
-| `convex-compose` | `QueryState<T>`, `ConvexDecoder<T>`, `QueryController`, `rememberQuery` |
-| `convex-codegen` | `ApiSpecParser` and `KotlinSourceGenerator` |
+| `convex-compose` | `QueryState<T>`, `ConvexDecoder<T>`, `QueryController`, `rememberQuery` (path, descriptor, and typed descriptor overloads) |
+| `convex-codegen` | `ApiSpecParser`, `KotlinSourceGenerator` (nested `Api` object with `Input`/`Request`/result classes and typed descriptors), and the `CodegenCli` entry point |
 | `tools/parity` | Manifest validator, upstream test discovery, coverage test, `--emit-missing` |
 | `examples/chat` | Compose Desktop chat app |
 
@@ -24,9 +25,13 @@ this file records the seams that remain.
 
 - `./gradlew checkAll` (or `build`) runs formatting, Detekt, API checks,
   coverage, and every module's tests. All green.
-- Conformance fixtures: `connect-handshake`, `query-and-mutation`, and
-  `storage`, recorded from the pinned backend and replayed by tests. CI
-  re-records and fails on drift.
+- Conformance fixtures: `connect-handshake`, `query-and-mutation`,
+  `storage`, and `typed-api` (the real backend apiSpec), recorded from the
+  pinned backend and replayed by tests. CI re-records and fails on drift.
+- Typed calls: the committed `typed-api` fixture is generated into
+  `convex-client`'s test sources and exercised by `TypedCallsTest` (argument
+  encoding, result decoding, `ConvexError` on failure, and no action retry);
+  codegen output shape is covered by `convex-codegen`'s tests.
 - Integration tests (`:integration-tests`) boot the pinned backend with
   Testcontainers and deploy the conformance project into it, then exercise
   subscription, mutation, action, admin auth, storage upload/download,
@@ -47,13 +52,26 @@ Ordered roughly by how likely they are to matter.
    from a cursor argument the app defines.
 3. **Parity depth.** Coverage enforcement is real, but most entries are
    `planned`; porting them is ongoing work.
+4. **Codegen runs by hand.** `convex-codegen` ships a CLI
+   (`--spec/--package/--object/--out`), but nothing fetches the spec or
+   regenerates the file in `build`; a project wires its own step, and the
+   generated source is committed and diffed.
+5. **Internal functions are not filtered.** `ApiSpecParser` ignores the
+   `visibility.kind` the backend emits, so an `internal` function would still
+   be generated as a callable public descriptor.
+6. **`returns` is often absent.** JS projects that do not declare return
+   validators produce `returns: null`, so results are typed as `ConvexValue`
+   rather than generated classes; declaring returns (as the conformance
+   functions now do) yields typed results.
 
 Closed during refinement: automatic reconnection with exponential backoff,
 mutation/action call timeouts, `TransitionChunk` reassembly, server `AuthError`
-surfacing, descriptor-based calls (codegen wiring), pagination-journal carry,
-storage transfers (fixture-proven against the pinned backend), optimistic
-updates (`OptimisticUpdate`, shown until the next transition), the one-off HTTP
-functions API (`ConvexHttpApi`), and two more parity ports.
+surfacing, typed descriptor-based calls (codegen wiring, typed arguments and
+results, `ConvexValue` fallback, no-retry actions), the codegen CLI and its
+tests, pagination-journal carry, storage transfers (fixture-proven against the
+pinned backend), optimistic updates (`OptimisticUpdate`, shown until the next
+transition), the one-off HTTP functions API (`ConvexHttpApi`), and two more
+parity ports.
 
 ## Upstream pins
 

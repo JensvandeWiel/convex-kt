@@ -7,6 +7,15 @@ import { v } from "convex/values";
 
 export const list = query({
   args: {},
+  // A generated `list` returns full message documents, so the schema includes
+  // the system fields Convex adds on insert.
+  returns: v.array(
+    v.object({
+      _id: v.id("messages"),
+      _creationTime: v.number(),
+      body: v.string(),
+    }),
+  ),
   handler: async (ctx) => {
     return await ctx.db.query("messages").collect();
   },
@@ -14,6 +23,7 @@ export const list = query({
 
 export const send = mutation({
   args: { body: v.string() },
+  returns: v.number(),
   handler: async (ctx, { body }) => {
     await ctx.db.insert("messages", { body });
     return body.length;
@@ -22,6 +32,7 @@ export const send = mutation({
 
 export const echo = action({
   args: { body: v.string() },
+  returns: v.string(),
   handler: async (_ctx, { body }) => {
     return body;
   },
@@ -31,6 +42,7 @@ export const echo = action({
 // before the server acknowledges it. Actions may await timers.
 export const slowEcho = action({
   args: { body: v.string() },
+  returns: v.string(),
   handler: async (_ctx, { body }) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     return body;

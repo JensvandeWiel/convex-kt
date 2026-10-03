@@ -34,6 +34,11 @@ extensions.configure<DetektExtension> {
 
 tasks.withType<Detekt>().configureEach {
     jvmTarget = "17"
+    // Generated sources are emitted by convex-codegen and committed so the build
+    // compiles them; they are not hand-written and must not be judged as if they
+    // were. The generator owns their shape, and the codegen tests check the
+    // shape directly.
+    exclude("**/generated/**")
     reports {
         html.required.set(true)
         xml.required.set(true)
@@ -69,6 +74,11 @@ extensions.configure<SpotlessExtension> {
     kotlin {
         target("src/**/*.kt")
         targetExclude("**/build/**")
+        // Generated sources are produced by convex-codegen, committed, and
+        // diffed for determinism. Reformatting them here would make the
+        // committed file differ from the generator's output, so they are exempt
+        // from formatting like any other generated file.
+        targetExclude("**/generated/**")
         // Every source file carries the Apache 2.0 header so provenance is
         // unambiguous in a published artifact. `spotlessApply` inserts it.
         licenseHeader(

@@ -1,6 +1,24 @@
+public final class eu/wynq/convex/core/ConvexError : eu/wynq/convex/core/ConvexException {
+	public fun <init> (Leu/wynq/convex/core/protocol/ErrorPayload;)V
+	public final fun getPayload ()Leu/wynq/convex/core/protocol/ErrorPayload;
+}
+
+public final class eu/wynq/convex/core/ConvexErrorKt {
+	public static final fun orThrow (Leu/wynq/convex/core/protocol/ConvexResult;)Leu/wynq/convex/core/value/ConvexValue;
+}
+
 public class eu/wynq/convex/core/ConvexException : java/lang/RuntimeException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class eu/wynq/convex/core/functions/ConvexAction {
+	public fun <init> (Leu/wynq/convex/core/functions/ConvexFunction;Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;)V
+	public synthetic fun <init> (Leu/wynq/convex/core/functions/ConvexFunction;Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getArgsSerializer ()Lkotlinx/serialization/KSerializer;
+	public final fun getFunction ()Leu/wynq/convex/core/functions/ConvexFunction;
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getResultSerializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class eu/wynq/convex/core/functions/ConvexFunction {
@@ -36,6 +54,24 @@ public final class eu/wynq/convex/core/functions/ConvexFunctionKind : java/lang/
 
 public final class eu/wynq/convex/core/functions/ConvexFunctionKind$Companion {
 	public final fun fromWire (Ljava/lang/String;)Leu/wynq/convex/core/functions/ConvexFunctionKind;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexMutation {
+	public fun <init> (Leu/wynq/convex/core/functions/ConvexFunction;Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;)V
+	public synthetic fun <init> (Leu/wynq/convex/core/functions/ConvexFunction;Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getArgsSerializer ()Lkotlinx/serialization/KSerializer;
+	public final fun getFunction ()Leu/wynq/convex/core/functions/ConvexFunction;
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getResultSerializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class eu/wynq/convex/core/functions/ConvexQuery {
+	public fun <init> (Leu/wynq/convex/core/functions/ConvexFunction;Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;)V
+	public synthetic fun <init> (Leu/wynq/convex/core/functions/ConvexFunction;Lkotlinx/serialization/KSerializer;Lkotlinx/serialization/KSerializer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getArgsSerializer ()Lkotlinx/serialization/KSerializer;
+	public final fun getFunction ()Leu/wynq/convex/core/functions/ConvexFunction;
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getResultSerializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public abstract interface class eu/wynq/convex/core/functions/ConvexValidator {
@@ -162,6 +198,12 @@ public final class eu/wynq/convex/core/functions/ConvexValidatorField {
 	public final fun getValidator ()Leu/wynq/convex/core/functions/ConvexValidator;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/functions/TypedFunctionsKt {
+	public static final fun encodeArguments (Leu/wynq/convex/core/functions/ConvexAction;Ljava/lang/Object;)Ljava/util/Map;
+	public static final fun encodeArguments (Leu/wynq/convex/core/functions/ConvexMutation;Ljava/lang/Object;)Ljava/util/Map;
+	public static final fun encodeArguments (Leu/wynq/convex/core/functions/ConvexQuery;Ljava/lang/Object;)Ljava/util/Map;
 }
 
 public abstract interface class eu/wynq/convex/core/protocol/AuthenticationToken {
@@ -749,6 +791,7 @@ public final class eu/wynq/convex/core/value/ConvexJsonException : eu/wynq/conve
 }
 
 public abstract interface class eu/wynq/convex/core/value/ConvexValue {
+	public static final field Companion Leu/wynq/convex/core/value/ConvexValue$Companion;
 }
 
 public final class eu/wynq/convex/core/value/ConvexValue$Array : eu/wynq/convex/core/value/ConvexValue {
@@ -779,6 +822,10 @@ public final class eu/wynq/convex/core/value/ConvexValue$Bytes : eu/wynq/convex/
 	public final fun getValue ()[B
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ConvexValue$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class eu/wynq/convex/core/value/ConvexValue$Float64 : eu/wynq/convex/core/value/ConvexValue {
@@ -830,5 +877,25 @@ public final class eu/wynq/convex/core/value/ConvexValue$String : eu/wynq/convex
 	public final fun getValue ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/value/ConvexValueDecoder {
+	public static final field INSTANCE Leu/wynq/convex/core/value/ConvexValueDecoder;
+	public final fun decode (Lkotlinx/serialization/KSerializer;Leu/wynq/convex/core/value/ConvexValue;)Ljava/lang/Object;
+}
+
+public final class eu/wynq/convex/core/value/ConvexValueEncoder {
+	public static final field INSTANCE Leu/wynq/convex/core/value/ConvexValueEncoder;
+	public final fun encode (Lkotlinx/serialization/KSerializer;Ljava/lang/Object;)Leu/wynq/convex/core/value/ConvexValue;
+	public final fun encode (Lkotlinx/serialization/json/JsonElement;)Leu/wynq/convex/core/value/ConvexValue;
+}
+
+public final class eu/wynq/convex/core/value/ConvexValueSerializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Leu/wynq/convex/core/value/ConvexValueSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Leu/wynq/convex/core/value/ConvexValue;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Leu/wynq/convex/core/value/ConvexValue;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 
