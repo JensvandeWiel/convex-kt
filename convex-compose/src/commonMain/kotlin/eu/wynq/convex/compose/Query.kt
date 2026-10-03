@@ -48,7 +48,7 @@ public fun <T> rememberQuery(
     args: Map<String, ConvexValue> = emptyMap(),
     decoder: ConvexDecoder<T>,
 ): QueryState<T> {
-    val controller = remember(client, udfPath, args) {
+    val controller = remember(client, udfPath, args, decoder) {
         QueryController(client, udfPath, args, decoder)
     }
     DisposableEffect(controller) {
