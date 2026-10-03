@@ -206,6 +206,112 @@ public final class eu/wynq/convex/core/functions/TypedFunctionsKt {
 	public static final fun encodeArguments (Leu/wynq/convex/core/functions/ConvexQuery;Ljava/lang/Object;)Ljava/util/Map;
 }
 
+public final class eu/wynq/convex/core/paths/CanonicalizedModulePath : java/lang/Comparable {
+	public final fun asString ()Ljava/lang/String;
+	public fun compareTo (Leu/wynq/convex/core/paths/CanonicalizedModulePath;)I
+	public synthetic fun compareTo (Ljava/lang/Object;)I
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public final fun isCron ()Z
+	public final fun isDeps ()Z
+	public final fun isHttp ()Z
+	public final fun isSystem ()Z
+	public final fun strip ()Leu/wynq/convex/core/paths/ModulePath;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/paths/CanonicalizedUdfPath : java/lang/Comparable {
+	public fun compareTo (Leu/wynq/convex/core/paths/CanonicalizedUdfPath;)I
+	public synthetic fun compareTo (Ljava/lang/Object;)I
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun functionName-4qFxPZ8 ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isSystem ()Z
+	public final fun module ()Leu/wynq/convex/core/paths/CanonicalizedModulePath;
+	public final fun strip ()Leu/wynq/convex/core/paths/UdfPath;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/paths/FunctionName : java/lang/Comparable {
+	public static final field Companion Leu/wynq/convex/core/paths/FunctionName$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Leu/wynq/convex/core/paths/FunctionName;
+	public synthetic fun compareTo (Ljava/lang/Object;)I
+	public fun compareTo-3QTyCEw (Ljava/lang/String;)I
+	public static fun compareTo-3QTyCEw (Ljava/lang/String;Ljava/lang/String;)I
+	public static fun constructor-impl (Ljava/lang/String;)Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public static final fun isDefaultExport-impl (Ljava/lang/String;)Z
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/paths/FunctionName$Companion {
+	public final fun defaultExport-4qFxPZ8 ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/paths/ModulePath : java/lang/Comparable {
+	public static final field Companion Leu/wynq/convex/core/paths/ModulePath$Companion;
+	public final fun asString ()Ljava/lang/String;
+	public final fun canonicalize ()Leu/wynq/convex/core/paths/CanonicalizedModulePath;
+	public fun compareTo (Leu/wynq/convex/core/paths/ModulePath;)I
+	public synthetic fun compareTo (Ljava/lang/Object;)I
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public final fun isCron ()Z
+	public final fun isDeps ()Z
+	public final fun isHttp ()Z
+	public final fun isSystem ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/paths/ModulePath$Companion {
+	public final fun parse (Ljava/lang/String;)Leu/wynq/convex/core/paths/ModulePath;
+}
+
+public final class eu/wynq/convex/core/paths/PathComponent : java/lang/Comparable {
+	public static final synthetic fun box-impl (Ljava/lang/String;)Leu/wynq/convex/core/paths/PathComponent;
+	public synthetic fun compareTo (Ljava/lang/Object;)I
+	public fun compareTo-N4WZwhY (Ljava/lang/String;)I
+	public static fun compareTo-N4WZwhY (Ljava/lang/String;Ljava/lang/String;)I
+	public static fun constructor-impl (Ljava/lang/String;)Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/paths/PathComponentKt {
+	public static final fun checkValidPathComponent (Ljava/lang/String;)V
+}
+
+public final class eu/wynq/convex/core/paths/UdfPath : java/lang/Comparable {
+	public static final field Companion Leu/wynq/convex/core/paths/UdfPath$Companion;
+	public final fun canonicalize ()Leu/wynq/convex/core/paths/CanonicalizedUdfPath;
+	public fun compareTo (Leu/wynq/convex/core/paths/UdfPath;)I
+	public synthetic fun compareTo (Ljava/lang/Object;)I
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun functionName-oy-tRUA ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isSystem ()Z
+	public final fun module ()Leu/wynq/convex/core/paths/ModulePath;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/paths/UdfPath$Companion {
+	public final fun parse (Ljava/lang/String;)Leu/wynq/convex/core/paths/UdfPath;
+}
+
 public abstract interface class eu/wynq/convex/core/protocol/AuthenticationToken {
 }
 

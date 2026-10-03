@@ -59,9 +59,11 @@ requirements:
 
   - id: types/udf-path-roundtrip
     description: A UDF path round-trips through its serialized form.
-    status: planned
+    status: ported
     upstream:
       - "sync_types/src/udf_path.rs::test_udf_path_roundtrips"
+    kotlin:
+      - "convex-core.UdfPathTest.testUdfPathRoundtrips"
 
   - id: src-base-client-mod-test-cached-query-result-persists-while-subscribers-exist
     description: "Upstream test 'test_cached_query_result_persists_while_subscribers_exist' in 'src/base_client/mod.rs' has no Kotlin counterpart yet."
@@ -370,10 +372,12 @@ requirements:
       - "convex-core.IdentifierValidationTest.regularCharInIdentifierBody"
 
   - id: sync-types-src-module-path-test-module-path
-    description: "Upstream test 'test_module_path' in 'sync_types/src/module_path.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: A module path parses into its system/deps/http classification, rejecting malformed inputs.
+    status: ported
     upstream:
       - "sync_types/src/module_path.rs::test_module_path"
+    kotlin:
+      - "convex-core.ModulePathTest.testModulePath"
 
   - id: sync-types-src-timestamp-test-secs-since-f64-positive-zero
     description: "Upstream test 'test_secs_since_f64_positive_zero' in 'sync_types/src/timestamp.rs' has no Kotlin counterpart yet."
@@ -444,8 +448,10 @@ requirements:
       - "sync_types/src/types/json.rs::user_identity_attributes_deserialize_token_identifier_given"
 
   - id: sync-types-src-udf-path-test-strip
-    description: "Upstream test 'test_strip' in 'sync_types/src/udf_path.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: Stripping a canonicalized UDF path drops the default export name and the .js extension.
+    status: ported
     upstream:
       - "sync_types/src/udf_path.rs::test_strip"
+    kotlin:
+      - "convex-core.UdfPathTest.testStrip"
 
