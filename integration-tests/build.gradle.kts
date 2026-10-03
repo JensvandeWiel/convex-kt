@@ -4,6 +4,8 @@
 //
 // CI runs `:integration-tests:integrationTest` in its own job.
 
+import kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension
+
 plugins {
     id("convex-jvm-library")
 }
@@ -46,3 +48,14 @@ val integrationTest =
 
 // `integrationTest` is intentionally NOT wired into `check`: it needs Docker and
 // Node, so `build` stays runnable anywhere. CI invokes it in its own job.
+
+// Kover instruments every Test task and makes koverVerify depend on it, which
+// would pull this Docker+Node suite into `./gradlew build` anyway. Exclude it:
+// there is no shipped code in this module for coverage to measure.
+extensions.configure<KoverProjectExtension> {
+    currentProject {
+        instrumentation {
+            disabledForTestTasks.add("integrationTest")
+        }
+    }
+}

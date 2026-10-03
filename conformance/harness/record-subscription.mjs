@@ -77,7 +77,9 @@ function parseArgs(argv) {
 }
 
 function generateDeployment({ url, adminKey }) {
-  const result = spawnSync("npx.cmd", ["--no-install", "convex", "deploy", "-y"], {
+  // npm ships `npx.cmd` only on Windows; POSIX uses `npx`.
+  const npx = process.platform === "win32" ? "npx.cmd" : "npx";
+  const result = spawnSync(npx, ["--no-install", "convex", "deploy", "-y"], {
     cwd: PROJECT,
     encoding: "utf8",
     env: { ...process.env, CONVEX_SELF_HOSTED_URL: url, CONVEX_SELF_HOSTED_ADMIN_KEY: adminKey },

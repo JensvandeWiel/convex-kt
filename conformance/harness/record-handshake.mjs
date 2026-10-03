@@ -44,7 +44,9 @@ function generateDeployment({ url, adminKey }) {
   // Self-hosted targeting is selected with environment variables, not
   // positional arguments (the CLI's deploy command takes none). See the
   // backend's self-hosted README.
-  const result = spawnSync("npx.cmd", ["--no-install", "convex", "deploy", "-y"], {
+  // npm ships `npx.cmd` only on Windows; POSIX uses `npx`.
+  const npx = process.platform === "win32" ? "npx.cmd" : "npx";
+  const result = spawnSync(npx, ["--no-install", "convex", "deploy", "-y"], {
     cwd: PROJECT,
     encoding: "utf8",
     env: {

@@ -115,14 +115,15 @@ public class ModulePath internal constructor(
      * @return `true` when [other] is an equal [ModulePath].
      */
     public override fun equals(other: Any?): Boolean =
-        this === other || (
-            other is ModulePath &&
-                pathText == other.pathText &&
-                isSystemFlag == other.isSystemFlag &&
-                isDepsFlag == other.isDepsFlag &&
-                isHttpFlag == other.isHttpFlag &&
-                isCronFlag == other.isCronFlag
-            )
+        this === other ||
+            (
+                other is ModulePath &&
+                    pathText == other.pathText &&
+                    isSystemFlag == other.isSystemFlag &&
+                    isDepsFlag == other.isDepsFlag &&
+                    isHttpFlag == other.isHttpFlag &&
+                    isCronFlag == other.isCronFlag
+                )
 
     /**
      * A hash consistent with [equals].
@@ -270,14 +271,15 @@ public class CanonicalizedModulePath internal constructor(
      * @return `true` when [other] is an equal [CanonicalizedModulePath].
      */
     public override fun equals(other: Any?): Boolean =
-        this === other || (
-            other is CanonicalizedModulePath &&
-                pathText == other.pathText &&
-                isSystemFlag == other.isSystemFlag &&
-                isDepsFlag == other.isDepsFlag &&
-                isHttpFlag == other.isHttpFlag &&
-                isCronFlag == other.isCronFlag
-            )
+        this === other ||
+            (
+                other is CanonicalizedModulePath &&
+                    pathText == other.pathText &&
+                    isSystemFlag == other.isSystemFlag &&
+                    isDepsFlag == other.isDepsFlag &&
+                    isHttpFlag == other.isHttpFlag &&
+                    isCronFlag == other.isCronFlag
+                )
 
     /**
      * A hash consistent with [equals].
