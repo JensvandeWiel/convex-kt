@@ -168,6 +168,42 @@ class ServerMessageJsonTest {
         assertFailsWith<ConvexJsonException> { ServerMessageJson.decode("""{"type":"Nope"}""") }
     }
 
+    @Test
+    fun serverMessageMutationResponseWithNullErrorDataRoundTrips() {
+        // Upstream: a ConvexError whose payload is JSON null. Presence of
+        // `errorData` (not its value) must survive the round trip.
+        val message = ServerMessage.MutationResponse(
+            requestId = RequestId(1u),
+            result = ConvexResult.Failure(ErrorPayload.ErrorData("", ConvexValue.Null)),
+            ts = null,
+            logLines = emptyList(),
+        )
+        val encoded = ServerMessageJson.encode(message)
+        assertEquals(true, encoded.contains("errorData"))
+        assertEquals(message, ServerMessageJson.decode(encoded))
+    }
+
+    @Test
+    fun serverMessageTransitionWithNullErrorDataRoundTrips() {
+        // Upstream: a full transition carrying a null ConvexError payload.
+        val message = ServerMessage.Transition(
+            startVersion = StateVersion(QuerySetVersion(1u), IdentityVersion(1u), Timestamp(1u)),
+            endVersion = StateVersion(QuerySetVersion(1u), IdentityVersion(1u), Timestamp(1u)),
+            modifications = listOf(
+                StateModification.QueryFailed(
+                    queryId = QueryId(1u),
+                    errorMessage = "",
+                    logLines = emptyList(),
+                    journal = null,
+                    errorData = ConvexValue.Null,
+                ),
+            ),
+            clientClockSkew = 1L,
+            serverTs = Timestamp(1u),
+        )
+        assertEquals(message, ServerMessageJson.decode(ServerMessageJson.encode(message)))
+    }
+
     private fun roundTripModification(modification: StateModification): StateModification {
         val transition = ServerMessage.Transition(
             startVersion = StateVersion(QuerySetVersion(0u), IdentityVersion(0u), Timestamp(0u)),

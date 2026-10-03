@@ -206,6 +206,85 @@ public final class eu/wynq/convex/core/functions/TypedFunctionsKt {
 	public static final fun encodeArguments (Leu/wynq/convex/core/functions/ConvexQuery;Ljava/lang/Object;)Ljava/util/Map;
 }
 
+public final class eu/wynq/convex/core/identity/UserIdentifier {
+	public static final field Companion Leu/wynq/convex/core/identity/UserIdentifier$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Leu/wynq/convex/core/identity/UserIdentifier;
+	public static fun constructor-impl (Ljava/lang/String;)Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/identity/UserIdentifier$Companion {
+	public final fun construct-2-4YOZk (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/identity/UserIdentityAttributes {
+	public static final field Companion Leu/wynq/convex/core/identity/UserIdentityAttributes$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-szYiagQ ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/String;
+	public final fun component11 ()Ljava/lang/String;
+	public final fun component12 ()Ljava/lang/String;
+	public final fun component13 ()Ljava/lang/Boolean;
+	public final fun component14 ()Ljava/lang/String;
+	public final fun component15 ()Ljava/lang/String;
+	public final fun component16 ()Ljava/lang/String;
+	public final fun component17 ()Ljava/lang/String;
+	public final fun component18 ()Ljava/lang/String;
+	public final fun component19 ()Ljava/lang/Boolean;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component20 ()Ljava/lang/String;
+	public final fun component21 ()Ljava/lang/String;
+	public final fun component22 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy-30lpb2k (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Leu/wynq/convex/core/identity/UserIdentityAttributes;
+	public static synthetic fun copy-30lpb2k$default (Leu/wynq/convex/core/identity/UserIdentityAttributes;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Leu/wynq/convex/core/identity/UserIdentityAttributes;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAddress ()Ljava/lang/String;
+	public final fun getBirthday ()Ljava/lang/String;
+	public final fun getCustomClaims ()Ljava/util/Map;
+	public final fun getEmail ()Ljava/lang/String;
+	public final fun getEmailVerified ()Ljava/lang/Boolean;
+	public final fun getFamilyName ()Ljava/lang/String;
+	public final fun getGender ()Ljava/lang/String;
+	public final fun getGivenName ()Ljava/lang/String;
+	public final fun getIssuer ()Ljava/lang/String;
+	public final fun getLanguage ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getNickname ()Ljava/lang/String;
+	public final fun getPhoneNumber ()Ljava/lang/String;
+	public final fun getPhoneNumberVerified ()Ljava/lang/Boolean;
+	public final fun getPictureUrl ()Ljava/lang/String;
+	public final fun getPreferredUsername ()Ljava/lang/String;
+	public final fun getProfileUrl ()Ljava/lang/String;
+	public final fun getSubject ()Ljava/lang/String;
+	public final fun getTimezone ()Ljava/lang/String;
+	public final fun getTokenIdentifier-szYiagQ ()Ljava/lang/String;
+	public final fun getUpdatedAt ()Ljava/lang/String;
+	public final fun getWebsiteUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun toJson ()Lkotlinx/serialization/json/JsonObject;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/wynq/convex/core/identity/UserIdentityAttributes$Companion {
+	public final fun fromJson (Lkotlinx/serialization/json/JsonElement;)Leu/wynq/convex/core/identity/UserIdentityAttributes;
+}
+
 public final class eu/wynq/convex/core/paths/CanonicalizedModulePath : java/lang/Comparable {
 	public final fun asString ()Ljava/lang/String;
 	public fun compareTo (Leu/wynq/convex/core/paths/CanonicalizedModulePath;)I

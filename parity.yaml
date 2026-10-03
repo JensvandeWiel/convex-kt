@@ -412,40 +412,52 @@ requirements:
       - "convex-core.ServerMessageJsonTest.transitionRoundTripsWithAllModificationKinds"
 
   - id: sync-types-src-types-json-proptest-user-identity-attributes-roundtrips
-    description: "Upstream test 'proptest_user_identity_attributes_roundtrips' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: User identity attributes round-trip through their JSON codec.
+    status: ported
     upstream:
       - "sync_types/src/types/json.rs::proptest_user_identity_attributes_roundtrips"
+    kotlin:
+      - "convex-core.UserIdentityAttributesTest.proptestUserIdentityAttributesRoundtrips"
 
   - id: sync-types-src-types-json-server-message-mutation-response-with-null-error-data-roundtrips
-    description: "Upstream test 'server_message_mutation_response_with_null_error_data_roundtrips' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: A mutation failure with a null ConvexError payload round-trips and keeps the errorData key.
+    status: ported
     upstream:
       - "sync_types/src/types/json.rs::server_message_mutation_response_with_null_error_data_roundtrips"
+    kotlin:
+      - "convex-core.ServerMessageJsonTest.serverMessageMutationResponseWithNullErrorDataRoundTrips"
 
   - id: sync-types-src-types-json-server-message-transition-with-null-error-data-roundtrips
-    description: "Upstream test 'server_message_transition_with_null_error_data_roundtrips' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: A transition whose query failed with a null ConvexError payload round-trips.
+    status: ported
     upstream:
       - "sync_types/src/types/json.rs::server_message_transition_with_null_error_data_roundtrips"
+    kotlin:
+      - "convex-core.ServerMessageJsonTest.serverMessageTransitionWithNullErrorDataRoundTrips"
 
   - id: sync-types-src-types-json-user-identity-attributes-deserialize-token-identifier-cannot-derive
-    description: "Upstream test 'user_identity_attributes_deserialize_token_identifier_cannot_derive' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: Without tokenIdentifier and a full issuer/subject pair, parsing fails.
+    status: ported
     upstream:
       - "sync_types/src/types/json.rs::user_identity_attributes_deserialize_token_identifier_cannot_derive"
+    kotlin:
+      - "convex-core.UserIdentityAttributesTest.deserializeTokenIdentifierCannotDerive"
 
   - id: sync-types-src-types-json-user-identity-attributes-deserialize-token-identifier-deriver
-    description: "Upstream test 'user_identity_attributes_deserialize_token_identifier_deriver' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: A missing tokenIdentifier is derived from issuer and subject.
+    status: ported
     upstream:
       - "sync_types/src/types/json.rs::user_identity_attributes_deserialize_token_identifier_deriver"
+    kotlin:
+      - "convex-core.UserIdentityAttributesTest.deserializeTokenIdentifierDeriver"
 
   - id: sync-types-src-types-json-user-identity-attributes-deserialize-token-identifier-given
-    description: "Upstream test 'user_identity_attributes_deserialize_token_identifier_given' in 'sync_types/src/types/json.rs' has no Kotlin counterpart yet."
-    status: planned
+    description: An explicit tokenIdentifier is read verbatim.
+    status: ported
     upstream:
       - "sync_types/src/types/json.rs::user_identity_attributes_deserialize_token_identifier_given"
+    kotlin:
+      - "convex-core.UserIdentityAttributesTest.deserializeTokenIdentifierGiven"
 
   - id: sync-types-src-udf-path-test-strip
     description: Stripping a canonicalized UDF path drops the default export name and the .js extension.
