@@ -32,7 +32,8 @@ coroutines and `Flow`.
 | `convex-compose` | `rememberQuery` and `QueryState<T>` for Compose |
 | `convex-auth` | JWT parsing and RS256/ES256 verification |
 | `convex-storage` | Upload and download files |
-| `convex-codegen` | Build-time generator for typed call sites |
+| `convex-codegen` | The generator engine and CLI behind typed call sites |
+| `convex-codegen-gradle` | Gradle plugin that captures the apiSpec and generates per build |
 
 Dependencies point inward: `convex-client`, `convex-auth`, and `convex-storage`
 depend on `convex-core`; `convex-compose` depends on `convex-client` and
@@ -40,12 +41,22 @@ depend on `convex-core`; `convex-compose` depends on `convex-client` and
 
 ## Add the dependency
 
-The group is `eu.wynq.convex` and the current version is `0.1.0`, published to
+The group is `eu.wynq.convex` and the current version is `0.2.0`, published to
 Maven Central:
 
 ```kotlin
-implementation("eu.wynq.convex:convex-client:0.1.0")
+implementation("eu.wynq.convex:convex-client:0.2.0")
 ```
+
+## Start a new project
+
+The [new-project guide](https://jensvandewiel.github.io/convex-kt/)
+walks from an empty directory to a running Compose Multiplatform app with a
+Convex backend and generated typed calls. The short version:
+
+1. Create the backend and push it once: `npx convex dev --once`.
+2. Apply the codegen plugin with your package name.
+3. `./gradlew build` — the build captures the apiSpec and generates typed calls.
 
 ## Quick start
 
@@ -81,9 +92,9 @@ carries the function's kind, argument type, and result type:
 import com.example.api.Api
 
 client.subscribe(Api.Messages.list)                                  // no-arg: argument omitted
-client.subscribe(Api.Messages.search, SearchInput(limit = 20))       // query input
-val length: Long = client.mutate(Api.Messages.send, SendMessageRequest("hi"))
-val echo: String? = client.action(Api.Messages.echo, EchoRequest("hi")) // actions may return nothing
+client.subscribe(Api.Messages.search, Api.Messages.SearchInput(limit = 20))  // query input
+val length: Long = client.mutate(Api.Messages.send, Api.Messages.SendMessageRequest("hi"))
+val echo: String? = client.action(Api.Messages.echo, Api.Messages.EchoRequest("hi")) // actions may return nothing
 ```
 
 - Queries take an `<Function>Input`; mutations and actions take a
@@ -96,11 +107,51 @@ val echo: String? = client.action(Api.Messages.echo, EchoRequest("hi")) // actio
   backend does not declare `returns`, the result is a `ConvexValue` — the value
   is still delivered, only its static type is generic.
 
-Generate the descriptors with the CLI:
+Generate the descriptors by applying the codegen plugin. By default it captures
+the backend's `apiSpec` on every build — no manual JSON step — and adds the
+output to your source set:
+
+```kotlin
+plugins {
+    id("eu.wynq.convex.codegen") version "0.2.0"
+}
+
+convexCodegen {
+    packageName = "com.example.api"
+    // Optional: push the backend before capturing, so the two never drift.
+    prepareCommand = listOf("npx", "--yes", "convex", "dev", "--once")
+}
+```
+
+```bash
+./gradlew generateConvexApi   # or just ./gradlew build
+```
+
+The generated file lands in `build/generated/convex/`. The defaults are
+`convexProjectDirectory` = the root project directory,
+`functionSpecCommand` = `npx --yes convex function-spec`, `objectName` = `Api`,
+and `sourceSet` = `commonMain` (`main` for a Kotlin JVM project).
+
+To read a committed file and skip the CLI entirely, set `spec`:
+
+```kotlin
+convexCodegen {
+    packageName = "com.example.api"
+    spec = layout.projectDirectory.file("convex/api-spec.json")
+}
+```
+
+The standalone CLI produces the same bytes when you want a committed file:
 
 ```bash
 ./gradlew :convex-codegen:run --args="--spec api-spec.json --package com.example.api --object Api --out Api.kt"
 ```
+
+For a fully self-contained build — one `./gradlew build` that installs the Convex
+CLI, pushes the backend, and regenerates — the backend can be a Gradle module of
+its own using the [Gradle Node plugin](https://github.com/node-gradle/gradle-node-plugin).
+The [new-project guide](https://jensvandewiel.github.io/convex-kt/) walks through
+that setup.
 
 `CONTRIBUTING.md` documents how to fetch `api-spec.json` from a running backend.
 
@@ -165,8 +216,9 @@ val bytes = storage.download(fileUrl)
 - **Pagination** is not wrapped by a helper; each query's `journal` is carried
   across reconnects, and an app assembles Convex pagination from a cursor
   argument.
-- **Code generation** is a CLI step; the generated file is meant to be committed
-  and diffed.
+- **Code generation** captures the backend `apiSpec` as a build step and is not
+  committed; set `convexCodegen { spec = ... }` to read a committed file
+  instead. The engine is also runnable as a CLI.
 - **Value export.** `ConvexValue.export()` projects a value into the plain-JSON
   "database types" format (integers and bytes become strings, non-finite floats
   become sentinels). This is lossy and separate from the tagged wire codec in

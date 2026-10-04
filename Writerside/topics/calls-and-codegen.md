@@ -26,7 +26,30 @@ Actions return `Result?` in typed form: a JSON `null` decodes to Kotlin
 ## Typed calls with generated descriptors
 
 `convex-codegen` turns a Convex API spec into descriptors, so argument
-shapes and result types are compile errors instead of runtime surprises:
+shapes and result types are compile errors instead of runtime surprises. Apply
+the Gradle plugin; by default it captures the spec and generates on every build:
+
+```kotlin
+plugins {
+    id("eu.wynq.convex.codegen") version "0.2.0"
+}
+
+convexCodegen {
+    packageName = "com.example.convex"
+    // Optional: push the backend before capturing.
+    prepareCommand = listOf("npx", "--yes", "convex", "dev", "--once")
+}
+```
+
+```bash
+./gradlew generateConvexApi   # or let a normal build run it
+```
+
+The plugin adds its output (`build/generated/convex/`) to `commonMain` (or
+`main` in a Kotlin JVM project). To read a committed file instead of running the
+CLI, set `spec = layout.projectDirectory.file("api-spec.json")`.
+
+The standalone CLI writes the same bytes when a committed file is preferred:
 
 ```bash
 convex-codegen --spec api-spec.json --package com.example.convex \
@@ -39,8 +62,8 @@ degrade to `ConvexValidator.Any` rather than failing the generation. Then:
 
 ```kotlin
 client.subscribe(Api.Messages.list)
-client.mutate(Api.Messages.send, SendMessageRequest("hi"))
-val echo: EchoResponse? = client.action(Api.Messages.echo, EchoRequest("hi"))
+client.mutate(Api.Messages.send, Api.Messages.SendMessageRequest("hi"))
+val echo: EchoResponse? = client.action(Api.Messages.echo, Api.Messages.EchoRequest("hi"))
 ```
 
 When the generator cannot model a function's `returns`, the descriptor

@@ -13,12 +13,13 @@
         </description>
 
         <spotlight>
-            <card href="getting-started.md" summary="Dependencies, first connection, first subscription, first mutation."/>
-            <card href="sync-client.md" summary="Connections, subscriptions, results, timeouts, and reconnects."/>
+            <card href="new-project.md" summary="Backend, dependencies, and generated typed calls from scratch."/>
+            <card href="getting-started.md" summary="Add the client to an existing project: connect, subscribe, mutate."/>
         </spotlight>
 
         <primary>
             <title>Start here</title>
+            <card href="sync-client.md" summary="Connections, subscriptions, results, timeouts, and reconnects."/>
             <card href="calls-and-codegen.md" summary="Untyped, typed, and HTTP calls."/>
             <card href="example-chat.md" summary="Run the Compose Desktop sample end to end."/>
             <card href="https://jensvandewiel.github.io/convex-kt/api/" summary="Every public class, function, and property.">API reference</card>

@@ -181,7 +181,8 @@ convex-client    Ktor WebSocket transport + client driving the state machine
 convex-auth      JWT parsing and RS256/ES256 verification
 convex-storage   file upload/download/URL generation (the only HTTP module)
 convex-compose   QueryState<T> controllers + @Composable bindings
-convex-codegen   build-time apiSpec -> ConvexFunction descriptor generator
+convex-codegen   apiSpec -> ConvexFunction/descriptor generator (JVM)
+convex-codegen-gradle  Gradle plugin: captures the apiSpec and runs `convex-codegen` per build
 tools/parity     JVM CLI that validates parity.yaml in CI
 examples/chat    Compose Desktop example; depends on client + compose
 ```
@@ -189,7 +190,8 @@ examples/chat    Compose Desktop example; depends on client + compose
 Dependencies point inward: `convex-core` depends on nothing in this repository.
 `convex-client`, `convex-auth`, and `convex-storage` depend on `convex-core`.
 `convex-compose` depends on `convex-core` and `convex-client`. `convex-codegen`
-and `tools/parity` are JVM-only build tools, and `examples/chat` is a leaf.
+is a JVM-only build tool; `convex-codegen-gradle` wraps it in a Gradle plugin and
+depends on it. `tools/parity` is a JVM CLI, and `examples/chat` is a leaf.
 Do not introduce a dependency that points the other way.
 
 See `README.md` for the module map and consumer-facing usage, and

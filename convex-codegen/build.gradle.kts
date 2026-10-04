@@ -1,5 +1,5 @@
 plugins {
-    id("convex-jvm-library")
+    id("convex-jvm-publish")
     alias(libs.plugins.kotlin.serialization)
     application
 }

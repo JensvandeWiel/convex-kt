@@ -3,6 +3,10 @@
 Add the libraries, open a client, subscribe to a query, run a mutation.
 Ten minutes, end to end.
 
+> Starting from an empty directory? [Build a new project](new-project.md) covers
+> the Convex backend, the Compose Multiplatform scaffold, and code generation
+> as one path.
+
 ## Requirements
 
 - JDK 21 or newer.
@@ -19,10 +23,10 @@ Ten minutes, end to end.
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("eu.wynq.convex:convex-client:0.1.0-SNAPSHOT")
-    implementation("eu.wynq.convex:convex-compose:0.1.0-SNAPSHOT") // Compose UI only
-    implementation("eu.wynq.convex:convex-auth:0.1.0-SNAPSHOT") // JWT verification only
-    implementation("eu.wynq.convex:convex-storage:0.1.0-SNAPSHOT") // file transfer only
+    implementation("eu.wynq.convex:convex-client:0.2.0")
+    implementation("eu.wynq.convex:convex-compose:0.2.0") // Compose UI only
+    implementation("eu.wynq.convex:convex-auth:0.2.0") // JWT verification only
+    implementation("eu.wynq.convex:convex-storage:0.2.0") // file transfer only
 }
 ```
 
@@ -72,6 +76,7 @@ and what happens on reconnect.
 
 ## Next steps
 
+- [Build a new project](new-project.md) for the backend and codegen setup.
 - [Sync client](sync-client.md) for the connection lifecycle.
 - [Calls and codegen](calls-and-codegen.md) for typed calls and actions.
 - [Example: chat](example-chat.md) for a runnable app doing all of this.

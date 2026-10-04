@@ -34,7 +34,8 @@ convex-client    Ktor WebSocket transport + the client driving the state machine
 convex-auth      JWT parsing and RS256/ES256 verification
 convex-storage   file upload/download (the only module that owns an HTTP client)
 convex-compose   QueryState<T> controllers + @Composable bindings
-convex-codegen   build-time apiSpec -> descriptor generator (JVM)
+convex-codegen   apiSpec -> descriptor generator (JVM)
+convex-codegen-gradle  Gradle plugin: captures the apiSpec and generates per build
 tools/parity     JVM CLI that validates parity.yaml
 examples/chat    Compose Desktop example (leaf)
 ```
@@ -44,7 +45,7 @@ When adding a feature, put it in the lowest module that can own it:
 - Pure data, wire shapes, and reduction logic → `convex-core`.
 - Connection, coroutines, retries, and call orchestration → `convex-client`.
 - Compose lifecycle and state → `convex-compose`.
-- Generated call sites → `convex-codegen`.
+- Generated call sites → `convex-codegen`; the Gradle wiring → `convex-codegen-gradle`.
 
 `convex-core` holds **no coroutines**: the state machine is a synchronous
 reducer, which is what makes it testable without a network.
@@ -147,13 +148,13 @@ Two workflows run when a GitHub release is published:
 
 - **Docs** builds the Writerside guide and the Dokka site and deploys both to
   GitHub Pages.
-- **Publish** uploads the five library modules to Maven Central and releases
-  the deployment automatically.
+- **Publish** uploads the five client libraries plus the codegen engine and its
+  Gradle plugin to Maven Central, and releases the deployment automatically.
 
 To cut a release:
 
-1. Set the project `version` in `build.gradle.kts` (and the README snippet)
-   and commit it.
+1. Set the project `version` in `build.gradle.kts` (and the version snippets in
+   `README.md` and `Writerside/topics/new-project.md`) and commit it.
 2. Publish a GitHub release tagged `v<version>`. The tag must match the project
    version; the publish workflow fails otherwise.
 

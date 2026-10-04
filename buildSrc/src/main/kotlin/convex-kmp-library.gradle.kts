@@ -69,43 +69,13 @@ extensions.configure<LibraryExtension> {
 
 // Maven Central publication for the public libraries. The plugin detects the
 // Kotlin Multiplatform and Android plugins and creates a publication per
-// target, plus sources jars and Dokka-backed javadoc jars.
-//
-// Signing is enabled only when a key is configured, so local
-// `publishToMavenLocal` runs need no GPG credentials; CI supplies the key
-// through the ORG_GRADLE_PROJECT_* secrets in .github/workflows/publish.yml.
-val signingKeyPresent: Boolean =
-    findProperty("signingInMemoryKey") != null ||
-        System.getenv("ORG_GRADLE_PROJECT_signingInMemoryKey") != null
-
+// target, plus sources jars and Dokka-backed javadoc jars. The POM metadata and
+// signing policy are shared with the JVM build-tool convention through
+// `configureConvexPublishing`; see ConvexPublishing.kt.
 extensions.configure<MavenPublishBaseExtension> {
-    publishToMavenCentral(automaticRelease = true)
-    if (signingKeyPresent) {
-        signAllPublications()
-    }
-    pom {
-        name.set(project.name)
-        description.set("A Kotlin Multiplatform client for Convex")
-        inceptionYear.set("2026")
-        url.set("https://github.com/JensvandeWiel/convex-kt/")
-        licenses {
-            license {
-                name.set("The Apache License, Version 2.0")
-                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                distribution.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-            }
-        }
-        developers {
-            developer {
-                id.set("JensvandeWiel")
-                name.set("Jens van de Wiel")
-                url.set("https://github.com/JensvandeWiel/")
-            }
-        }
-        scm {
-            url.set("https://github.com/JensvandeWiel/convex-kt/")
-            connection.set("scm:git:https://github.com/JensvandeWiel/convex-kt.git")
-            developerConnection.set("scm:git:ssh://git@github.com/JensvandeWiel/convex-kt.git")
-        }
-    }
+    configureConvexPublishing(
+        project = project,
+        artifactName = project.name,
+        artifactDescription = "A Kotlin Multiplatform client for Convex",
+    )
 }

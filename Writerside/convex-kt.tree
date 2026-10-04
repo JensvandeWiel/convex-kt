@@ -2,6 +2,7 @@
 <!DOCTYPE instance-profile SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
 <instance-profile id="convex-kt" name="convex-kt" start-page="landing.topic">
     <toc-element topic="landing.topic"/>
+    <toc-element topic="new-project.md"/>
     <toc-element topic="getting-started.md"/>
     <toc-element topic="sync-client.md"/>
     <toc-element topic="calls-and-codegen.md"/>

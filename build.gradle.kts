@@ -16,8 +16,10 @@
 apply(plugin = "org.jetbrains.dokka")
 
 // Dokka 2.x aggregates subproject publications declared here. Only the five
-// published library modules are listed: the build tools (codegen, parity,
-// integration tests) keep their standalone pages out of the user-facing site.
+// client-facing library modules are listed: the build tools (the codegen engine
+// and its Gradle plugin, parity, integration tests) keep their standalone pages
+// out of the user-facing site, and the Gradle plugin's consumer interface is the
+// `convexCodegen { }` DSL rather than a Kotlin API.
 // General guides cannot live on the generated landing page (Dokka renders
 // module-attached docs only), so prose lives in the `Writerside/` help module
 // while Dokka stays API-only. See README.md for how the two surfaces split.
@@ -31,7 +33,7 @@ dependencies {
 
 allprojects {
     group = "eu.wynq.convex"
-    version = "0.1.0"
+    version = "0.2.0"
 }
 
 // `check` on each module is the local "is this module acceptable" entry point,

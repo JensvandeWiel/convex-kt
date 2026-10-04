@@ -36,6 +36,7 @@ include(
     ":convex-storage",
     ":convex-compose",
     ":convex-codegen",
+    ":convex-codegen-gradle",
     ":tools:parity",
     ":examples:chat",
     ":integration-tests",

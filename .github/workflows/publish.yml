@@ -1,8 +1,8 @@
 name: Publish
 
-# Publishes the five library modules to Maven Central when a GitHub release is
-# published. Also runnable manually for the first upload or a retry; the
-# release tag must match the project version.
+# Publishes the client libraries and the codegen tooling to Maven Central when a
+# GitHub release is published. Also runnable manually for the first upload or a
+# retry; the release tag must match the project version.
 on:
   release:
     types: [published]
