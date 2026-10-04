@@ -55,9 +55,10 @@ class ConvexCodegenPluginUnitTest {
             extension.functionSpecCommand.get().takeLast(2) == listOf("convex", "function-spec"),
             "unexpected command: ${extension.functionSpecCommand.get()}",
         )
+        val output = extension.outputDirectory.get().asFile.path.replace('\\', '/')
         assertTrue(
-            extension.outputDirectory.get().asFile.path.endsWith("generated/convex"),
-            "unexpected output directory: ${extension.outputDirectory.get().asFile.path}",
+            output.endsWith("generated/convex"),
+            "unexpected output directory: $output",
         )
     }
 
@@ -84,13 +85,17 @@ class ConvexCodegenPluginUnitTest {
     fun capturesTheSpecByRunningTheConfiguredCommand() {
         val projectDir = Files.createTempDirectory("convex-spec").toFile()
         try {
-            File(projectDir, "functions.json").writeText(FUNCTION_SPEC)
             val project = ProjectBuilder.builder().withProjectDir(projectDir).build()
             project.pluginManager.apply(ConvexCodegenPlugin::class.java)
             val extension = project.extensions.getByType(ConvexCodegenExtension::class.java)
             extension.convexProjectDirectory.set(projectDir)
-            // A portable stand-in for `npx convex function-spec`.
-            extension.functionSpecCommand.set(listOf("cat", "functions.json"))
+            // A portable stand-in for `npx convex function-spec`: print the spec
+            // to stdout, which the task captures. Uses the running JVM so the
+            // command resolves on every OS.
+            val java = File(System.getProperty("java.home"), "bin/java").absolutePath
+            extension.functionSpecCommand.set(
+                listOf(java, "-cp", System.getProperty("java.class.path"), SpecToStdout::class.java.name),
+            )
 
             val task = project.tasks.getByName("convexFunctionSpec") as ConvexFunctionSpecTask
             task.fetch()
@@ -150,5 +155,24 @@ class ConvexCodegenPluginUnitTest {
               ]
             }
         """.trimIndent()
+    }
+}
+
+/**
+ * Prints a minimal `apiSpec` to stdout, standing in for the Convex CLI.
+ *
+ * The capture task runs an external command and reads its stdout; using the
+ * running JVM keeps that command resolvable on every OS, unlike `cat`.
+ */
+internal object SpecToStdout {
+    @JvmStatic
+    fun main(args: Array<String>) {
+        print(
+            """
+            {"functions":[{"identifier":"messages.js:send","functionType":"Mutation",
+            "args":{"type":"object","value":{"body":{"fieldType":{"type":"string"},"optional":false}}},
+            "returns":{"type":"number"}}]}
+            """.trimIndent(),
+        )
     }
 }

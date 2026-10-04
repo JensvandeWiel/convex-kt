@@ -85,7 +85,7 @@ class ConvexCodegenPluginTest {
             build = kotlinBuild("org.jetbrains.kotlin.jvm", "main", "jvm"),
         ) { projectDir ->
             val result = run(projectDir, "printConvexSourceDirs")
-            assertContains(result.output, "build/generated/convex")
+            assertContains(result.output, File("build", "generated/convex").path.replace('\\', '/'))
         }
     }
 
@@ -96,7 +96,7 @@ class ConvexCodegenPluginTest {
             build = kotlinBuild("org.jetbrains.kotlin.multiplatform", "commonMain", "multiplatform"),
         ) { projectDir ->
             val result = run(projectDir, "printConvexSourceDirs")
-            assertContains(result.output, "build/generated/convex")
+            assertContains(result.output, File("build", "generated/convex").path.replace('\\', '/'))
         }
     }
 
